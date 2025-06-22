@@ -10,9 +10,10 @@ from typing import Any, Dict, Final, List, Sequence
 
 class ModuliGenerator:
     # Using typing.Final to explicitly mark immutable constants
-    DEFAULT_KEY_LENGTHS: Final[tuple[int, ...]] = (2048,)
+    DEFAULT_KEY_LENGTHS: Final[tuple[int, ...]] = (2048, 2048, 2048)
     DEFAULT_OUTPUT_DIR: Final[Path] = Path.home() / '.moduli_assembly'
     DEFAULT_GENERATOR_TYPE: Final[int] = 2
+    DEFAULT_NICE_VALUE: Final[int] = 20
 
     def __init__(self,
                  key_lengths: Sequence[int] = DEFAULT_KEY_LENGTHS,
@@ -29,6 +30,7 @@ class ModuliGenerator:
         self.generator_type = self.DEFAULT_GENERATOR_TYPE
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.nice_value = self.DEFAULT_NICE_VALUE
 
         # Configure logging
         logging.basicConfig(
@@ -48,22 +50,23 @@ class ModuliGenerator:
         Returns:
             Path to generated candidates file
         """
-        candidates_file = self.output_dir / f'candidates_{key_length}.txt'
+        candidates_file = self.output_dir / f'candidates_{key_length}'
 
         try:
             # Generate moduli candidates with new ssh-keygen syntax
             subprocess.run([
+                'nice', f'-n {self.nice_value}',
                 'ssh-keygen',
                 '-M', 'generate',
                 '-O', f'bits={key_length}',  # Specify the bit length
                 str(candidates_file)  # Output a file specification
             ], check=True)
 
-            self.logger.info(f"Generated candidates for {key_length} bits")
+            self.logger.info(f'Generated candidates for {key_length} bits')
             return candidates_file
 
         except subprocess.CalledProcessError as e:
-            self.logger.error(f"Candidate generation failed for {key_length}: {e}")
+            self.logger.error(f'Candidate generation failed for {key_length}: {e}')
             raise
 
     def _screen_candidates(self, candidates_file: Path) -> Path:
@@ -77,11 +80,12 @@ class ModuliGenerator:
         Returns:
             Path to the screened moduli file
         """
-        screened_file = self.output_dir / f'screened_{candidates_file.stem}.txt'
+        screened_file = self.output_dir / f'screened_{candidates_file.stem}'
 
         try:
             # Screen candidates with new ssh-keygen syntax
             subprocess.run([
+                'nice', f'-n {self.nice_value}',
                 'ssh-keygen',
                 '-M', 'screen',
                 '-O', f'generator={self.generator_type}',  # Specify screening type
@@ -90,11 +94,11 @@ class ModuliGenerator:
                 str(screened_file)
             ], check=True)
 
-            self.logger.info(f"Screened candidates: {screened_file}")
+            self.logger.info(f'Screened candidates: {screened_file}')
             return screened_file
 
         except subprocess.CalledProcessError as e:
-            self.logger.error(f"Screening failed for {candidates_file}: {e}")
+            self.logger.error(f'Screening failed for {candidates_file}: {e}')
             raise
 
     def _parse_moduli_files(self, moduli_path: Path = Path('/etc/ssh/moduli')) -> Dict[str, List[Dict[str, Any]]]:
@@ -130,7 +134,7 @@ class ModuliGenerator:
                         moduli_json.setdefault(parts[3], []).append(moduli_entry)
 
         except FileNotFoundError:
-            self.logger.warning(f"Moduli file not found: {moduli_path}")
+            self.logger.warning(f'Moduli file not found: {moduli_path}')
 
         return moduli_json
 
@@ -182,7 +186,7 @@ class ModuliGenerator:
         with open(output_path, 'w') as f:
             json.dump(moduli_schema, f, indent=2)
 
-        self.logger.info(f"Moduli schema saved to {output_path}")
+        self.logger.info(f'Moduli schema saved to {output_path}')
 
 
 def main():
@@ -192,11 +196,16 @@ def main():
     start_time = time.time()
     generated_files = generator.generate_moduli()
 
+    # tbd - here we want to store all generated moduli in a database
+    #       Thinking about continous production, we will, without limit, dump newly produced moduli
+    #       to a database.
+    #       Processing after Load tbd
+
     # Save moduli schema
     generator.save_moduli_schema()
 
-    print(f"Moduli Generation Complete. Time taken: {time.time() - start_time:.2f} seconds")
-    print("Generated Files:", generated_files)
+    print(f'Moduli Generation Complete. Time taken: {time.time() - start_time:.2f} seconds')
+    print('Generated Files: ', generated_files)
 
 
 if __name__ == "__main__":

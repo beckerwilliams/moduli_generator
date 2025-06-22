@@ -9,14 +9,12 @@ ssh-moduli-builder
 
     README
 
-    QUICKSTART
     DOCUMENTATION
 
     PYTHON_PACKAGING
 
     MODULI_ASSEMBLY
 
-    RATIONALE
     LICENSE
 
     .github/ISSUE_TEMPLATE/bug_report

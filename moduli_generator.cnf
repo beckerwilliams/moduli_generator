@@ -1,0 +1,14 @@
+#
+# This group is read both by the client and the server
+# use it for options that affect everything, see
+# https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#option-groups
+#
+[client-server]
+host                                = mariadb.threatwonk.net
+port	                            = 3306
+socket	                            = /var/run/mysql/mysql.sock
+password                            = pEAkTNc41u8XCs0
+user                                = moduli_generator
+database                            = mod_gen
+ssl                                 = true
+

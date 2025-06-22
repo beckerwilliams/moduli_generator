@@ -8,12 +8,12 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path('..', 'moduli_assembly', 'config_manager').resolve()))
+# sys.path.insert(0, str(Path('..', 'moduli_assembly', 'config_manager').resolve()))
 
-project = 'ssh-moduli-builder'
-copyright = '2024 Ron Williams <becker.williams@gmail.com>'
+project = 'moduli_generator'
+copyright = '2025 Ron Williams <becker.williams@gmail.com>'
 author = 'Ron Williams <becker.williams@gmail.com>'
-release = '1.0.7'
+release = '0.1.0'
 
 # -- General configuration ++++++++++++++++++++++++++++++++++++++++++++++++++-
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

@@ -30,7 +30,7 @@ OpenSSH2 provides moduli generation capabilities via on platform `OpenSSH ssh-ke
 Rather than individually generating moduli across desired moduli key sizes, `SSH Moduli Generator` provides the means to
 generate a complete moduli file with similar distributions across moduli.
 Each run of ssh-keygen will produce about 25% of the moduli needed for a complete file. The included scripts,
-`export_bash_builder` and `export_csh_builder`, will launch 4 runs of `moduli-assembly` in parallel, sufficient to
+`export_bash_builder` and `export_csh_builder`, will launch 4 runs of `moduli_generator` in parallel, sufficient to
 produce a complete ssh moduli file.
 
 Note: _Elapsed time for complete run is about 7 **days** on an Intel Quad Core i7_
@@ -39,7 +39,7 @@ Note: _Elapsed time for complete run is about 7 **days** on an Intel Quad Core i
 
 Builds Complete file With One Command
 
-- python: `python -m moduli_assembly --all`
+- python: `python -m moduli_generator --all`
 
 Provides Scripts for managing parallel build of moduli
 
@@ -72,7 +72,7 @@ In a working directory, Create a python virtual environment, install ssh-moduli-
     - C-Shell: `source .venv/bin/activate.csh`
 
 - Install Wheel
-    - `pip install ./moduli_assembly-<version>-py3-none-any.whl`
+    - `pip install ./moduli_generator-<version>-py3-none-any.whl`
 
 ## Usage
 
@@ -80,7 +80,7 @@ In a working directory, Create a python virtual environment, install ssh-moduli-
 
 Produce One Full Moduli Set
 
-`python -m moduli_assembly --all`
+`python -m moduli_generator --all`
 
 _Builds SSH Moduli File with All Authorized Bitsizes:_
 
@@ -90,13 +90,13 @@ _Builds SSH Moduli File with All Authorized Bitsizes:_
 
 Produces Moduli with Selected Bitsizes
 
-`python -m moduli_assembly --bitsizes <bitsize> [<bitsize> [...]]`
+`python -m moduli_generator --bitsizes <bitsize> [<bitsize> [...]]`
 
 _Build Moduli for each bitsize given. Multiple Entries provide Multiple Runs_
 
 Example
 
-`python -m moduli_assembly --bitsizes 3072 3072 4096`
+`python -m moduli_generator --bitsizes 3072 3072 4096`
 
 - _Two Runs of `3072`, one of `4096`_
 
@@ -106,7 +106,7 @@ Restart previously interrupted Screening Run
 
 Example
 
-`python -m moduli_assembly --restart`
+`python -m moduli_generator --restart`
 
 - _Completes Screening of Any Interrupted Screening Runs_
 
@@ -114,7 +114,7 @@ Example
 
 Example
 
-`python -m moduli_assembly --write`
+`python -m moduli_generator --write`
 
 - _Writes out SSH MODULI File from Existing Safe Primes_
 
@@ -122,7 +122,7 @@ Example
 
 Example
 
-`python -m moduli_assembly --clear-artifacts`
+`python -m moduli_generator --clear-artifacts`
 
 * Clears candidate, candidate checkpoint, and screened moduli files from ${MODULI_DIR}
 
@@ -132,17 +132,17 @@ In order to build a sufficiently diverse SSH Moduli file, we need 4 runs of EACH
 The following Shell Scripts will start 4 process in parallel, and produce a Complete SSH Moduli File with over
 75 entries for each bitsize.
 
-`moduli-assembly` will take about 1 Week to produce a complete File on an 4 Core Intel i7 processor.
+`moduli_generator` will take about 1 Week to produce a complete File on an 4 Core Intel i7 processor.
 
 ### Export Shell Scripts
 
 #### C Shell (csh) Moduli Runner
 
-`python -m moduli_assembly.scripts.export_csh_runner > build_moduli_file.csh`
+`python -m moduli_generator.scripts.export_csh_runner > build_moduli_file.csh`
 
 #### Bourne Again Shell (bash) Moduli Runner
 
-`python -m moduli_assembly.scripts.export_bash_runner > build_moduli_file.sh`
+`python -m moduli_generator.scripts.export_bash_runner > build_moduli_file.sh`
 
 #### Set the `exec` bit on Scripts
 
@@ -164,12 +164,12 @@ Log File `all.gen.log`
 
 ### Moduli Frequency Distribution
 
-`moduli-assembly` provides in module and an exportable bash script that will display the frequency of the moduli in any
+`moduli_generator` provides in module and an exportable bash script that will display the frequency of the moduli in any
 ssh moduli file.
 
 #### Export moduli_infile script and exec enable
 
-`python -m moduli_assembly.scripts.export_moduli_infile > moduli_infile.sh`
+`python -m moduli_generator.scripts.export_moduli_infile > moduli_infile.sh`
 
 Set exec bit on shell script: `chmod +x ./moduli_infile.sh`
 
@@ -183,13 +183,13 @@ or
 
 `./moduli_infile.sh <MODULI_INFILE>` # default moduli file /etc/ssh/moduli # default
 
-##### moduli-assembly
+##### moduli_generator
 
-`python -m moduli_assembly.scripts.moduli_infile # default: /etc/ssh/moduli`
+`python -m moduli_generator.scripts.moduli_infile # default: /etc/ssh/moduli`
 
 or
 
-`python -m moduli_assembly.scripts.moduli_infile [-f <SSH_MODULI_FILE>]  # selected moduli file`
+`python -m moduli_generator.scripts.moduli_infile [-f <SSH_MODULI_FILE>]  # selected moduli file`
 
 * Where default MODULI File is `/etc/ssh/moduli`
 
@@ -206,7 +206,7 @@ Modulus Frequency of /etc/ssh/moduli:
 
 #### Retrieve last generated MODULI file
 
-`python -m moduli_assembly.scripts.export_moduli_infile > MODULI_FILE`
+`python -m moduli_generator.scripts.export_moduli_infile > MODULI_FILE`
 
 ### Use Moduli File
 
