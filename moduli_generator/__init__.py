@@ -4,13 +4,13 @@ import json
 import logging
 import subprocess
 import time
-from pathlib import Path
+from pathlib import PosixPath as Path
 from typing import Any, Dict, Final, List, Sequence
 
 
 class ModuliGenerator:
     # Using typing.Final to explicitly mark immutable constants
-    DEFAULT_KEY_LENGTHS: Final[tuple[int, ...]] = (2048, 2048, 2048)
+    DEFAULT_KEY_LENGTHS: Final[tuple[int, ...]] = (2048, 3072)
     DEFAULT_OUTPUT_DIR: Final[Path] = Path.home() / '.moduli_assembly'
     DEFAULT_GENERATOR_TYPE: Final[int] = 2
     DEFAULT_NICE_VALUE: Final[int] = 20
@@ -197,7 +197,7 @@ def main():
     generated_files = generator.generate_moduli()
 
     # tbd - here we want to store all generated moduli in a database
-    #       Thinking about continous production, we will, without limit, dump newly produced moduli
+    #       Thinking about continuous production, we will, without limit, dump newly produced moduli
     #       to a database.
     #       Processing after Load tbd
 

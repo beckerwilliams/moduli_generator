@@ -1,12 +1,12 @@
 import unittest
 import os
 import tempfile
-from unittest.mock import patch, mock_open
+from unittest.mock import patch
 import configparser
-from typing import Dict, Optional
+from typing import Dict
 
 # Import the module to test
-from moduli_generator.mariadb_cnf_parser import parse_mysql_config, get_mysql_config_value
+from db.mariadb_cnf_parser import parse_mysql_config, get_mysql_config_value
 
 """1. Tests `parse_mysql_config()` for:
     - Valid configuration files
