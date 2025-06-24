@@ -1,29 +1,35 @@
 #!/usr/bin/env python
 import concurrent.futures
-import json
 import logging
 import subprocess
 import time
+from json import (dump, loads)
 from pathlib import PosixPath as Path
 from typing import Any, Dict, Final, List, Sequence
+
+from db.mg_mariadb_connector import (MariaDBConnector, store_screened_moduli)
 
 
 class ModuliGenerator:
     # Using typing.Final to explicitly mark immutable constants
-    DEFAULT_KEY_LENGTHS: Final[tuple[int, ...]] = (2048, 3072)
+    DEFAULT_KEY_LENGTHS: Final[tuple[int, ...]] = (3072, 4096, 6144, 7680, 8192)
     DEFAULT_OUTPUT_DIR: Final[Path] = Path.home() / '.moduli_assembly'
     DEFAULT_GENERATOR_TYPE: Final[int] = 2
     DEFAULT_NICE_VALUE: Final[int] = 20
 
     def __init__(self,
                  key_lengths: Sequence[int] = DEFAULT_KEY_LENGTHS,
-                 output_dir: Path = DEFAULT_OUTPUT_DIR):
+                 output_dir: Path = DEFAULT_OUTPUT_DIR,
+                 nice_value: int = DEFAULT_NICE_VALUE,
+                 db_cnf: str = None  # tbd - If exists - store moduli, if not, ignore
+                 ):
         """
         Initialize Moduli Generator with configurable parameters
 
         Args:
             key_lengths: Sequence of bit lengths for moduli generation
             output_dir: Directory for storing generated files
+            nice_value: Value for nice command to set for moduli generation
         """
         # Create an immutable copy of the input sequence
         self.key_lengths = tuple(key_lengths)
@@ -55,7 +61,7 @@ class ModuliGenerator:
         try:
             # Generate moduli candidates with new ssh-keygen syntax
             subprocess.run([
-                'nice', f'-n {self.nice_value}',
+                'nice', '-n', str(self.nice_value),
                 'ssh-keygen',
                 '-M', 'generate',
                 '-O', f'bits={key_length}',  # Specify the bit length
@@ -85,7 +91,7 @@ class ModuliGenerator:
         try:
             # Screen candidates with new ssh-keygen syntax
             subprocess.run([
-                'nice', f'-n {self.nice_value}',
+                'nice', '-n', str(self.nice_value),
                 'ssh-keygen',
                 '-M', 'screen',
                 '-O', f'generator={self.generator_type}',  # Specify screening type
@@ -184,28 +190,28 @@ class ModuliGenerator:
         moduli_schema = self._parse_moduli_files()
 
         with open(output_path, 'w') as f:
-            json.dump(moduli_schema, f, indent=2)
+            dump(moduli_schema, f, indent=2)
 
         self.logger.info(f'Moduli schema saved to {output_path}')
 
 
 def main():
-    generator = ModuliGenerator()
+    generator = ModuliGenerator(nice_value=15)
 
     # Generate moduli
     start_time = time.time()
     generated_files = generator.generate_moduli()
 
-    # tbd - here we want to store all generated moduli in a database
-    #       Thinking about continuous production, we will, without limit, dump newly produced moduli
-    #       to a database.
-    #       Processing after Load tbd
-
     # Save moduli schema
     generator.save_moduli_schema()
-
     print(f'Moduli Generation Complete. Time taken: {time.time() - start_time:.2f} seconds')
     print('Generated Files: ', generated_files)
+
+    # Test DB Work
+    db = MariaDBConnector("/Users/ron/development/moduli_generator/moduli_generator.cnf")
+
+    moduli = loads(Path('/Users/ron/development/moduli_generator/.moduli_assembly/moduli_schema.json').read_text())
+    store_screened_moduli(db, moduli)
 
 
 if __name__ == "__main__":

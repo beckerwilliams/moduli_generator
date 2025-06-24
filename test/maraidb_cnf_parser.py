@@ -1,12 +1,13 @@
-import unittest
-import os
-import tempfile
-from unittest.mock import patch
 import configparser
+from os import unlink
+from tempfile import NamedTemporaryFile
 from typing import Dict
+from unittest import (TestCase, main)
+from unittest.mock import patch
 
 # Import the module to test
-from db.mariadb_cnf_parser import parse_mysql_config, get_mysql_config_value
+# from db.mariadb_cnf_parser import parse_mysql_config, get_mysql_config_value
+from db.mg_mariadb_connector import (get_mysql_config_value, parse_mysql_config)
 
 """1. Tests `parse_mysql_config()` for:
     - Valid configuration files
@@ -25,7 +26,7 @@ from db.mariadb_cnf_parser import parse_mysql_config, get_mysql_config_value
 """
 
 
-class TestMariaDBCnfParser(unittest.TestCase):
+class TestMariaDBCnfParser(TestCase):
     """Unit tests for mariadb_cnf_parser.py"""
 
     def setUp(self):
@@ -49,7 +50,7 @@ quick
 max_allowed_packet=16M
 """
         # Create a temporary file for testing
-        self.temp_file = tempfile.NamedTemporaryFile(delete=False)
+        self.temp_file = NamedTemporaryFile(delete=False)
         with open(self.temp_file.name, 'w') as f:
             f.write(self.sample_config)
 
@@ -76,7 +77,7 @@ max_allowed_packet=16M
     def tearDown(self):
         """Clean up test fixtures"""
         # Remove the temporary file
-        os.unlink(self.temp_file.name)
+        unlink(self.temp_file.name)
 
     # Tests for parse_mysql_config function
     def test_parse_mysql_config_with_valid_file(self):
@@ -103,17 +104,17 @@ max_allowed_packet=16M
     def test_parse_mysql_config_with_empty_file(self):
         """Test parsing an empty configuration file"""
         # Create an empty temporary file
-        empty_file = tempfile.NamedTemporaryFile(delete=False)
+        empty_file = NamedTemporaryFile(delete=False)
         try:
             result = parse_mysql_config(empty_file.name)
             self.assertEqual(result, {})  # Should return empty dict
         finally:
-            os.unlink(empty_file.name)
+            unlink(empty_file.name)
 
     @patch('configparser.ConfigParser.read')
     def test_parse_mysql_config_with_parser_error(self, mock_read):
         """Test handling of parser errors"""
-        # Setup mock to raise an exception
+        # Set up a mock to raise an exception
         mock_read.side_effect = configparser.Error("Test parsing error")
 
         with self.assertRaises(ValueError) as context:
@@ -124,19 +125,19 @@ max_allowed_packet=16M
     def test_parse_mysql_config_with_malformed_file(self):
         """Test parsing a malformed configuration file"""
         # Create a malformed config file
-        malformed_file = tempfile.NamedTemporaryFile(delete=False)
+        malformed_file = NamedTemporaryFile(delete=False)
         try:
             with open(malformed_file.name, 'w') as f:
                 f.write("This is not a valid INI file format")
 
-            # Should still parse without error, just with empty result
+            # Should still parse without error, just with an empty result
             result = parse_mysql_config(malformed_file.name)
             self.assertEqual(result, {})
         except ValueError as error:
             assert True, f"Unexpected error: {error}"
 
         finally:
-            os.unlink(malformed_file.name)
+            unlink(malformed_file.name)
 
     # Tests for get_mysql_config_value function
     def test_get_mysql_config_value_existing(self):
@@ -169,7 +170,7 @@ max_allowed_packet=16M
         )
 
     def test_get_mysql_config_value_with_default(self):
-        """Test that default value is properly handled (or in this case, ignored)"""
+        """Test that a default value is properly handled (or in this case, ignored)"""
         # Even though we provide a default, the implementation ignores it
         self.assertIsNone(
             get_mysql_config_value(self.parsed_config, 'client', 'nonexistent_key', default='default_value')
@@ -190,4 +191,4 @@ max_allowed_packet=16M
 
 
 if __name__ == '__main__':
-    unittest.main()
+    main()
