@@ -6,7 +6,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import (declarative_base, sessionmaker)
 
 from db.mariadb_cnf_parser import parse_mysql_config
-from db.mg_mariadb_connector import MariaDBConnector
+from db.moduli_db_utilities import MariaDBConnector
 from moduli_generator import ModuliGenerator
 
 Base = declarative_base()

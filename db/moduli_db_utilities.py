@@ -1,13 +1,33 @@
 import configparser
-from configparser import (ConfigParser, NoOptionError, NoSectionError)
+from configparser import (ConfigParser)
 from datetime import datetime
 from json import loads
 from logging import (DEBUG, basicConfig, getLogger)
 from pathlib import PosixPath as Path
+from re import sub
 from sys import exit
 from typing import (Dict, Optional)
 
 from mariadb import (Error, connect)
+
+
+def compress_datestr(datestring: str):
+    """
+    Compress a given date string, as produced from mariadb, by removing all non-numeric characters.
+
+    This function processes a string expected to represent a date by stripping
+    out any characters that are not numeric. The resulting string contains only
+    digits, which may be useful for specific date manipulations or validations.
+
+    :param datestring: The input date string potentially containing non-numeric
+        characters that should be removed.
+    :type datestring: Str
+    :return: A compressed string containing only numeric characters from the
+        original date string.
+    :rtype: Str
+    """
+    # Remove all non-numeric characters using regex
+    return sub(r'[^0-9]', '', datestring)
 
 
 def parse_mysql_config(config_path: str) -> Dict[str, Dict[str, str]]:
@@ -35,13 +55,12 @@ def parse_mysql_config(config_path: str) -> Dict[str, Dict[str, str]]:
         result = {local_section: dict(cnf[local_section]) for local_section in cnf.sections()}
         return result
     except configparser.Error as error:
-        raise ValueError(f"Error parsing configuration file: {error}")
+        raise ValueError(f"Error parsing configuration filerr: {error}")
 
 
 def get_mysql_config_value(cnf: Dict[str, Dict[str, str]],
                            local_section: str,
-                           local_key: str,
-                           default: Optional[str] = None) -> Optional[str]:
+                           local_key: str):
     """
     Get a specific value from a parsed MySQL configuration.
 
@@ -49,7 +68,6 @@ def get_mysql_config_value(cnf: Dict[str, Dict[str, str]],
         cnf (Dict[str, Dict[str, str]]): Parsed configuration dictionary
         local_section (str): Section name
         local_key (str): Key name
-        default (Optional[str]): Default value if section or key doesn't exist
 
     Returns:
         Optional[str]: Value from the configuration or default
@@ -61,9 +79,6 @@ def get_mysql_config_value(cnf: Dict[str, Dict[str, str]],
 
 
 class MariaDBConnector:
-    """
-
-    """
 
     def __init__(self,
                  mycnf: str = Path.home() / ".my.cnf",
@@ -76,7 +91,7 @@ class MariaDBConnector:
 
         :param mycnf: Path to the MySQL configuration file, which should contain the necessary
                       connection details under the "client" group.
-        :type mycnf: str
+        :type mycnf: Str
         :param output_dir: Output directory path where the log file, 'mariadb_connector.log',
                            will be created and used for logging.
         :type output_dir: Path
@@ -88,7 +103,8 @@ class MariaDBConnector:
         basicConfig(
             level=DEBUG,
             format='%(asctime)s - %(levelname)s: %(message)s',
-            filename=output_dir / 'mariadb_connector.log'
+            filename=output_dir / 'mariadb_connector.log',
+            filemode='a'
         )
         self.logger = getLogger(__name__)
 
@@ -101,13 +117,13 @@ class MariaDBConnector:
                 password=conf["password"],
                 database=conf["database"]
             )
-        except Error as e:
-            self.logger.error(f"Error connecting to MariaDB Platform: {e}")
+        except Error as mdbconn_error:
+            self.logger.error(f"Error connecting to MariaDB Platform: {mdbconn_error}")
             exit(1)
 
-        # assure logger output directory exists
-        output_dir.mkdir(parents=True, exist_ok=True)
-        (output_dir / "mariadb-connector.log").touch(exist_ok=True)
+        # # assure logger output directory exists
+        # output_dir.mkdir(parents=True, exist_ok=True)
+        # (output_dir / "mariadb_connector.log").touch(exist_ok=True)
 
     def sql(self, query):
         """
@@ -117,15 +133,19 @@ class MariaDBConnector:
         associated with this object.
 
         :param query: The SQL query to be executed on the database.
-        :type query: str
+        :type query: Str
         :return: None
-        :rtype: None
+        :rtyperr: None
         """
         cursor = self.connection.cursor()
-        cursor.execute(query)
-        for row in cursor:
-            self.logger.info(row)
-        cursor.close()
+        try:
+            cursor.execute(query)
+            for row in cursor:
+                self.logger.info(row)
+            cursor.close()
+        except Error as mdbconn_error:
+            self.logger.error(f"Error executing SQL query: {mdbconn_error}")
+            exit(1)
 
     def add(self, timestamp, candidate_type, tests, trials, key_size,
             generator, modulus, file_origin):
@@ -166,55 +186,99 @@ class MariaDBConnector:
             last_id = cursor.lastrowid
             cursor.close()
             return last_id
+
+        except Error as err:
+            self.logger.error(f"Error inserting candidate: {err}")
+
+    def delete_records(self, table_name, where_clause=None):
+        """
+        Delete entries from a table in the database.
+
+        Args:
+            table_name (str): The name of the table to delete from
+            where_clause (str, optional): SQL WHERE clause to filter records for deletion.
+                                         If None, all records will be deleted.
+
+        Returns:
+            int: Number of rows deleted, or -1 if an error occurred
+        """
+
+        try:
+            cursor = self.connection.cursor()
+
+            if where_clause:
+                query = f"DELETE FROM {table_name} WHERE {where_clause}"
+            else:
+                query = f"DELETE FROM {table_name}"
+
+            cursor.execute(query)
+            rows_affected = cursor.rowcount
+            self.connection.commit()
+            cursor.close()
+
+            print(f"Successfully deleted {rows_affected} rows from table: {table_name}")
+            return rows_affected
+
         except Error as e:
-            self.logger.error(f"Error inserting candidate: {e}")
-            return None
+            print(f"Error deleting from table {table_name}: {e}")
+            return -1
 
 
-def store_screened_moduli(db: MariaDBConnector, json_schema: dict):
+def store_screened_moduli(db_conn: MariaDBConnector, json_schema: dict):
     """
     Save from JSON moduli schema file (JSON of screened moduli)
 
     Args:
-        db: MariaDB connector instance
+        db_conn: MariaDB connector instance
         json_schema: Dictionary with moduli data
     """
     for key, moduli_list in json_schema.items():
         for modulus in moduli_list:
-            db.add(modulus["timestamp"], modulus["type"], modulus["tests"],
-                   modulus["trials"], modulus["size"], modulus["generator"],
-                   modulus["modulus"], "screened_candidates")
-            db.logger.info(f'Stored {modulus["timestamp"]} candidate in database')
+            try:
+                db_conn.add(modulus["timestamp"], modulus["type"], modulus["tests"],
+                            modulus["trials"], modulus["size"], modulus["generator"],
+                            modulus["modulus"], "screened_candidates")
+
+                db_conn.logger.info(f'Stored {modulus["timestamp"]} candidate in database')
+
+            except Error as err:
+
+                db_conn.logger.error(f"Error storing modulus{modulus['timestamp']}: {err}")
 
 
 if __name__ == "__main__":
+    db = MariaDBConnector('/Users/ron/development/moduli_generator/moduli_generator.cnf')
+    # db.delete_records('screened_candidates')
+    # exit()
 
-    db = MariaDBConnector("/Users/ron/development/moduli_generator/moduli_generator.cnf")
-
-    try:
-        db.sql("SHOW DATABASES")
-    except Error as e:
-        db.logger.error(f"Error executing SQL query: {e}")
-
-    try:
-        db.sql("USE mod_gen")
-    except Error as e:
-        db.logger.error(f"Error selecting database: {e}")
-
-    try:
-        db.sql("SHOW TABLES")
-    except Error as e:
-        db.logger.error(f"Error executing SQL query: {e}")
-
-    test_timestamp = datetime.now()
-    test_id = db.add(timestamp=test_timestamp,
-                     candidate_type="2",
-                     tests="primality,miller-rabin",
-                     trials=10,
-                     key_size=2048,
-                     generator=2,
-                     modulus="ABCDEF123456789...",  # This would be a long prime number
-                     file_origin="/path/to/source/file.txt")
+    # try:
+    #     db.sql("SHOW DATABASES")
+    # except Error as err:
+    #     print(err)
+    #     db.logger.error(f"Error executing SQL query: {err}")
+    #
+    # try:
+    #     db.sql("USE mod_gen")
+    # except Error as err:
+    #     db.logger.info(f"Expected Empty Cursor for USE mod_gen: {err}")
+    #
+    # try:
+    #     db.sql("SHOW TABLES")
+    # except Error as err:
+    #     if not err ==  'Cursor doesn\'t have a result set':
+    #         pass  # Ignore
+    #     else:
+    #         db.logger.error(f"Error executin SHOW TABLES: {err}")
+    #
+    # test_timestamp = datetime.now(UTC).replace(tzinfo=None)
+    # test_id = db.add(timestamp=test_timestamp,
+    #                  candidate_type="2",
+    #                  tests="primality,miller-rabin",
+    #                  trials=10,
+    #                  key_size=2048,
+    #                  generator=2,
+    #                  modulus="ABCDEF123456789...",  # This would be a long prime number
+    #                  file_origin="/path/to/source/file.txt")
 
     # Let's Store the Current File
     moduli_file = Path("/Users/ron/development/moduli_generator/.moduli_assembly/moduli_schema.json").read_text()

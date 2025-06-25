@@ -2,7 +2,7 @@ from json import loads
 from pathlib import PosixPath as Path
 from time import time
 
-from db.mg_mariadb_connector import MariaDBConnector, store_screened_moduli
+from db.moduli_db_utilities import MariaDBConnector, store_screened_moduli
 from moduli_generator import ModuliGenerator
 
 

@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 # Import the module to test
 # from db.mariadb_cnf_parser import parse_mysql_config, get_mysql_config_value
-from db.mg_mariadb_connector import (get_mysql_config_value, parse_mysql_config)
+from db.moduli_db_utilities import (get_mysql_config_value, parse_mysql_config)
 
 """1. Tests `parse_mysql_config()` for:
     - Valid configuration files
@@ -167,19 +167,6 @@ max_allowed_packet=16M
         """Test retrieving from nonexistent sections"""
         self.assertIsNone(
             get_mysql_config_value(self.parsed_config, 'nonexistent_section', 'user')
-        )
-
-    def test_get_mysql_config_value_with_default(self):
-        """Test that a default value is properly handled (or in this case, ignored)"""
-        # Even though we provide a default, the implementation ignores it
-        self.assertIsNone(
-            get_mysql_config_value(self.parsed_config, 'client', 'nonexistent_key', default='default_value')
-        )
-
-        # Make sure default doesn't interfere with finding actual values
-        self.assertEqual(
-            get_mysql_config_value(self.parsed_config, 'client', 'user', default='default_value'),
-            'testuser'
         )
 
     def test_get_mysql_config_value_with_empty_config(self):
