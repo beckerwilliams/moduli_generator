@@ -5,11 +5,12 @@ import subprocess
 from datetime import UTC, datetime
 from json import (dump)
 from pathlib import PosixPath as Path
+from re import sub
 from typing import Any, Dict, Final, List, Sequence
 
 from mariadb import Error
 
-from db.moduli_db_utilities import (MariaDBConnector, compress_datestr, store_screened_moduli)
+from db.moduli_db_utilities import (MariaDBConnector, store_screened_moduli)
 
 
 def ISO_UTC_TIMESTAMP(compress: bool = False) -> str:
@@ -21,13 +22,13 @@ def ISO_UTC_TIMESTAMP(compress: bool = False) -> str:
         format or not.
     :type compress: Bool
     :return: The ISO 8601 formatted a UTC timestamp as a string. If `compress` is
-        True, the string will be in a compressed format.
+        True, the string will be in a compressed format (numerals only, no punctuation).
     :rtype: Str
     """
 
     timestamp = datetime.now(UTC).replace(tzinfo=None).isoformat()
     if compress:
-        return compress_datestr(timestamp)
+        return sub(r'[^0-9]', '', timestamp)
     else:
         return timestamp
 
@@ -78,7 +79,7 @@ class ModuliGenerator:
         Returns:
             Path to generated candidates file
         """
-        candidates_file = self.output_dir / f'candidates_{key_length}_{compress_datestr(ISO_UTC_TIMESTAMP())}'
+        candidates_file = self.output_dir / f'candidates_{key_length}_{ISO_UTC_TIMESTAMP(compress=True)}'
 
         try:
             # Generate moduli candidates with new ssh-keygen syntax
@@ -123,6 +124,7 @@ class ModuliGenerator:
             ], check=True)
 
             self.logger.info(f'Screened candidates: {screened_file}')
+            candidates_file.unlink()  # Cleanup Used Candidate File
             return screened_file
 
         except subprocess.CalledProcessError as e:
@@ -163,40 +165,49 @@ class ModuliGenerator:
             return moduli_json
         return None
 
-    def generate_moduli(self) -> Dict[int, Path]:
+    def generate_moduli(self) -> Dict[int, List[Path]]:
         """
         Generate moduli for all specified key lengths
+        Handles multiple instances of the same key size by returning a dictionary
+        mapping key lengths to lists of generated moduli files
 
         Returns:
-            Dictionary mapping key lengths to generated moduli files
+            Dictionary mapping key lengths to lists of generated moduli files
         """
         generated_moduli = {}
 
         with concurrent.futures.ProcessPoolExecutor() as executor:
             # First, generate candidates
-            candidate_futures = {
-                executor.submit(self._generate_candidates, length): length
-                for length in self.key_lengths
-            }
+            candidate_futures = []
+            for length in self.key_lengths:
+                future = executor.submit(self._generate_candidates, length)
+                candidate_futures.append((future, length))
 
-            candidates = {}
-            for future in concurrent.futures.as_completed(candidate_futures):
-                length = candidate_futures[future]
-                candidates[length] = future.result()
+            # Process completed futures and organize candidates by key length
+            candidates_by_length = {}
+            for future, length in candidate_futures:
+                candidate_file = future.result()
+                if length not in candidates_by_length:
+                    candidates_by_length[length] = []
+                candidates_by_length[length].append(candidate_file)
 
             # Then screen candidates
-            screening_futures = {
-                executor.submit(self._screen_candidates, candidates[length]): length
-                for length in candidates
-            }
+            screening_futures = []
+            for length, candidate_files in candidates_by_length.items():
+                for candidate_file in candidate_files:
+                    future = executor.submit(self._screen_candidates, candidate_file)
+                    screening_futures.append((future, length))
 
-            for future in concurrent.futures.as_completed(screening_futures):
-                length = screening_futures[future]
-                generated_moduli[length] = future.result()
+            # Process completed screening futures
+            for future, length in screening_futures:
+                moduli_file = future.result()
+                if length not in generated_moduli:
+                    generated_moduli[length] = []
+                generated_moduli[length].append(moduli_file)
 
         return generated_moduli
 
-    def save_moduli_schema(self, output_path: Path = None):
+    def save_moduli(self, output_path: Path = None):
         """
         Saves the existing moduli schema to a structured JSON file. If no custom output
         path is specified, the schema will be saved to a default location.
@@ -217,7 +228,7 @@ class ModuliGenerator:
 
         self.logger.info(f'Moduli schema saved to {output_path}')
 
-    def store_moduli_schema(self, db: MariaDBConnector):
+    def store_moduli(self, db: MariaDBConnector):
         """
         Store the existing moduli schema parsed from files into the database.
 

@@ -3,8 +3,7 @@
 CREATE DATABASE IF NOT EXISTS mod_gen;
 USE mod_gen;
 
-CREATE TABLE screened_candidates (
-#     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE mod_gen.screened_moduli (
     timestamp DATETIME PRIMARY KEY NULL,
     candidate_type ENUM('2', '5') NOT NULL COMMENT 'Generator type',
     tests VARCHAR(50) NOT NULL COMMENT 'Tests performed',
@@ -17,7 +16,9 @@ CREATE TABLE screened_candidates (
 );
 
 -- Index for performance optimization
-CREATE INDEX idx_key_size ON screened_candidates(key_size);
+CREATE INDEX idx_key_size ON screened_moduli(key_size);
+CREATE INDEX idx_timestamp ON screened_moduli(timestamp);
+CREATE INDEX idx_created_at ON screened_moduli(created_at);
 
 
 # [2025-06-23 18:26:28] Connecting to ron@maraidb.threatwonk.net…
@@ -40,11 +41,11 @@ CREATE INDEX idx_key_size ON screened_candidates(key_size);
 # [2025-06-23 18:26:30] Summary: 5 of 5 statements executed in 226 ms (782 symbols in file)
 
 
-CREATE USER IF NOT EXISTS 'moduli_generator'@'%'
-IDENTIFIED BY 'MODULI_GENERATOR_PASSWORD'
-WITH MAX_QUERIES_PER_HOUR 500
-MAX_CONNECTIONS_PER_HOUR 100
-MAX_UPDATES_PER_HOUR 200
-MAX_USER_CONNECTIONS 50;
-GRANT ALL PRIVILEGES ON mod_gen.* TO 'moduli_generator'@'%' WITH GRANT OPTION;
-FLUSH PRIVILEGES;
+# CREATE USER IF NOT EXISTS 'moduli_generator'@'%'
+# IDENTIFIED BY 'MODULI_GENERATOR_PASSWORD'
+# WITH MAX_QUERIES_PER_HOUR 500
+# MAX_CONNECTIONS_PER_HOUR 100
+# MAX_UPDATES_PER_HOUR 200
+# MAX_USER_CONNECTIONS 50;
+# GRANT ALL PRIVILEGES ON mod_gen.* TO 'moduli_generator'@'%' WITH GRANT OPTION;
+# FLUSH PRIVILEGES;

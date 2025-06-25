@@ -1,9 +1,7 @@
 -- Schema for storing SSH moduli candidates
 CREATE DATABASE IF NOT EXISTS mod_gen;
-USE mod_gen;
 
-CREATE TABLE screened_candidates (
-#     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE mod_gen.screened_moduli (
     timestamp DATETIME PRIMARY KEY NULL,
     candidate_type ENUM('2', '5') NOT NULL COMMENT 'Generator type',
     tests VARCHAR(50) NOT NULL COMMENT 'Tests performed',
@@ -16,5 +14,6 @@ CREATE TABLE screened_candidates (
 );
 
 -- Index for performance optimization
-CREATE INDEX idx_key_size ON screened_candidates(key_size);
-CREATE INDEX idx_timestamp ON screened_candidates(timestamp);
+CREATE INDEX idx_key_size ON screened_moduli(key_size);
+CREATE INDEX idx_timestamp ON screened_moduli(timestamp);
+CREATE INDEX idx_created_at ON screened_moduli(created_at);

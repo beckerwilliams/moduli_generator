@@ -1,9 +1,13 @@
 [tool.poetry]
 name = "moduli_generator"
-version = "2.0.1"
+version = "2.0.8"
 description = "Command Line Utility to build moduli for [/usr/local]/etc/ssh/moduli_file]"
 authors = ["Ron Williams <becker.williams@gmail.com>"]
 readme = "README.md"
+packages = [
+    {include = "moduli_generator"},
+    {include = "db"}
+]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -12,12 +16,7 @@ sqlalchemy = "^2.0.41"
 mariadb = "^1.1.12"
 
 [tool.poetry.scripts]
-#main = "moduli_generator"
-#main = "moduli_assembly:main"
-#moduli_infile = "moduli_assembly.scripts.moduli_infile:main"
-#export_bash_builder = "moduli_assembly.scripts.export_bash_builder:main"
-#export_csh_builder = "moduli_assembly.scripts.export_csh_builder:main"
-#export_moduli_infile = "moduli_assembly.scripts.export_moduli_infile:main"
+moduli_generator = "moduli_generator.cli:main"
 
 [build-system]
 requires = ["poetry-core"]

@@ -1,7 +1,6 @@
 import configparser
 from configparser import (ConfigParser)
 from datetime import datetime
-from json import loads
 from logging import (DEBUG, basicConfig, getLogger)
 from pathlib import PosixPath as Path
 from re import sub
@@ -150,7 +149,7 @@ class MariaDBConnector:
     def add(self, timestamp, candidate_type, tests, trials, key_size,
             generator, modulus, file_origin):
         """
-        Insert a candidate into the screened_candidates table
+        Insert a candidate into the screened_moduli table
 
         Args:
             timestamp (datetime): Timestamp when the candidate was generated
@@ -168,7 +167,7 @@ class MariaDBConnector:
         try:
             cursor = self.connection.cursor()
             query = """
-                    INSERT INTO screened_candidates
+                    INSERT INTO screened_moduli
                     (timestamp, candidate_type, tests, trials, key_size, generator, modulus, file_origin)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?) \
                     """
@@ -237,50 +236,10 @@ def store_screened_moduli(db_conn: MariaDBConnector, json_schema: dict):
             try:
                 db_conn.add(modulus["timestamp"], modulus["type"], modulus["tests"],
                             modulus["trials"], modulus["size"], modulus["generator"],
-                            modulus["modulus"], "screened_candidates")
+                            modulus["modulus"], "screened_moduli")
 
                 db_conn.logger.info(f'Stored {modulus["timestamp"]} candidate in database')
 
             except Error as err:
 
                 db_conn.logger.error(f"Error storing modulus{modulus['timestamp']}: {err}")
-
-
-if __name__ == "__main__":
-    db = MariaDBConnector('/Users/ron/development/moduli_generator/moduli_generator.cnf')
-    # db.delete_records('screened_candidates')
-    # exit()
-
-    # try:
-    #     db.sql("SHOW DATABASES")
-    # except Error as err:
-    #     print(err)
-    #     db.logger.error(f"Error executing SQL query: {err}")
-    #
-    # try:
-    #     db.sql("USE mod_gen")
-    # except Error as err:
-    #     db.logger.info(f"Expected Empty Cursor for USE mod_gen: {err}")
-    #
-    # try:
-    #     db.sql("SHOW TABLES")
-    # except Error as err:
-    #     if not err ==  'Cursor doesn\'t have a result set':
-    #         pass  # Ignore
-    #     else:
-    #         db.logger.error(f"Error executin SHOW TABLES: {err}")
-    #
-    # test_timestamp = datetime.now(UTC).replace(tzinfo=None)
-    # test_id = db.add(timestamp=test_timestamp,
-    #                  candidate_type="2",
-    #                  tests="primality,miller-rabin",
-    #                  trials=10,
-    #                  key_size=2048,
-    #                  generator=2,
-    #                  modulus="ABCDEF123456789...",  # This would be a long prime number
-    #                  file_origin="/path/to/source/file.txt")
-
-    # Let's Store the Current File
-    moduli_file = Path("/Users/ron/development/moduli_generator/.moduli_assembly/moduli_schema.json").read_text()
-    moduli_json = loads(moduli_file)
-    store_screened_moduli(db, moduli_json)

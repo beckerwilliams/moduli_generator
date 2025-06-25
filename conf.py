@@ -3,7 +3,7 @@
 project = 'moduli_generator'
 copyright = '2025 Ron Williams <becker.williams@gmail.com>'
 author = 'Ron Williams <becker.williams@gmail.com>'
-version = '2.0.1'
+release = '2.0.8'
 
 extensions = [
     'myst_parser',
