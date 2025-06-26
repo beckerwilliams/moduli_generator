@@ -34,17 +34,27 @@ def ISO_UTC_TIMESTAMP(compress: bool = False) -> str:
 
 
 class ModuliGenerator:
-    # Using typing.Final to explicitly mark immutable constants
+    # Using typing.Final to explicitly mark immutable constants\
     DEFAULT_KEY_LENGTHS: Final[tuple[int, ...]] = (3072, 4096, 6144, 7680, 8192)
-    DEFAULT_OUTPUT_DIR: Final[Path] = Path.home() / '.moduli_assembly'
     DEFAULT_GENERATOR_TYPE: Final[int] = 2
     DEFAULT_NICE_VALUE: Final[int] = 20
 
+    # Filesystem Layout
+    DEFAULT_DIR: Final[Path] = Path.home() / '.moduli_assembly'
+    DEFAULT_CANDIDATES_DIR: Final[Path] = DEFAULT_DIR / '.candidates'
+    DEFAULT_MODULI_DIR: Final[Path] = DEFAULT_DIR / '.moduli'
+    DEFAULT_LOG_DIR: Final[Path] = DEFAULT_DIR / '.logs'
+    DEFAULT_MARIADB_CONFIG: Final[Path] = DEFAULT_DIR / "moduli_generator.cnf"
+
     def __init__(self,
                  key_lengths: Sequence[int] = DEFAULT_KEY_LENGTHS,
-                 output_dir: Path = DEFAULT_OUTPUT_DIR,
                  nice_value: int = DEFAULT_NICE_VALUE,
+                 default_dir: Path = DEFAULT_DIR,
+                 output_dir: Path = DEFAULT_CANDIDATES_DIR,
+                 moduli_dir: Path = DEFAULT_MODULI_DIR,
+                 log_dir: Path = DEFAULT_LOG_DIR,
                  ):
+
         """
         Initialize Moduli Generator with configurable parameters
 
@@ -57,14 +67,28 @@ class ModuliGenerator:
         self.generator_type = self.DEFAULT_GENERATOR_TYPE
         self.key_lengths = tuple(key_lengths)
         self.nice_value = nice_value
+
+        # Setup Modules Filesystem if doesn't exist
+        # output_dir
+        #          - .logs
+        #               - moduli_generation_logs
+        #          - .moduli
+        #               - moduli_????_DDDDDDDDDDDD
+        #
+        self.default_dir = default_dir
+        self.default_dir.mkdir(parents=True, exist_ok=True)
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.moduli_dir = moduli_dir
+        self.moduli_dir.mkdir(parents=True, exist_ok=True)
+        self.log_dir = log_dir
+        self.log_dir.mkdir(parents=True, exist_ok=True)
 
         # Configure logging
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s: %(message)s',
-            filename=self.output_dir / 'moduli_generation.log',
+            filename=self.log_dir / 'moduli_generator.log',
             filemode='a'
         )
         self.logger = logging.getLogger(__name__)
@@ -109,7 +133,7 @@ class ModuliGenerator:
         Returns:
             Path to the screened moduli file
         """
-        screened_file = self.output_dir / f'{candidates_file.name.replace('candidates', 'moduli')}'
+        screened_file = self.moduli_dir / f'{candidates_file.name.replace('candidates', 'moduli')}'
 
         try:
             # Screen candidates with new ssh-keygen syntax
@@ -124,7 +148,10 @@ class ModuliGenerator:
             ], check=True)
 
             self.logger.info(f'Screened candidates: {screened_file}')
+
+            # Cleanup used Moduli Candidates
             candidates_file.unlink()  # Cleanup Used Candidate File
+
             return screened_file
 
         except subprocess.CalledProcessError as e:
@@ -132,7 +159,7 @@ class ModuliGenerator:
             raise e
 
     def _parse_moduli_files(
-            self, moduli_path: Path = Path.home() / '.moduli_assembly'
+            self, moduli_path: Path = DEFAULT_MODULI_DIR
     ) -> Dict[str, List[Dict[str, Any]]]:
 
         screened_files = Path.glob(moduli_path, 'moduli_????_*')
@@ -183,7 +210,7 @@ class ModuliGenerator:
                 future = executor.submit(self._generate_candidates, length)
                 candidate_futures.append((future, length))
 
-            # Process completed futures and organize candidates by key length
+            # Process completed futures and organized candidates by key length
             candidates_by_length = {}
             for future, length in candidate_futures:
                 candidate_file = future.result()
@@ -207,26 +234,22 @@ class ModuliGenerator:
 
         return generated_moduli
 
-    def save_moduli(self, output_path: Path = None):
+    def save_moduli(self, default_dir: Path = DEFAULT_DIR):
         """
         Saves the existing moduli schema to a structured JSON file. If no custom output
         path is specified, the schema will be saved to a default location.
 
-        :param output_path: The path where the moduli schema JSON file should be saved.
+        :param default_dir: The path where the moduli schema JSON file should be saved.
             If not provided, a default output path is used.
-        :type output_path: Path, optional
+        :type default_dir: Path, optional
         :return: None
         :rtype: None
         """
-        if output_path is None:
-            output_path = self.output_dir / 'moduli_schema.json'
+        moduli_json = default_dir / f'moduli_{ISO_UTC_TIMESTAMP(True)}.json'
+        with open(moduli_json, 'w') as f:
+            dump(self._parse_moduli_files(self.moduli_dir), f, indent=2)
 
-        moduli_schema = self._parse_moduli_files()
-
-        with open(output_path, 'w') as f:
-            dump(moduli_schema, f, indent=2)
-
-        self.logger.info(f'Moduli schema saved to {output_path}')
+        self.logger.info(f'Moduli schema saved to {default_dir}')
 
     def store_moduli(self, db: MariaDBConnector):
         """
@@ -240,10 +263,13 @@ class ModuliGenerator:
                    with the MariaDB database.
         :type db: MariaDBConnector
         """
-        moduli_schema = self._parse_moduli_files()
         try:
-            store_screened_moduli(db, moduli_schema)
+            store_screened_moduli(db, self._parse_moduli_files(self.moduli_dir))
         except Error as err:
-            self.logger.error(f'Error storing moduli schema: {err}')
+            self.logger.error(f'Error storing moduli: {err}')
 
         self.logger.info(f'Moduli  saved to MariaDB database.')
+
+    def clear_moduli(self):
+        for mfile in self.moduli_dir.glob('moduli_*'):
+            mfile.unlink()

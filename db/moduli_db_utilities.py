@@ -3,33 +3,34 @@ from configparser import (ConfigParser)
 from datetime import datetime
 from logging import (DEBUG, basicConfig, getLogger)
 from pathlib import PosixPath as Path
-from re import sub
 from sys import exit
-from typing import (Dict, Optional)
+from typing import (Dict, Final, Optional)
 
 from mariadb import (Error, connect)
 
+DEFAULT_DIR: Final[Path] = Path.home() / '.moduli_assembly'
+DEFAULT_MARIADB_CNF: Final[Path] = DEFAULT_DIR / 'moduli_generator.cnf'
 
-def compress_datestr(datestring: str):
-    """
-    Compress a given date string, as produced from mariadb, by removing all non-numeric characters.
+# Def compress_datestr(datestring: str):
+#     """
+#     Compress a given date string, as produced from mariadb, by removing all non-numeric characters.
+#
+#     This function processes a string expected to represent a date by stripping
+#     out any characters that are not numeric. The resulting string contains only
+#     digits, which may be useful for specific date manipulations or validations.
+#
+#     :param datestring: The input date string potentially containing non-numeric
+#         characters that should be removed.
+#     :type datestring: Str
+#     :return: A compressed string containing only numeric characters from the
+#         original date string.
+#     :rtype: Str
+#     """
+#     # Remove all non-numeric characters using regex
+#     return sub(r'[^0-9]', '', datestring)
 
-    This function processes a string expected to represent a date by stripping
-    out any characters that are not numeric. The resulting string contains only
-    digits, which may be useful for specific date manipulations or validations.
 
-    :param datestring: The input date string potentially containing non-numeric
-        characters that should be removed.
-    :type datestring: Str
-    :return: A compressed string containing only numeric characters from the
-        original date string.
-    :rtype: Str
-    """
-    # Remove all non-numeric characters using regex
-    return sub(r'[^0-9]', '', datestring)
-
-
-def parse_mysql_config(config_path: str) -> Dict[str, Dict[str, str]]:
+def parse_mysql_config(config_path: Path = DEFAULT_MARIADB_CNF) -> Dict[str, Dict[str, str]]:
     """
     Parse a MySQL configuration file and return a dictionary of sections and their key-value pairs.
 
@@ -44,8 +45,7 @@ def parse_mysql_config(config_path: str) -> Dict[str, Dict[str, str]]:
         FileNotFoundError: If the configuration file doesn't exist,
         ValueError: If there's an issue parsing the file
     """
-    cpath = Path(config_path)
-    if not (cpath.is_file() and cpath.exists()):
+    if not (config_path.is_file() and config_path.exists()):
         raise FileNotFoundError(f"Configuration file not found: {config_path}")
 
     cnf = ConfigParser(allow_no_value=True)
@@ -80,8 +80,8 @@ def get_mysql_config_value(cnf: Dict[str, Dict[str, str]],
 class MariaDBConnector:
 
     def __init__(self,
-                 mycnf: str = Path.home() / ".my.cnf",
-                 output_dir: Path = Path.home() / ".moduli_assembly"
+                 mycnf: Path = DEFAULT_MARIADB_CNF,
+                 default_dir: Path = DEFAULT_DIR
                  ):
         """
         Initializes the MariaDB connector by setting up a connection to the database using the
@@ -91,18 +91,19 @@ class MariaDBConnector:
         :param mycnf: Path to the MySQL configuration file, which should contain the necessary
                       connection details under the "client" group.
         :type mycnf: Str
-        :param output_dir: Output directory path where the log file, 'mariadb_connector.log',
+        :param default_dir: Output directory path where the log file, 'mariadb_connector.log',
                            will be created and used for logging.
-        :type output_dir: Path
+        :type default_dir: Path
 
         :raises Error: Raised when a connection to the MariaDB Platform fails due to invalid
                        or missing configuration parameters.
         """
+
         # Configure logging
         basicConfig(
             level=DEBUG,
             format='%(asctime)s - %(levelname)s: %(message)s',
-            filename=output_dir / 'mariadb_connector.log',
+            filename=default_dir / 'mariadb_connector.log',
             filemode='a'
         )
         self.logger = getLogger(__name__)
@@ -119,10 +120,6 @@ class MariaDBConnector:
         except Error as mdbconn_error:
             self.logger.error(f"Error connecting to MariaDB Platform: {mdbconn_error}")
             exit(1)
-
-        # # assure logger output directory exists
-        # output_dir.mkdir(parents=True, exist_ok=True)
-        # (output_dir / "mariadb_connector.log").touch(exist_ok=True)
 
     def sql(self, query):
         """
