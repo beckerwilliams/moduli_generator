@@ -50,17 +50,16 @@ class ModuliGenerator:
                  key_lengths: Sequence[int] = DEFAULT_KEY_LENGTHS,
                  nice_value: int = DEFAULT_NICE_VALUE,
                  default_dir: Path = DEFAULT_DIR,
-                 output_dir: Path = DEFAULT_CANDIDATES_DIR,
+                 candidates_dir: Path = DEFAULT_CANDIDATES_DIR,
                  moduli_dir: Path = DEFAULT_MODULI_DIR,
                  log_dir: Path = DEFAULT_LOG_DIR,
                  ):
-
         """
         Initialize Moduli Generator with configurable parameters
 
         Args:
             key_lengths: Sequence of bit lengths for moduli generation
-            output_dir: Directory for storing generated files
+            candidates_dir: Directory for storing generated files
             nice_value: Value for 'nice' command to set for moduli generation
         """
         # Create an immutable copy of the input sequence
@@ -68,21 +67,14 @@ class ModuliGenerator:
         self.key_lengths = tuple(key_lengths)
         self.nice_value = nice_value
 
-        # Setup Modules Filesystem if doesn't exist
-        # output_dir
-        #          - .logs
-        #               - moduli_generation_logs
-        #          - .moduli
-        #               - moduli_????_DDDDDDDDDDDD
-        #
         self.default_dir = default_dir
-        self.default_dir.mkdir(parents=True, exist_ok=True)
-        self.output_dir = output_dir
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.candidates_dir = candidates_dir
         self.moduli_dir = moduli_dir
-        self.moduli_dir.mkdir(parents=True, exist_ok=True)
         self.log_dir = log_dir
-        self.log_dir.mkdir(parents=True, exist_ok=True)
+
+        # Assure Filesytem Exists
+        for pathobject in [self.candidates_dir, self.moduli_dir, self.log_dir]:
+            pathobject.mkdir(parents=True, exist_ok=True)
 
         # Configure logging
         logging.basicConfig(
@@ -103,7 +95,7 @@ class ModuliGenerator:
         Returns:
             Path to generated candidates file
         """
-        candidates_file = self.output_dir / f'candidates_{key_length}_{ISO_UTC_TIMESTAMP(compress=True)}'
+        candidates_file = self.candidates_dir / f'candidates_{key_length}_{ISO_UTC_TIMESTAMP(compress=True)}'
 
         try:
             # Generate moduli candidates with new ssh-keygen syntax
@@ -124,7 +116,6 @@ class ModuliGenerator:
 
     def _screen_candidates(self, candidates_file: Path) -> Path:
         """
-
         Screen candidates for safe primes using modern ssh-keygen
 
         Args:
@@ -137,12 +128,13 @@ class ModuliGenerator:
 
         try:
             # Screen candidates with new ssh-keygen syntax
+            checkpoint_file = self.candidates_dir / f".{candidates_file.name}"
             subprocess.run([
                 'nice', '-n', str(self.nice_value),
                 'ssh-keygen',
                 '-M', 'screen',
                 '-O', f'generator={self.generator_type}',  # Specify screening type
-                '-O', f'checkpoint={self.output_dir / f".{candidates_file.name}"}',
+                '-O', f'checkpoint={str(checkpoint_file)}',
                 '-f', str(candidates_file),
                 str(screened_file)
             ], check=True)
@@ -162,12 +154,12 @@ class ModuliGenerator:
             self, moduli_path: Path = DEFAULT_MODULI_DIR
     ) -> Dict[str, List[Dict[str, Any]]]:
 
-        screened_files = Path.glob(moduli_path, 'moduli_????_*')
+        screened_files = list(Path.glob(moduli_path, 'moduli_????_*'))
         moduli_json = {}
 
         for file in screened_files:
             try:
-                with open(file, 'r') as f:
+                with file.open('r') as f:
                     for line in f:
                         if line.startswith('#') or not line.strip():
                             continue
@@ -175,22 +167,21 @@ class ModuliGenerator:
                         parts = line.split()
                         if len(parts) == 7:
                             moduli_entry = {
-                                'timestamp': parts[0],
-                                'type': parts[1],
-                                'tests': parts[2],
-                                'trials': parts[3],
-                                'size': parts[4],
-                                'generator': parts[5],
-                                'modulus': parts[6]
+                                'timestamp': parts[0],  # TIMESTAMP
+                                # 'type': parts[1],         # Constant, Stored in moduli_db.mod_fl_consts
+                                # 'tests': parts[2],        # Constant, Stored in moduli_db.mod_fl_consts
+                                # 'trials': parts[3],       # Constant, Stored in moduli_db.mod_fl_consts
+                                'key-size': parts[4],  # KEY_LENGTH
+                                # 'generator': parts[5], # Constant, Stored in moduli_db.mod_fl_consts
+                                'modulus': parts[6]  # MODULUS
                             }
 
-                            moduli_json.setdefault(parts[3], []).append(moduli_entry)
+                            moduli_json.setdefault('screened_moduli', []).append(moduli_entry)
 
             except FileNotFoundError:
                 self.logger.warning(f'Moduli file not found: {moduli_path}')
 
-            return moduli_json
-        return None
+        return moduli_json
 
     def generate_moduli(self) -> Dict[int, List[Path]]:
         """
@@ -263,13 +254,18 @@ class ModuliGenerator:
                    with the MariaDB database.
         :type db: MariaDBConnector
         """
+        screened_moduli = self._parse_moduli_files(self.moduli_dir)
+
         try:
-            store_screened_moduli(db, self._parse_moduli_files(self.moduli_dir))
+            store_screened_moduli(db, screened_moduli)
+
         except Error as err:
             self.logger.error(f'Error storing moduli: {err}')
 
-        self.logger.info(f'Moduli  saved to MariaDB database.')
+        # Now we get Transactional - When Moduli are Stored in the DB - DELETE Their Sources
+        # tbd - We should check that the records are installed properly before hand
+        moduli_files = list(Path.glob(self.moduli_dir, 'moduli_????_*'))
+        for file in moduli_files:
+            file.unlink()
 
-    def clear_moduli(self):
-        for mfile in self.moduli_dir.glob('moduli_*'):
-            mfile.unlink()
+        self.logger.debug(f'Moduli  Stored in MariaDB database.')

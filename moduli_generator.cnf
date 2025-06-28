@@ -9,6 +9,6 @@ port	                            = 3306
 socket	                            = /var/run/mysql/mysql.sock
 password                            = pEAkTNc41u8XCs0
 user                                = moduli_generator
-database                            = mod_gen
+database                            = moduli_db
 ssl                                 = true
 
