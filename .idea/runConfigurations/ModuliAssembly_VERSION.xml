@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="ModuliAssembly VERSION" type="PythonConfigurationType" factoryName="Python">
-    <module name="ssh-moduli-builder" />
+    <module name="moduli_generator" />
     <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />

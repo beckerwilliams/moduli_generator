@@ -1,6 +1,6 @@
 .. ssh-moduli-builder documentation master file, created by sphinx-quickstart on Thu Nov 14 14:36:40 2024.
 
-ssh-moduli-builder
+moduli_generator
 ==================
 
 .. toctree::
@@ -21,6 +21,8 @@ ssh-moduli-builder
     .github/ISSUE_TEMPLATE/feature_request
 
     CHANGELOG
+
+# Doc is gefunkt - Requires Complete Re-Write
 
 
 

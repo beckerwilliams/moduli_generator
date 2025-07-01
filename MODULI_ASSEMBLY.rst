@@ -2,5 +2,5 @@ class ModuliAssembly
 ====================
 
 
-.. autoclass::   moduli_assembly.ModuliAssembly
+.. autoclass::   moduli_generator.__init__.py
     :members:

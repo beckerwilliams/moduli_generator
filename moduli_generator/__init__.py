@@ -1,89 +1,38 @@
 #!/usr/bin/env python
 import concurrent.futures
-import logging
 import subprocess
-from datetime import UTC, datetime
-from json import (dump)
+from json import dump
 from pathlib import PosixPath as Path
-from re import sub
-from typing import Any, Dict, Final, List, Sequence
+from typing import Any, Dict, List
 
 from mariadb import Error
 
-from db.moduli_db_utilities import (MariaDBConnector, store_screened_moduli)
-
-
-def ISO_UTC_TIMESTAMP(compress: bool = False) -> str:
-    """
-    Generate an ISO formatted UTC timestamp as a string. Optionally, the timestamp can
-    be compressed by enabling the `compress` parameter.
-
-    :param compress: Flag indicating whether the timestamp should be in compressed
-        format or not.
-    :type compress: Bool
-    :return: The ISO 8601 formatted a UTC timestamp as a string. If `compress` is
-        True, the string will be in a compressed format (numerals only, no punctuation).
-    :rtype: Str
-    """
-
-    timestamp = datetime.now(UTC).replace(tzinfo=None).isoformat()
-    if compress:
-        return sub(r'[^0-9]', '', timestamp)
-    else:
-        return timestamp
+# Import the default configuration
+from config import (
+    ISO_UTC_TIMESTAMP,
+    default_config
+)
 
 
 class ModuliGenerator:
-    # Using typing.Final to explicitly mark immutable constants\
-    DEFAULT_KEY_LENGTHS: Final[tuple[int, ...]] = (3072, 4096, 6144, 7680, 8192)
-    DEFAULT_GENERATOR_TYPE: Final[int] = 2
-    DEFAULT_NICE_VALUE: Final[int] = 20
+    def __init__(self, conf=default_config):
 
-    # Filesystem Layout
-    DEFAULT_DIR: Final[Path] = Path.home() / '.moduli_assembly'
-    DEFAULT_CANDIDATES_DIR: Final[Path] = DEFAULT_DIR / '.candidates'
-    DEFAULT_MODULI_DIR: Final[Path] = DEFAULT_DIR / '.moduli'
-    DEFAULT_LOG_DIR: Final[Path] = DEFAULT_DIR / '.logs'
-    DEFAULT_MARIADB_CONFIG: Final[Path] = DEFAULT_DIR / "moduli_generator.cnf"
+        self.config = conf
 
-    def __init__(self,
-                 key_lengths: Sequence[int] = DEFAULT_KEY_LENGTHS,
-                 nice_value: int = DEFAULT_NICE_VALUE,
-                 default_dir: Path = DEFAULT_DIR,
-                 candidates_dir: Path = DEFAULT_CANDIDATES_DIR,
-                 moduli_dir: Path = DEFAULT_MODULI_DIR,
-                 log_dir: Path = DEFAULT_LOG_DIR,
-                 ):
-        """
-        Initialize Moduli Generator with configurable parameters
+        # tbd - init logger here
+        self.logger = self.config.get_logger()
+        self.logger.name = __name__
 
-        Args:
-            key_lengths: Sequence of bit lengths for moduli generation
-            candidates_dir: Directory for storing generated files
-            nice_value: Value for 'nice' command to set for moduli generation
-        """
-        # Create an immutable copy of the input sequence
-        self.generator_type = self.DEFAULT_GENERATOR_TYPE
-        self.key_lengths = tuple(key_lengths)
-        self.nice_value = nice_value
-
-        self.default_dir = default_dir
-        self.candidates_dir = candidates_dir
-        self.moduli_dir = moduli_dir
-        self.log_dir = log_dir
-
-        # Assure Filesytem Exists
-        for pathobject in [self.candidates_dir, self.moduli_dir, self.log_dir]:
-            pathobject.mkdir(parents=True, exist_ok=True)
-
-        # Configure logging
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s: %(message)s',
-            filename=self.log_dir / 'moduli_generator.log',
-            filemode='a'
-        )
-        self.logger = logging.getLogger(__name__)
+        # Log paths
+        if self.config:
+            for path_name, path_obj in [
+                ('Base directory', self.config.moduli_dir),
+                ('Candidates directory', self.config.candidates_dir),
+                ('Moduli directory', self.config.moduli_dir),
+                ('Log directory', self.config.log_dir),
+                ('MariaDB config', self.config.mariadb_cnf)
+            ]:
+                self.logger.info(f'Using {path_name}: {path_obj}')
 
     def _generate_candidates(self, key_length: int) -> Path:
         """
@@ -95,12 +44,12 @@ class ModuliGenerator:
         Returns:
             Path to generated candidates file
         """
-        candidates_file = self.candidates_dir / f'candidates_{key_length}_{ISO_UTC_TIMESTAMP(compress=True)}'
+        candidates_file = self.config.candidates_dir / f'candidates_{key_length}_{ISO_UTC_TIMESTAMP(compress=True)}'
 
         try:
             # Generate moduli candidates with new ssh-keygen syntax
             subprocess.run([
-                'nice', '-n', str(self.nice_value),
+                'nice', '-n', str(self.config.nice_value),
                 'ssh-keygen',
                 '-M', 'generate',
                 '-O', f'bits={key_length}',  # Specify the bit length
@@ -110,9 +59,9 @@ class ModuliGenerator:
             self.logger.info(f'Generated candidates for {key_length} bits')
             return candidates_file
 
-        except subprocess.CalledProcessError as e:
-            self.logger.error(f'Candidate generation failed for {key_length}: {e}')
-            raise e
+        except subprocess.CalledProcessError as err:
+            self.logger.error(f'Candidate generation failed for {key_length}: {err}')
+            raise err
 
     def _screen_candidates(self, candidates_file: Path) -> Path:
         """
@@ -124,22 +73,23 @@ class ModuliGenerator:
         Returns:
             Path to the screened moduli file
         """
-        screened_file = self.moduli_dir / f'{candidates_file.name.replace('candidates', 'moduli')}'
+        screened_file = self.config.moduli_dir / f'{candidates_file.name.replace('candidates', 'moduli')}'
 
         try:
             # Screen candidates with new ssh-keygen syntax
-            checkpoint_file = self.candidates_dir / f".{candidates_file.name}"
+            checkpoint_file = self.config.candidates_dir / f".{candidates_file.name}"
             subprocess.run([
-                'nice', '-n', str(self.nice_value),
+                'nice', '-n', str(self.config.nice_value),
                 'ssh-keygen',
                 '-M', 'screen',
-                '-O', f'generator={self.generator_type}',  # Specify screening type
+                '-O', f'generator={self.config.generator_type}',  # Specify screening type
                 '-O', f'checkpoint={str(checkpoint_file)}',
+                # '-O', f'lines={self.config.records_per_keylength}',  # tbd - not working as expected 2025-07-01T10:27:02-0500
                 '-f', str(candidates_file),
                 str(screened_file)
             ], check=True)
 
-            self.logger.info(f'Screened candidates: {screened_file}')
+            self.logger.debug(f'Screened candidates: {screened_file}')
 
             # Cleanup used Moduli Candidates
             candidates_file.unlink()  # Cleanup Used Candidate File
@@ -150,11 +100,9 @@ class ModuliGenerator:
             self.logger.error(f'Screening failed for {candidates_file}: {e}')
             raise e
 
-    def _parse_moduli_files(
-            self, moduli_path: Path = DEFAULT_MODULI_DIR
-    ) -> Dict[str, List[Dict[str, Any]]]:
+    def _parse_moduli_files(self) -> Dict[str, List[Dict[str, Any]]]:
 
-        screened_files = list(Path.glob(moduli_path, 'moduli_????_*'))
+        screened_files = self.list_moduli_files()
         moduli_json = {}
 
         for file in screened_files:
@@ -179,7 +127,7 @@ class ModuliGenerator:
                             moduli_json.setdefault('screened_moduli', []).append(moduli_entry)
 
             except FileNotFoundError:
-                self.logger.warning(f'Moduli file not found: {moduli_path}')
+                self.logger.warning(f'Moduli file not found: {file}')
 
         return moduli_json
 
@@ -197,7 +145,7 @@ class ModuliGenerator:
         with concurrent.futures.ProcessPoolExecutor() as executor:
             # First, generate candidates
             candidate_futures = []
-            for length in self.key_lengths:
+            for length in self.config.key_lengths:
                 future = executor.submit(self._generate_candidates, length)
                 candidate_futures.append((future, length))
 
@@ -225,47 +173,54 @@ class ModuliGenerator:
 
         return generated_moduli
 
-    def save_moduli(self, default_dir: Path = DEFAULT_DIR):
+    def save_moduli(self, moduli_dir: Path = None):
         """
-        Saves the existing moduli schema to a structured JSON file. If no custom output
-        path is specified, the schema will be saved to a default location.
+        Saves moduli schema to a JSON file for backup and reference purposes. The schema
+        is parsed and written into a new JSON file which is named using the current UTC
+        timestamp for uniqueness.
 
-        :param default_dir: The path where the moduli schema JSON file should be saved.
-            If not provided, a default output path is used.
-        :type default_dir: Path, optional
+        :param moduli_dir: Optional directory path to save the moduli schema. If not
+            provided, the default directory from configuration (`self.config.moduli_dir`)
+            is used.
+        :type moduli_dir: Path
         :return: None
         :rtype: None
         """
-        moduli_json = default_dir / f'moduli_{ISO_UTC_TIMESTAMP(True)}.json'
-        with open(moduli_json, 'w') as f:
-            dump(self._parse_moduli_files(self.moduli_dir), f, indent=2)
+        if not moduli_dir:
+            moduli_dir = self.config.moduli_dir
 
-        self.logger.info(f'Moduli schema saved to {default_dir}')
+        moduli_json = moduli_dir / f'moduli_{ISO_UTC_TIMESTAMP(True)}.json'
+        with moduli_json.open('w') as f:
+            # with open(moduli_json, 'w') as f:
+            dump(self._parse_moduli_files(), f, indent=2)
 
-    def store_moduli(self, db: MariaDBConnector):
+        self.logger.info(f'Moduli schema saved to {self.config.moduli_dir / moduli_json}')
+
+    def store_moduli(self, db):
         """
-        Store the existing moduli schema parsed from files into the database.
+        Parses, processes, and stores screened moduli from a specified directory into the database
+        and logs the results. Upon successful storage, moduli source files in the directory are
+        intended to be deleted to maintain transactional integrity, although the file removal is
+        currently not implemented.
 
-        This function parses moduli files to extract the schema and subsequently
-        saves it into the specified database. After successfully storing the
-        schema, an informational log message is generated to confirm the action.
-
-        :param db: Database connector interface used to interact
-                   with the MariaDB database.
-        :type db: MariaDBConnector
+        :return: None
+        :rtype: None
         """
-        screened_moduli = self._parse_moduli_files(self.moduli_dir)
+        screened_moduli = self._parse_moduli_files()
 
         try:
-            store_screened_moduli(db, screened_moduli)
+            db.store_screened_moduli(screened_moduli)
 
         except Error as err:
             self.logger.error(f'Error storing moduli: {err}')
 
         # Now we get Transactional - When Moduli are Stored in the DB - DELETE Their Sources
         # tbd - We should check that the records are installed properly before hand
-        moduli_files = list(Path.glob(self.moduli_dir, 'moduli_????_*'))
+        moduli_files = self.list_moduli_files()
         for file in moduli_files:
             file.unlink()
 
-        self.logger.debug(f'Moduli  Stored in MariaDB database.')
+        self.logger.info(f'Moduli Files Parsed & Stored in MariaDB database: {moduli_files}')
+
+    def list_moduli_files(self):
+        return list(self.config.moduli_dir.glob(self.config.moduli_file_pattern))

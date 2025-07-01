@@ -1,20 +1,12 @@
 #!/usr/bin/env python
 import argparse
-from datetime import (UTC, datetime)
-from logging import (DEBUG, basicConfig, getLogger)
-from pathlib import PosixPath as Path
-from typing import Final
+from datetime import UTC, datetime
+from sys import exit
 
-from db.moduli_db_utilities import MariaDBConnector
+# Import the default configuration
+from config import (default_config)
 from moduli_generator import ModuliGenerator
-
-DEFAULT_DIR: Final[str] = str(Path.home() / '.moduli_assembly')
-DEFAULT_CANDIDATES_DIR: Final[str] = '.candidates'
-DEFAULT_MODULI_DIR: Final[str] = '.moduli'
-DEFAULT_LOG_DIR: Final[str] = '.logs'
-DEFAULT_MARIADB_CONFIG: Final[str] = "moduli_generator.cnf"
-
-DEFAULT_KEY_LENGTHS: Final[tuple[int, ...]] = (3072, 4096, 6144, 7680, 8192)
+from db.moduli_db_utilities import MariaDBConnector
 
 
 def parse_args():
@@ -27,101 +19,98 @@ def parse_args():
         "--key-lengths",
         type=int,
         nargs="+",
-        default=DEFAULT_KEY_LENGTHS,
+        default=default_config.key_lengths,
         help="Space-separated list of key lengths to generate moduli for"
     )
     parser.add_argument(
         "--moduli-home",
         type=str,
-        default=DEFAULT_DIR,
+        default=str(default_config.base_dir),
         help="Base directory for moduli generation and storage"
     )
     parser.add_argument(
         "--candidates-dir",
         type=str,
-        default=DEFAULT_CANDIDATES_DIR,
-        help="Directory to store candidate moduli"
+        default=str(default_config.candidates_dir.relative_to(default_config.base_dir)),
+        help="Directory to store candidate moduli (relative to moduli-home)"
     )
     parser.add_argument(
         "--moduli-dir",
         type=str,
-        default=DEFAULT_MODULI_DIR,
-        help="Directory to store generated moduli"
+        default=str(default_config.moduli_dir.relative_to(default_config.base_dir)),
+        help="Directory to store generated moduli (relative to moduli-home)"
     )
     parser.add_argument(
         "--log-dir",
         type=str,
-        default=DEFAULT_LOG_DIR,
-        help="Directory to store log files"
+        default=str(default_config.log_dir.relative_to(default_config.base_dir)),
+        help="Directory to store log files (relative to moduli-home)"
     )
     parser.add_argument(
-        "--mariadb-config",
+        "--mariadb-cnf",
         type=str,
-        default=DEFAULT_MARIADB_CONFIG,
-        help="Path to MariaDB configuration file"
+        default=str(default_config.moduli_generator_config.relative_to(default_config.base_dir)),
+        help="Path to MariaDB configuration file (relative to moduli-home)"
+    )
+    # Add a nice_value argument that might be missing
+    parser.add_argument(
+        "--nice-value",
+        type=int,
+        default=default_config.nice_value,
+        help="Process nice value for CPU intensive operations"
     )
 
     return parser.parse_args()
 
 
 def main():
-    """
-    Main function for the moduli_generator package
-
-    Default Start Runs 6 Key Lengts: 2048, 3072, 4096, 6144, 7680, 8192
-    Takes about 22 hours to complete, yielding about 20 moduli per key_length
-    on an i7 quad-core 3.7 GHz CPU with 32GB RAM.
-    """
-    # Parse command line arguments
+    """Main function for the moduli_generator package"""
     args = parse_args()
 
+    # Create a custom configuration based on the command line arguments
+    config = default_config.with_base_dir(args.moduli_home)
+
+    # Override with command line options if provided
+    config.candidates_dir = config.base_dir / args.candidates_dir
+    config.moduli_dir = config.base_dir / args.moduli_dir
+    config.log_dir = config.base_dir / args.log_dir
+    config.moduli_generator_config = config.base_dir / args.mariadb_cnf
+
+    logger = config.get_logger()
+    logger.name = __name__
+
+    logger.debug(f'Using default config: {config}')
+    logger.debug(f'Overriding config with command line args: {args}')
+
+    # Ensure all directories exist
+    config.ensure_directories()
+    logger.debug(f'Directories created or validated: {config.base_dir}')
+
     # Set variables from args
-    key_lengths = tuple(args.key_lengths)
+    config.key_lengths = tuple(args.key_lengths)
+    logger.debug(f'Key Lengths: {config.key_lengths}')
 
-    # setup File System
-    moduli_home = Path(args.moduli_home)
-    candidates_dir = moduli_home / args.candidates_dir
-    moduli_dir = moduli_home / args.moduli_dir
-    log_dir = moduli_home / args.log_dir
-    mariadb_config = moduli_home / args.mariadb_config
+    config.nice_value = args.nice_value
+    logger.debug(f'Nice Value: {config.nice_value}')
 
-    # Configure logging
-    basicConfig(
-        level=DEBUG,
-        format='%(asctime)s - %(levelname)s: %(message)s',
-        filename=log_dir / 'moduli_generator_main.log',
-        filemode='a'
-    )
-    logger = getLogger(__name__)
-
-    # Assure moduli filesystem exists or create it
-    for pathobject in moduli_home, candidates_dir, moduli_dir, log_dir:
-        pathobject.mkdir(parents=True, exist_ok=True)
-        logger.info(f'Assure Operational: {pathobject}')
-
-    generator = ModuliGenerator(nice_value=20,
-                                key_lengths=key_lengths)
-    logger.info(f'Moduli Generator Initialized wtih key_lengths: {key_lengths}')
-    #
-    # # Generate moduli
+    # Generate moduli
     start_time = datetime.now(UTC).replace(tzinfo=None)
     logger.info(f'Starting Moduli Generation at {start_time}')
+    generator = ModuliGenerator(config)
     generated_files = generator.generate_moduli()
     logger.debug(f'Generated Moduli: {generated_files}')
 
-    # Save moduli schema to JSON File after Each Run
+    # Save screened moduli as JSON dict
     generator.save_moduli()  # to
-    logger.debug(f'Save Moduli for run in JSON')
+    logger.debug(f'Moduli saved to {config.moduli_dir}')
 
     # Store Screened Moduli in MariaDB
-    db = MariaDBConnector(mariadb_config)
-    logger.debug(f'MariaDB Connector Initialized')
-    generator.store_moduli(db)  # To DB
+    generator.store_moduli(MariaDBConnector(config))  # To DB
     logger.info(f'Moduli stored in DB')
 
-    # Summary
+    # Stats and Cleanup
     duration = (datetime.now(UTC).replace(tzinfo=None) - start_time).seconds
-    logger.debug(f'Moduli Generation Complete. Time taken: {duration} seconds')
+    logger.info(f'Moduli Generation Complete. Time taken: {duration} seconds')
     print(f'Moduli Generation Complete. Time taken: {duration} seconds')
 
     return 0

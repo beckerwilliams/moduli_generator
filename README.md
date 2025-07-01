@@ -26,33 +26,13 @@ Scripts to generate well constructed moduli file
 
 ## Overview
 
-OpenSSH2 provides moduli generation capabilities via on platform `OpenSSH ssh-keygen`.
-Rather than individually generating moduli across desired moduli key sizes, `SSH Moduli Generator` provides the means to
-generate a complete moduli file with similar distributions across moduli.
-Each run of ssh-keygen will produce about 25% of the moduli needed for a complete file. The included scripts,
-`export_bash_builder` and `export_csh_builder`, will launch 4 runs of `moduli_generator` in parallel, sufficient to
-produce a complete ssh moduli file.
-
-Note: _Elapsed time for complete run is about 7 **days** on an Intel Quad Core i7_
+Note: _Elapsed to complete run is about 7 **days** on an Intel Quad Core i7_
 
 ### Capabilities
 
-Builds Complete file With One Command
+Builds Complete /etc/ssh/moduli file
 
-- python: `python -m moduli_generator --all`
-
-Provides Scripts for managing parallel build of moduli
-
-- bash: `python -m moduli.scripts.export_bash_runner > moduli_runner.sh`
-
-
-- csh: `python -m moduli.scripts.export_csh_runner > moduli_runner.csh`
-
-
-- set execute bit: `chmod +x moduli_runner.*sh`
-
-
-- build moduli file: `./moduli_runner.[c]sh&`
+- python: `python -m moduli_generator.cli`
 
 ## Installation
 
@@ -67,164 +47,10 @@ In a working directory, Create a python virtual environment, install ssh-moduli-
 - Create Virtual Environment
     - `python -m venv .venv  # Create Virtual Environment`
 
-- Activate
-    - Bash:    `source .venv/bin/activate.sh`
-    - C-Shell: `source .venv/bin/activate.csh`
-
 - Install Wheel
     - `pip install ./moduli_generator-<version>-py3-none-any.whl`
 
 ## Usage
-
-### --all, -a
-
-Produce One Full Moduli Set
-
-`python -m moduli_generator --all`
-
-_Builds SSH Moduli File with All Authorized Bitsizes:_
-
-- _3071, 4095, 6143, 7679, 8191`_
-
-### --bitsizes, -b
-
-Produces Moduli with Selected Bitsizes
-
-`python -m moduli_generator --bitsizes <bitsize> [<bitsize> [...]]`
-
-_Build Moduli for each bitsize given. Multiple Entries provide Multiple Runs_
-
-Example
-
-`python -m moduli_generator --bitsizes 3072 3072 4096`
-
-- _Two Runs of `3072`, one of `4096`_
-
-### --restart, -r
-
-Restart previously interrupted Screening Run
-
-Example
-
-`python -m moduli_generator --restart`
-
-- _Completes Screening of Any Interrupted Screening Runs_
-
-### --write, -w
-
-Example
-
-`python -m moduli_generator --write`
-
-- _Writes out SSH MODULI File from Existing Safe Primes_
-
-### --clear_artifacts, -c
-
-Example
-
-`python -m moduli_generator --clear-artifacts`
-
-* Clears candidate, candidate checkpoint, and screened moduli files from ${MODULI_DIR}
-
-## Utility Scripts
-
-In order to build a sufficiently diverse SSH Moduli file, we need 4 runs of EACH bitsize.
-The following Shell Scripts will start 4 process in parallel, and produce a Complete SSH Moduli File with over
-75 entries for each bitsize.
-
-`moduli_generator` will take about 1 Week to produce a complete File on an 4 Core Intel i7 processor.
-
-### Export Shell Scripts
-
-#### C Shell (csh) Moduli Runner
-
-`python -m moduli_generator.scripts.export_csh_runner > build_moduli_file.csh`
-
-#### Bourne Again Shell (bash) Moduli Runner
-
-`python -m moduli_generator.scripts.export_bash_runner > build_moduli_file.sh`
-
-#### Set the `exec` bit on Scripts
-
-`chmod +x ./build_moduli_file.*sh`
-
-### Build Complete Moduli File
-
-_Note: This takes about 7 Days on a Quad Core Intel i7_
-
-#### bash (sh)
-
-`./build_moduli_file.sh > all.gen.log 2>&1 &`
-
-#### c-shell (csh)
-
-`./build_moduli_file.csh`
-
-Log File `all.gen.log`
-
-### Moduli Frequency Distribution
-
-`moduli_generator` provides in module and an exportable bash script that will display the frequency of the moduli in any
-ssh moduli file.
-
-#### Export moduli_infile script and exec enable
-
-`python -m moduli_generator.scripts.export_moduli_infile > moduli_infile.sh`
-
-Set exec bit on shell script: `chmod +x ./moduli_infile.sh`
-
-#### Moduli Infile Usage
-
-##### Bash Script
-
-`./moduli_infile.sh  # default moduli file /etc/ssh/moduli  # default`
-
-or
-
-`./moduli_infile.sh <MODULI_INFILE>` # default moduli file /etc/ssh/moduli # default
-
-##### moduli_generator
-
-`python -m moduli_generator.scripts.moduli_infile # default: /etc/ssh/moduli`
-
-or
-
-`python -m moduli_generator.scripts.moduli_infile [-f <SSH_MODULI_FILE>]  # selected moduli file`
-
-* Where default MODULI File is `/etc/ssh/moduli`
-
-###### Moduli Infile Response
-
-Modulus Frequency of /etc/ssh/moduli:
-
-    Mod  Count
-    3071 80
-    4095 94
-    6143 87
-    7679 108
-    8191 117
-
-#### Retrieve last generated MODULI file
-
-`python -m moduli_generator.scripts.export_moduli_infile > MODULI_FILE`
-
-### Use Moduli File
-
-Locate your OpenSSH MODULI File
-
-- /etc/ssh/moduli
-- /usr/local/etc/moduli
-- etc.
-
-#### Export and Apply resulting MODULI FILE to Distribution
-
-`cp ssh-moduli /etc/ssh/moduli`
-
-or
-
-`cp ssh-moduli /usr/local/etc/ssh/moduli`
-
-#### That's It!
 
 ## Reference
 
@@ -265,3 +91,33 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## Database Integration
+
+SSH2 Moduli Generator now includes MariaDB integration for storing and retrieving moduli values. 
+This allows for persistent storage of generated moduli across sessions.
+
+### Database Setup
+
+1. Configure the database connection in `moduli_generator.cnf`
+2. The database automatically stores screened moduli values
+3. Timestamps are stored in compressed format (no punctuation or spaces)
+
+### Retrieving Moduli from Database
+
+When using the `--write` option, the generator will:
+- Verify sufficient records exist for each key size (minimum 80 per size)
+- Only create the moduli file if all sizes have enough entries
+- Randomly select entries from the database to create a balanced moduli file
+
+## Technical Details
+
+### Timestamp Format
+
+All timestamps in generated moduli files use a compressed format with no punctuation or spaces.
+This ensures compatibility with all SSH implementations while maintaining proper chronological ordering.
+
+### Database Schema
+
+The generator uses a view-based database schema that joins moduli values with their configuration constants.
+This approach allows for efficient retrieval and consistent formatting of moduli entries.

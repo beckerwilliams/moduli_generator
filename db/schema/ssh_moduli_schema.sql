@@ -46,5 +46,5 @@ INSERT INTO moduli_db.mod_fl_consts (config_id, type, tests, trials, generator, 
 VALUES (1, '2', 6, 100, 2, 'Becker Williams SSH moduli properties');
 
 -- Insert moduli using the configuration
-# INSERT INTO moduli_db.moduli (timestamp,config_id , size, modulus)
+# INSERT INTO moduli_db.moduli (timestamp, config_id, size, modulus)
 # VALUES (TIMESTAMP, 1, KEYSIZE, MODULUS)

@@ -11,11 +11,11 @@
 
 ### To Start a Moduli Builder, Clone ssh-moduli-builder project:
 
-`git clone https://github.com/beckerwilliams/ssh-moduli-builder.git`
+`git clone https://github.com/beckerwilliams/moduli_generator.git`
 
 ### Navigate to project
 
-`cd ssh-moduli-builder`
+`cd moduli_generator`
 
 ### Install dependencies
 

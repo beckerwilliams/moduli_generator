@@ -1,39 +1,27 @@
 import configparser
 from configparser import (ConfigParser)
-from logging import (DEBUG, basicConfig, getLogger)
 from pathlib import PosixPath as Path
-from typing import (Dict, Final, Optional)
+from typing import (Dict, Optional)
 
 from mariadb import (Error, connect)
 
-DEFAULT_DIR: Final[Path] = Path.home() / '.moduli_assembly'
-DEFAULT_MARIADB_CNF: Final[Path] = DEFAULT_DIR / 'moduli_generator.cnf'
-# Config ID to Moduli File Constants. We Initialize to 1 in table creation, pointing to the constant values
-DEFAULT_CONFIG_ID: Final[int] = 1
+from moduli_generator.config import (ISO_UTC_TIMESTAMP, ModuliConfig, compress_datetime_to_string, default_config,
+                                     is_valid_identifier)
 
 
-def parse_mysql_config(config_path: Path = DEFAULT_MARIADB_CNF) -> Dict[str, Dict[str, str]]:
-    """
-    Parse a MySQL configuration file and return a dictionary of sections and their key-value pairs.
+# DEFAULT_CONFIG_ID,; DEFAULT_KEY_LENGTHS,; DEFAULT_MARIADB_DB,;
+# DEFAULT_MARIADB_TABLE,; DEFAULT_MARIADB_VIEW,; DEFAULT_RECORDS_PER_KEYLENGTH,
 
-    Args:
-        config_path (str): Path to the MySQL configuration file
 
-    Returns:
-        Dict[str, Dict[str, str]]: Dictionary with sections as keys and
-                                  dictionaries of key-value pairs as values
-
-    Raises:
-        FileNotFoundError: If the configuration file doesn't exist,
-        ValueError: If there's an issue parsing the file
-    """
-    if not (config_path.is_file() and config_path.exists()):
-        raise FileNotFoundError(f"Configuration file not found: {config_path}")
+def parse_mysql_config(mysql_cnf: str) -> Dict[str, Dict[str, str]]:
+    if not (Path(mysql_cnf).is_file() and Path(mysql_cnf).exists()):
+        raise FileNotFoundError(f"Configuration file not found: {Path(mysql_cnf).resolve()}")
 
     cnf = ConfigParser(allow_no_value=True)
     try:
-        cnf.read(config_path)
+        cnf.read(mysql_cnf)
         result = {local_section: dict(cnf[local_section]) for local_section in cnf.sections()}
+
         return result
     except configparser.Error as err:
         raise ValueError(f"Error parsing configuration filerr: {err}")
@@ -59,45 +47,49 @@ def get_mysql_config_value(cnf: Dict[str, Dict[str, str]],
         return None
 
 
+# db/moduli_db_utilities.py
 class MariaDBConnector:
+    """
+    Provides functionalities to connect to a MariaDB database using credentials
+    and configurations specified in a configuration file.
 
-    def __init__(self,
-                 mycnf: Path = DEFAULT_MARIADB_CNF,
-                 default_dir: Path = DEFAULT_DIR
-                 ):
-        """
-        Initializes the MariaDB connector by setting up a connection to the database using the
-        configuration parameters specified in a MySQL configuration file. Configures logging to
-        write to a file located within an output directory.
+    This class is used to establish a connection to a MariaDB database instance
+    by parsing database credentials from a provided configuration file and using
+    those parameters to initialize the database connection.
 
-        :param mycnf: Path to the MySQL configuration file, which should contain the necessary
-                      connection details under the "client" group.
-        :type mycnf: Str
-        :param default_dir: Output directory path where the log file, 'mariadb_connector.log',
-                           will be created and used for logging.
-        :type default_dir: Path
+    :ivar logger: Logger instance for logging messages related to the database
+        connection process.
+    :type logger: Logging.Logger
+    :ivar connection: Connection object used to interact with the MariaDB database.
+    :type connection: Mariadb.Connection
+    """
 
-        :raises Error: Raised when a connection to the MariaDB Platform fails due to invalid
-                       or missing configuration parameters.
-        """
+    def __init__(self, config: ModuliConfig = default_config):
 
-        # Configure logging
-        basicConfig(
-            level=DEBUG,
-            format='%(asctime)s - %(levelname)s: %(message)s',
-            filename=default_dir / 'mariadb_connector.log',
-            filemode='a'
-        )
-        self.logger = getLogger(__name__)
+        # SQL Properties for Moduli DB
+        self.config_id = config.config_id
+        self.db_name = config.db_name
+        self.table_name = config.table_name
+        self.view_name = config.view_name
 
-        conf = parse_mysql_config(mycnf)["client"]
+        self.key_lengths = config.key_lengths
+        self.records_per_keylength = config.records_per_keylength
+
+        # COnfigure Logger for Module
+        self.logger = config.get_logger()
+        self.logger.name = __name__
+
+        self.logger.debug(f"Using MariaDB config: {config.mariadb_cnf}")
+
+        mysql_cnf = parse_mysql_config(config.mariadb_cnf)["client"]
+
         try:
             self.connection = connect(
-                host=conf["host"],
-                port=int(conf["port"]),
-                user=conf["user"],
-                password=conf["password"],
-                database=conf["database"]
+                host=mysql_cnf["host"],
+                port=int(mysql_cnf["port"]),
+                user=mysql_cnf["user"],
+                password=mysql_cnf["password"],
+                database=mysql_cnf["database"]
             )
         except configparser.Error as err:
             self.logger.error(f"Error connecting to MariaDB Platform: {err}")
@@ -121,92 +113,58 @@ class MariaDBConnector:
                 for row in cursor:
                     self.logger.info(row)
                 cursor.close()
-            except Error as mdbconn_error:
-                self.logger.error(f"Error executing SQL query: {mdbconn_error}")
-                raise RuntimeError(f"Database query failed: {mdbconn_error}")
+            except Error as err:
+                self.logger.error(f"Error executing SQL query: {err}")
+                raise RuntimeError(f"Database query failed: {err}")
 
-    # def add_org(self, timestamp, candidate_type, tests, trials, key_size,
-    #         generator, modulus, file_origin):
-    #     """
-    #     Insert a candidate into the screened_moduli table
-    #
-    #     Args:
-    #         timestamp (datetime): Timestamp when the candidate was generated
-    #         candidate_type (str): Generator type ('2' or '5')
-    #         tests (str): Tests performed
-    #         trials (int): Number of trials
-    #         key_size (int): Key size in bits
-    #         generator (int): Generator value
-    #         modulus (str): Prime modulus
-    #         file_origin (str): Source file of the modulus
-    #
-    #     Returns:
-    #         int: The ID of the inserted record or None if insertion failed
-    #     """
-    #     try:
-    #         with self.connection.cursor() as cursor:
-    #             query = """
-    #                     INSERT INTO screened_moduli
-    #                     (timestamp, candidate_type, tests, trials, key_size, generator, modulus, file_origin)
-    #                     VALUES (?, ?, ?, ?, ?, ?, ?, ?) \
-    #                     """
-    #             cursor.execute(query, (
-    #                 timestamp,
-    #                 candidate_type,
-    #                 tests,
-    #                 trials,
-    #                 key_size,
-    #                 generator,
-    #                 modulus,
-    #                 file_origin
-    #             ))
-    #             self.connection.commit()
-    #             last_id = cursor.lastrowid
-    #             cursor.close()
-    #             return last_id
-    #
-    #     except Error as err:
-    #         self.logger.error(f"Error inserting candidate: {err}")
-
-    def add(self, timestamp, key_size, modulus):
+    def add(self, timestamp: int, key_size: int, modulus: str) -> int:
         """
-        Inserts a new candidate modulus into the database with an associated timestamp,
-        key size, and default configuration ID. The method executes the SQL insert
-        statement and commits the transaction.
+        Adds a new record to the specified database table with the details provided.
 
-        :param timestamp: The timestamp that indicates when the modulus was generated or added.
-        :type timestamp: Str
+        This method inserts a record into the database table defined by `self.db_name`
+        and `self.table_name` using the provided input values. If the operation is
+        successful, the method commits the transaction and returns the identifier of
+        the newly inserted row.
+
+        :param timestamp: The time at which the record should be inserted.
+        :type timestamp: Int
         :param key_size: The size of the key in bits.
         :type key_size: Int
-        :param modulus: The modulus value to be added to the database.
-        :type modulus: Str
-        :return: The ID of the newly inserted record.
+        :param modulus: The modulus value to be stored in the record.
+        :type modulus: Int
+        :return: The identifier of the newly inserted row in the database.
         :rtype: Int
         """
+        # Validate identifiers
+        if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.table_name)):
+            self.logger.error("Invalid database or table name")
+            return 0
 
         try:
             with self.connection.cursor() as cursor:
-                query = """
-                        INSERT INTO moduli_db.moduli (timestamp, config_id, size, modulus)
+                query = f"""
+                        INSERT INTO {self.db_name}.{self.table_name} (timestamp, config_id, size, modulus)
                         VALUES (?, ?, ?, ?) \
                         """
                 cursor.execute(query, (
                     timestamp,
-                    DEFAULT_CONFIG_ID,
+                    self.config_id,
                     key_size,
                     modulus,
                 ))
                 self.connection.commit()
                 last_id = cursor.lastrowid
                 cursor.close()
+
+                # Log success only after successful insertion
+                self.logger.info(f'Successfully added {key_size} bit modulus to {self.db_name}.{self.table_name}')
+                self.logger.debug(f'Last inserted row ID: {last_id}')
+
                 return last_id
 
         except Error as err:
             self.logger.error(f"Error inserting candidate: {err}")
-
-        self.logger.info(f'Successfully added {key_size} bit modulus to database')
-
-        return 0
+            return 0
 
     def delete_records(self, table_name, where_clause=None):
         """
@@ -224,7 +182,9 @@ class MariaDBConnector:
         try:
             with self.connection.cursor() as cursor:
                 if where_clause:
-                    query = f"DELETE FROM {table_name} WHERE {where_clause}"
+                    query = f"""
+                            DELETE FROM {table_name} WHERE {where_clause}
+                            """
                 else:
                     query = f"DELETE FROM {table_name}"
 
@@ -241,24 +201,146 @@ class MariaDBConnector:
             print(f"Error deleting from table {table_name}: {e}")
             raise RuntimeError(f"Error deleting from table {table_name}: {e}")
 
+    def store_screened_moduli(self, json_schema: dict):
+        """
+        Save moduli from JSON schema to the database
+        
+        Args:
+            json_schema: Dictionary with moduli data
+            
+        Returns:
+            int: 0 for success, 1 for failure
+        """
+        for key, moduli_list in json_schema.items():
+            for modulus in moduli_list:
+                try:
+                    self.add(modulus["timestamp"], modulus["key-size"], modulus["modulus"])
+                except Error as err:
+                    self.logger.error(f"Error storing modulus{modulus['timestamp']}: {err}")
+                    return 1
+        return 0
 
-def store_screened_moduli(db_conn: MariaDBConnector, json_schema: dict):
-    """
-    Save from JSON moduli schema file (JSON of screened moduli)
+    def get_moduli(
+            self,
+            output_file: Path = None
+    ):
+        """
+        Retrieves random moduli values from a database for specified key sizes, verifies
+        that sufficient records exist for each key size, and optionally writes the
+        retrieved data to a specified output file.
 
-    Args:
-        db_conn: MariaDB connector instance
-        json_schema: Dictionary with moduli data
-    """
-    for key, moduli_list in json_schema.items():
-        for modulus in moduli_list:
-            try:
-                # db_conn.add(modulus["timestamp"], modulus["type"], modulus["tests"],
-                #             modulus["trials"], modulus["size"], modulus["generator"],
-                #             modulus["modulus"], "screened_moduli")
-                db_conn.add(modulus["timestamp"], modulus["key-size"], modulus["modulus"])
+        The method performs the following steps:
+        1. Verifies that the database contains at least the required number of records
+           for each key size specified in `key_lengths`.
+        2. Fetches the necessary records for all supported key sizes if sufficient
+           records are available.
+        3. Logs the corresponding results and errors at each step of the process.
+        4. Writes the retrieved moduli to a file in the required format if `output_file`
+           is provided and the data is complete.
 
-            except Error as err:
-                db_conn.logger.error(f"Error storing modulus{modulus['timestamp']}: {err}")
-                return 1
-    return 0
+        :param output_file: Path to the file where the moduli data should be saved. If
+            None, moduli are not written to file.
+        :type output_file: Str, optional
+        :return: A dictionary mapping key sizes to a list of retrieved records, or
+            None if sufficient records are not available for any key size.
+        :rtype: Dict or None
+        :raises RuntimeError: If an error occurs while querying the database.
+        """
+        moduli_query_sizes = []
+        for item in self.key_lengths:
+            moduli_query_sizes.append(item - 1)
+
+        # First, check if we have enough records for each key size
+        insufficient_sizes = []
+
+        try:
+            with self.connection.cursor() as cursor:
+                for size in moduli_query_sizes:
+                    # Count query to check available records
+                    count_query = f"""
+                              SELECT COUNT(*)
+                              FROM {self.db_name}.{self.view_name}
+                              WHERE size = {size} \
+                              """
+                # count_query = f'SELECT COUNT(*) FROM {db}.{table} WHERE size = ? '
+                cursor.execute(count_query)
+                count = cursor.fetchone()[0]
+
+                if count < self.records_per_keylength:
+                    insufficient_sizes.append((size, count))
+                    self.logger.warning(
+                        f'Insufficient records for complete /etc/ssh/moduli:' +
+                        f' key size {size}: {count} available, {self.records_per_keylength} required')
+
+        except Error as err:
+            self.logger.error(f"Error retrieving random moduli: {err}")
+            raise RuntimeError(f"Database query failed: {err}")
+
+        # If any size has insufficient records, log and return None
+        if insufficient_sizes:
+            self.logger.error(f"Cannot create moduli file. Insufficient records for key sizes: {insufficient_sizes}")
+            return None
+
+        # If we have enough records for all sizes, proceed with retrieval
+        results = {}
+
+        try:
+            with self.connection.cursor(dictionary=True) as cursor:
+                for size in moduli_query_sizes:
+                    # Query to get random records for the current key size using the view
+                    query = f"""
+                        SELECT timestamp, type, tests, trials, size, generator, modulus
+                        FROM {self.db_name}.{self.view_name}
+                        WHERE size = {size}
+                        LIMIT {self.records_per_keylength} \
+                        """
+
+                    cursor.execute(query, )
+
+                    # Store the results for this key size
+                    records = list(cursor.fetchall())
+                    results[size] = records
+
+                    # Log the number of records found
+                    self.logger.info(f"Retrieved {len(records)} random records for key size {size}")
+
+        except Error as err:
+            self.logger.error(f"Error retrieving random moduli: {err}")
+            raise RuntimeError(f"Database query failed: {err}")
+
+        # If an output file is specified, and we have enough records for all sizes, write the results
+        if output_file:
+            self._write_moduli_to_file(results, output_file)
+            self.logger.info(f"Successfully created moduli file with {self.records_per_keylength} records per key size")
+
+        return results
+
+    def _write_moduli_to_file(self, moduli_data: dict, output_file: Path):
+        try:
+            with output_file.open('w') as of:
+                # Write File Header
+                of.write(
+                    f'# /etc/ssh/modul: dcrunch.threatwonk.net: {ISO_UTC_TIMESTAMP()}\n'
+                )
+
+                # Write data for each key size
+                for size, records in moduli_data.items():
+                    for record in records:
+                        # Format: timestamp type tests trials size generator modulus
+                        # The timestamp should already be in compressed format
+                        of.write(' '.join((
+                            compress_datetime_to_string(record['timestamp']),
+                            record['type'],
+                            record['tests'],
+                            str(record['trials']),
+                            str(record['size']),
+                            str(record['generator']),
+                            record['modulus'],
+                            '\n'
+                        )))
+
+            self.logger.info(f"Successfully wrote moduli to file: {output_file}")
+
+        except IOError as err:
+            self.logger.error(f"Error writing to file {output_file}: {err}")
+            raise

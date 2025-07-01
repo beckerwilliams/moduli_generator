@@ -1,1 +1,0 @@
-CALL moduli_db.export_moduli_format();
