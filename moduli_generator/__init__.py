@@ -8,7 +8,7 @@ from typing import Any, Dict, List
 from mariadb import Error
 
 # Import the default configuration
-from config import (
+from .config import (
     ISO_UTC_TIMESTAMP,
     default_config
 )
@@ -198,11 +198,13 @@ class ModuliGenerator:
 
     def store_moduli(self, db):
         """
-        Parses, processes, and stores screened moduli from a specified directory into the database
-        and logs the results. Upon successful storage, moduli source files in the directory are
-        intended to be deleted to maintain transactional integrity, although the file removal is
-        currently not implemented.
+        Stores moduli data into a given database and removes source files after successful storage.
+        This function processes moduli files, parses them into a suitable format, stores them in the
+        database using the provided database object, and then deletes the source files only after
+        ensuring they have been stored in the database.
 
+        :param db: The database object used to store the parsed moduli data.
+        :type db: object
         :return: None
         :rtype: None
         """

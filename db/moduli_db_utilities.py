@@ -168,15 +168,18 @@ class MariaDBConnector:
 
     def delete_records(self, table_name, where_clause=None):
         """
-        Delete entries from a table in the database.
+        Deletes records from a specified table in the database. It supports conditional deletion
+        using a WHERE clause. The method executes a DELETE SQL statement and commits the changes.
+        If the operation is successful, the number of rows affected is returned. If there is an
+        error during the operation, it raises a RuntimeError.
 
-        Args:
-            table_name (str): The name of the table to delete from
-            where_clause (str, optional): SQL WHERE clause to filter records for deletion.
-                                         If None, all records will be deleted.
-
-        Returns:
-            int: Number of rows deleted, or -1 if an error occurred
+        :param table_name: The name of the database table from which records should be deleted.
+        :type table_name: str
+        :param where_clause: An optional SQL condition to filter which records should be deleted.
+                             If not provided, all records in the table will be deleted.
+        :type where_clause: Optional[str]
+        :return: The number of rows affected by the DELETE operation.
+        :rtype: int
         """
 
         try:
@@ -225,26 +228,17 @@ class MariaDBConnector:
             output_file: Path = None
     ):
         """
-        Retrieves random moduli values from a database for specified key sizes, verifies
-        that sufficient records exist for each key size, and optionally writes the
-        retrieved data to a specified output file.
+        Retrieves random moduli records from a database and optionally writes them to an output file. Ensures that
+        sufficient records are available for each specified key size before proceeding. Logs the results and
+        handles database interaction, including error management.
 
-        The method performs the following steps:
-        1. Verifies that the database contains at least the required number of records
-           for each key size specified in `key_lengths`.
-        2. Fetches the necessary records for all supported key sizes if sufficient
-           records are available.
-        3. Logs the corresponding results and errors at each step of the process.
-        4. Writes the retrieved moduli to a file in the required format if `output_file`
-           is provided and the data is complete.
-
-        :param output_file: Path to the file where the moduli data should be saved. If
-            None, moduli are not written to file.
-        :type output_file: Str, optional
-        :return: A dictionary mapping key sizes to a list of retrieved records, or
-            None if sufficient records are not available for any key size.
-        :rtype: Dict or None
-        :raises RuntimeError: If an error occurs while querying the database.
+        :param output_file: Path to the output file where moduli records will be written. If None,
+                            the results will not be written to a file.
+        :type output_file: Path, optional
+        :return: A dictionary containing the retrieved moduli records categorized by key size. The dictionary
+                 keys represent the key sizes, and the values are lists of records for the corresponding key
+                 size. Returns None if insufficient records are available for any key size.
+        :rtype: dict or None
         """
         moduli_query_sizes = []
         for item in self.key_lengths:

@@ -64,7 +64,7 @@ DEFAULT_MARIADB_VIEW: Final[str] = 'moduli_view'
 DEFAULT_MODULI_FILENAME_PATTERN: Final[str] = r'moduli_????_*'
 
 # The number of moduli per key-length to capture in each produced moduli file
-DEFAULT_RECORDS_PER_KEYLENGTH: Final[int] = 2
+DEFAULT_RECORDS_PER_KEYLENGTH: Final[int] = 20
 
 
 # For Date Formats Sans Punctuation

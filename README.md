@@ -1,6 +1,6 @@
 # SSH2 Moduli File Generator
 
-Scripts to generate well constructed moduli file
+Scripts to generate properly constructed moduli file
 
             /etc/ssh/moduli | /usr/local/etc/ssh/moduli | 'ssh-moduli' | ...
 
@@ -16,13 +16,13 @@ Scripts to generate well constructed moduli file
 
 ### [License](#mit-license)
 
-- OpenSSH2 ssh-keygen, _supports `-M generate` and `-M screen`_
+- OpenSSH2 ssh-keygen, _supporting `-M generate` and `-M screen`_
 
-- Python version >=3.7
+- Python version >=3.9
 
-- OpenSSH version >=9.7p1
+- OpenSSH version >=9.9p2
 
-- OpenSSL version >=3.0.14
+- OpenSSL version >=3.0.6
 
 ## Overview
 
@@ -51,6 +51,13 @@ In a working directory, Create a python virtual environment, install ssh-moduli-
     - `pip install ./moduli_generator-<version>-py3-none-any.whl`
 
 ## Usage
+
+### RUN
+
+- Start Virtual Environment
+  - `.venv/bin/activate
+  - `.venv/bin/activate.sh`
+  - or `.venv/bin{.csh,.sh}'`
 
 ## Reference
 
