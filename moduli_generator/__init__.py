@@ -7,19 +7,31 @@ from typing import Any, Dict, List
 
 from mariadb import Error
 
+from _version import __version__
 # Import the default configuration
-from .config import (
+from moduli_generator.config import (
     ISO_UTC_TIMESTAMP,
-    default_config
+    ModuliConfig, default_config
 )
+
+__all__ = ['ModuliGenerator']
 
 
 class ModuliGenerator:
     def __init__(self, conf=default_config):
+        """
+        Initializes an instance of the class with the given configuration and sets up
+        necessary logging mechanisms. Various important directories and configuration
+        paths provided by the configuration are logged for reference. This constructor
+        ensures that all critical paths and the logger are properly set during
+        initialization.
 
+        :param conf: The configuration object containing paths and logging settings.
+        :type conf: Optional, default is `default_config`
+        """
+        self.version = conf.version
         self.config = conf
 
-        # tbd - init logger here
         self.logger = self.config.get_logger()
         self.logger.name = __name__
 
@@ -36,14 +48,23 @@ class ModuliGenerator:
 
     def _generate_candidates(self, key_length: int) -> Path:
         """
-        Generate candidate moduli using modern ssh-keygen
+        Internally generates cryptographic key candidates of a specified bit length
+        and stores them in a designated file.
 
-        Args:
-            key_length: Bit length for moduli generation
+        This function executes the `ssh-keygen` command with the required arguments
+        to generate modular exponentiation candidates for cryptographic usage. The
+        resulting candidates are saved to a file in the designated directory defined
+        in the configuration. Any exceptions raised during command execution are
+        logged and re-raised for handling by the caller.
 
-        Returns:
-            Path to generated candidates file
+        :param key_length: The bit length of the cryptographic key to be generated.
+        :type key_length: Int
+        :return: A path object pointing to the file containing key candidates.
+        :rtype: Path
+        :raises subprocess.CalledProcessError: If the `ssh-keygen` command fails to
+            execute successfully.
         """
+
         candidates_file = self.config.candidates_dir / f'candidates_{key_length}_{ISO_UTC_TIMESTAMP(compress=True)}'
 
         try:
@@ -65,13 +86,14 @@ class ModuliGenerator:
 
     def _screen_candidates(self, candidates_file: Path) -> Path:
         """
-        Screen candidates for safe primes using modern ssh-keygen
+        Screens the given moduli candidate file by using the `ssh-keygen` command and processes it into a
+        screened moduli file. The method also performs cleanup by removing the original candidate file
+        after successful screening.
 
-        Args:
-            candidates_file: File with generated candidates
-
-        Returns:
-            Path to the screened moduli file
+        :param candidates_file: The path to the file containing moduli candidates that need to be screened.
+        :type candidates_file: Path
+        :return: The path to the screened moduli file generated after processing.
+        :rtype: Path
         """
         screened_file = self.config.moduli_dir / f'{candidates_file.name.replace('candidates', 'moduli')}'
 
@@ -84,7 +106,6 @@ class ModuliGenerator:
                 '-M', 'screen',
                 '-O', f'generator={self.config.generator_type}',  # Specify screening type
                 '-O', f'checkpoint={str(checkpoint_file)}',
-                # '-O', f'lines={self.config.records_per_keylength}',  # tbd - not working as expected 2025-07-01T10:27:02-0500
                 '-f', str(candidates_file),
                 str(screened_file)
             ], check=True)
@@ -101,6 +122,18 @@ class ModuliGenerator:
             raise e
 
     def _parse_moduli_files(self) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        Parses moduli files to extract relevant data and structures it into a dictionary.
+        This method processes each line of a moduli file, skipping comments and blank
+        lines. It extracts specific fields and organizes them into dictionaries,
+        grouped under the 'screened_moduli' key.
+
+        :raises FileNotFoundError: If a moduli file is not found during processing.
+
+        :return: A dictionary where the key is 'screened_moduli' and the value is a list
+            of dictionaries containing parsed moduli entries.
+        :rtype: Dict[str, List[Dict[str, Any]]]
+        """
 
         screened_files = self.list_moduli_files()
         moduli_json = {}
@@ -133,12 +166,15 @@ class ModuliGenerator:
 
     def generate_moduli(self) -> Dict[int, List[Path]]:
         """
-        Generate moduli for all specified key lengths
-        Handles multiple instances of the same key size by returning a dictionary
-        mapping key lengths to lists of generated moduli files
+        Generates cryptographic modulus files by first generating candidates and then
+        screening the generated candidates. This method uses a process pool executor
+        to perform operations concurrently for efficiency.
 
-        Returns:
-            Dictionary mapping key lengths to lists of generated moduli files
+        :return: A dictionary mapping integer key lengths to lists of file paths where
+            modulus files are stored. Each key represents a specific key length, and
+            the corresponding value is a list of paths to files containing moduli
+            of that key length.
+        :rtype: Dict[int, List[Path]]
         """
         generated_moduli = {}
 
@@ -204,7 +240,7 @@ class ModuliGenerator:
         ensuring they have been stored in the database.
 
         :param db: The database object used to store the parsed moduli data.
-        :type db: object
+        :type db: Object
         :return: None
         :rtype: None
         """
@@ -225,4 +261,18 @@ class ModuliGenerator:
         self.logger.info(f'Moduli Files Parsed & Stored in MariaDB database: {moduli_files}')
 
     def list_moduli_files(self):
+        """
+        Retrieves a list of files matching the specified pattern from the configured directory.
+
+        This method searches within the directory defined in the `moduli_dir` configuration
+        attribute for files that match the pattern defined in the `moduli_file_pattern` attribute.
+        Returns them as a list of Path objects.
+
+        :return: A list of Path objects representing the files matching the specified pattern.
+        :rtype: List[pathlib.Path]
+        """
         return list(self.config.moduli_dir.glob(self.config.moduli_file_pattern))
+
+    @property
+    def __version__(self):
+        return __version__

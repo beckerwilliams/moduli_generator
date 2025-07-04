@@ -1,85 +1,95 @@
-# SSH2 Moduli File Generator
+SSH2 Moduli File Generator
+==========================
 
-Scripts to generate properly constructed moduli file
+Generate Broad `ssh moduli` files
 
             /etc/ssh/moduli | /usr/local/etc/ssh/moduli | 'ssh-moduli' | ...
 
-## Table of Contents
+Table of Contents
+-----------------
 
-### [Platform Dependencies](#platform-dependencies)
+* `Dependencies`_
+* `Installation`_
+* `Usage`_
+* `License`_
 
-### [Installation](#installation)
+Dependencies
+------------
 
-### [Usage](#usage)
-
-### [Utility Scripts](#utility-scripts)
-
-### [License](#mit-license)
-
-- OpenSSH2 ssh-keygen, _supporting `-M generate` and `-M screen`_
-
+- OpenSSH2 ssh-keygen, *supporting* ``-M generate`` *and* ``-M screen``
 - Python version >=3.9
-
 - OpenSSH version >=9.9p2
-
 - OpenSSL version >=3.0.6
 
-## Overview
+Overview
+--------
 
-Note: _Elapsed to complete run is about 7 **days** on an Intel Quad Core i7_
+.. note:: *Elapsed to complete run is about 7* **days** *on an Intel Quad Core i7*
 
-### Capabilities
+Capabilities
+~~~~~~~~~~~~
 
 Builds Complete /etc/ssh/moduli file
 
-- python: `python -m moduli_generator.cli`
+- python: ``python -m moduli_generator.cli``
 
-## Installation
+Installation
+------------
 
-### Platform Dependencies
+Platform Dependencies
+~~~~~~~~~~~~~~~~~~~~~
 
 SSH2 Moduli Generator depends on the SSH being installed and ssh-keygen available for Moduli production.
 
-### Install Wheel
+Install Wheel
+~~~~~~~~~~~~~
 
 In a working directory, Create a python virtual environment, install ssh-moduli-builder wheel, run.
 
 - Create Virtual Environment
-    - `python -m venv .venv  # Create Virtual Environment`
+    - ``python -m venv .venv  # Create Virtual Environment``
 
 - Install Wheel
-    - `pip install ./moduli_generator-<version>-py3-none-any.whl`
+    - ``pip install ./moduli_generator-<version>-py3-none-any.whl``
 
-## Usage
+Usage
+-----
 
-### RUN
+RUN
+~~~
 
 - Start Virtual Environment
-  - `.venv/bin/activate
-  - `.venv/bin/activate.sh`
-  - or `.venv/bin{.csh,.sh}'`
+  - ``.venv/bin/activate``
+  - ``.venv/bin/activate.sh``
+  - or ``.venv/bin{.csh,.sh}``
 
-## Reference
+Reference
+---------
 
-### SSH Audit
+SSH Audit
+~~~~~~~~~
 
-[SSH Audit](https://github.com/jtesta/ssh-audit)
+`SSH Audit <https://github.com/jtesta/ssh-audit>`_
 
-### SSH Hardening Guides
+SSH Hardening Guides
+~~~~~~~~~~~~~~~~~~~~
 
-[SSH Hardening Guides](https://www.ssh-audit.com/hardening_guides.html)
+`SSH Hardening Guides <https://www.ssh-audit.com/hardening_guides.html>`_
 
-### HackTricks (SSH)
+HackTricks (SSH)
+~~~~~~~~~~~~~~~~
 
-[HackTricks](https://book.hacktricks.xyz/network-services-pentesting/pentesting-ssh)
+`HackTricks <https://book.hacktricks.xyz/network-services-pentesting/pentesting-ssh>`_
 
-## License
+License
+-------
 
-### MIT License
+MIT License
+~~~~~~~~~~~
 
-[MIT License](#LICENSE)
+`MIT License <#LICENSE>`_
 
-#Copyright (c) 2024, 2025 Ron Williams, General Partner, Becker Williams Trading General Partnership
+Copyright (c) 2024, 2025 Ron Williams, General Partner, Becker Williams Trading General Partnership
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -99,32 +109,39 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-## Database Integration
+Database Integration
+--------------------
 
 SSH2 Moduli Generator now includes MariaDB integration for storing and retrieving moduli values. 
 This allows for persistent storage of generated moduli across sessions.
 
-### Database Setup
+Database Setup
+~~~~~~~~~~~~~~
 
-1. Configure the database connection in `moduli_generator.cnf`
+1. Configure the database connection in ``moduli_generator.cnf``
 2. The database automatically stores screened moduli values
 3. Timestamps are stored in compressed format (no punctuation or spaces)
 
-### Retrieving Moduli from Database
+Retrieving Moduli from Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When using the `--write` option, the generator will:
+When using the ``--write`` option, the generator will:
+
 - Verify sufficient records exist for each key size (minimum 80 per size)
 - Only create the moduli file if all sizes have enough entries
 - Randomly select entries from the database to create a balanced moduli file
 
-## Technical Details
+Technical Details
+-----------------
 
-### Timestamp Format
+Timestamp Format
+~~~~~~~~~~~~~~~~
 
 All timestamps in generated moduli files use a compressed format with no punctuation or spaces.
 This ensures compatibility with all SSH implementations while maintaining proper chronological ordering.
 
-### Database Schema
+Database Schema
+~~~~~~~~~~~~~~~
 
 The generator uses a view-based database schema that joins moduli values with their configuration constants.
 This approach allows for efficient retrieval and consistent formatting of moduli entries.

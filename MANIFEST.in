@@ -1,0 +1,2 @@
+include _build/html/**/*
+recursive-include _build/html *

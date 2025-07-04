@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS moduli_db.moduli (
     config_id TINYINT UNSIGNED NOT NULL COMMENT 'Foreign key to moduli constants',
     size INT UNSIGNED NOT NULL COMMENT 'Key size in bits',
     modulus TEXT NOT NULL COMMENT 'Prime modulus value',
-    modulus_hash VARCHAR(64) GENERATED ALWAYS AS (SHA2(modulus, 256)) STORED COMMENT 'Hash of modulus for uniqueness check',
+    modulus_hash VARCHAR(128) GENERATED ALWAYS AS (SHA2(modulus, 512)) STORED COMMENT 'Hash of modulus for uniqueness check',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (config_id) REFERENCES mod_fl_consts(config_id),
     UNIQUE KEY (modulus_hash)

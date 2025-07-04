@@ -3,14 +3,27 @@ import argparse
 from datetime import UTC, datetime
 from sys import exit
 
-# Import the default configuration
-from config import (default_config)
-from moduli_generator import ModuliGenerator
 from db.moduli_db_utilities import MariaDBConnector
+from moduli_generator import ModuliGenerator
+# Import the default configuration
+from moduli_generator.config import (default_config)
+
+__all__ = ['cli']
 
 
 def parse_args():
-    """Parse command line arguments for moduli_generator."""
+    """
+    Parse command-line arguments for the Moduli Generator and return the parsed arguments.
+
+    This function utilizes the `argparse` module to define and parse command-line options used
+    for managing the secure moduli generation process. It provides a variety of configurable
+    options, including base directory settings, directory paths for storing generated moduli,
+    and specific configuration file paths. Additionally, the function supports specifying
+    key lengths for moduli generation as well as process priority settings through a nice value.
+
+    :return: Parsed command-line arguments
+    :rtype: argparse.Namespace
+    """
     parser = argparse.ArgumentParser(
         description="Moduli Generator - Generate and manage secure moduli for cryptographic operations",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
@@ -63,8 +76,19 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
-    """Main function for the moduli_generator package"""
+def cli():
+    """
+    CLI utility for the generation, saving, and storage of moduli. This function
+    handles the entire workflow, including configuring paths, processing command-line arguments,
+    ensuring the required directories exist, and carrying out moduli generation, storage,
+    and cleanup. The workflow includes integration with MariaDB for storing resulting data.
+
+    Detail logs are generated throughout the process to facilitate debugging and tracking.
+
+    :return: The return code of the CLI function where 0 indicates successful execution.
+    :rtype: int
+    """
+
     args = parse_args()
 
     # Create a custom configuration based on the command line arguments
@@ -117,4 +141,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    exit(cli())

@@ -1,29 +1,43 @@
 [tool.poetry]
 name = "moduli_generator"
-version = "2.0.16"
+version = "2.0.17"
 description = "Command Line Utility to build moduli for [/usr/local]/etc/ssh/moduli_file]"
 authors = ["Ron Williams <becker.williams@gmail.com>"]
-readme = "README.md"
+readme = "README.rst"
 packages = [
     {include = "moduli_generator"},
+    {include = "moduli_generator/docs"},
     {include = "db"}
+]
+include = [
+    "moduli_generator/docs/_build/html/**/*"
 ]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 poetry-core = "^2.1.3"
 sqlalchemy = "^2.0.41"
 mariadb = "^1.1.12"
 myst = "^1.0.4"
-myst-parser = "^4.0.1"
+myst-parser = "^4.0.1"  # Keep your current version
 configparser = "^7.2.0"
+sphinx-rtd-theme = "^3.0.2"
+toml = "^0.10.2"
+
+[tool.poetry.group.dev.dependencies]
+sphinx = "^7.2.6"
+# Replace sphinx-rtd-theme with a theme that works with newer docutils
+sphinx-rtd-theme = "^3.0.2"
+sphinxcontrib-jquery = "^4.1"
+furo = "^2023.9.10"  # Alternative theme that works with newer docutils
 
 
 [tool.poetry.scripts]
-moduli_generator = "moduli_generator.cli:main"
+moduli_generator = "moduli_generator.cli"
 write_moduli = "moduli_generator.write_moduli_file:write_moduli_file"
 moduli_db_stats = "db.moduli_db_utilities:show_stats"
 moduli_infile = "moduli_generator.scripts.moduli_infile:main"
+build_docs = "moduli_generator.scripts.build_docs:main"
 
 [build-system]
 requires = ["poetry-core"]
@@ -31,6 +45,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.urls]
 Homepage = "https://github.com/beckerwilliams/moduli_generator"
-Documentation = "https://github.com/beckerwilliams/moduli_generator/README.md"
+Documentation = "https://github.com/beckerwilliams/moduli_generator/README.rst"
 Repository = "https://github.com/beckerwilliams/moduli_generator.git"
 Issues = "https://github.com/beckerwilliams/moduli_generator/issues"

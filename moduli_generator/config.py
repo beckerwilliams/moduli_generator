@@ -10,6 +10,16 @@ from pathlib import PosixPath as Path
 from re import (compile, sub)
 from typing import Final
 
+from _version import __version__
+
+__all__ = ['__version__',
+           'ModuliConfig',
+           'default_config',
+           'ISO_UTC_TIMESTAMP',
+           'compress_datetime_to_string',
+           'is_valid_identifier'
+           ]
+
 
 def ISO_UTC_TIMESTAMP(compress: bool = False) -> str:
     """
@@ -69,25 +79,31 @@ DEFAULT_RECORDS_PER_KEYLENGTH: Final[int] = 20
 
 # For Date Formats Sans Punctuation
 def compress_datetime_to_string(timestamp: datetime) -> str:
-    """Remove all non-numeric characters from the timestamp string"""
+    """
+    Compresses a datetime object into a compact string format by removing non-numeric
+    characters from its ISO 8601 format string.
+
+    :param timestamp: A datetime object to compress into a string.
+    :type timestamp: Datetime
+    :return: A string representation of the given datetime with all non-numeric
+        characters removed.
+    :rtype: Str
+    """
     return sub(r'[^0-9]', '', timestamp.isoformat())
 
 
 def is_valid_identifier(identifier: str) -> bool:
     """
-    Validates whether a string is a valid identifier (database or table name) for MariaDB.
+    Determines if the given string is a valid identifier following specific
+    rules. Valid identifiers must either be unquoted strings containing only
+    alphanumeric characters, underscores, and dollar signs, or quoted strings
+    wrapped in backticks with proper pairing. Additionally, identifiers must not
+    exceed 64 characters.
 
-    According to MariaDB naming conventions:
-    - Identifiers can contain alphanumeric characters, underscores, and dollar signs
-    - Identifiers can be quoted with backticks to allow special characters
-    - Identifiers shouldn't be empty or too long (max 64 characters)
-    - Identifiers shouldn't be reserved words
-
-    Args:
-        identifier (str): The database or table name to validate
-
-    Returns:
-        bool: True if the identifier is valid, False otherwise
+    :param identifier: The identifier string to validate.
+    :type identifier: Str
+    :return: True if the identifier is valid, otherwise False.
+    :rtype: Bool
     """
     if not identifier or not isinstance(identifier, str):
         return False
@@ -116,7 +132,67 @@ def is_valid_identifier(identifier: str) -> bool:
 
 
 class ModuliConfig:
+    """
+    Represents the configuration settings and directory structure for a moduli generation
+    and management system.
+
+    This class provides default paths, directories, and configuration files,
+    specified either as a user-provided base directory, an environment variable,
+    or a predefined default directory. It also initializes internal attributes
+    required to manage configurations for moduli generation and supports methods
+    to ensure required directories exist, logging, and flexible base directory
+    initialization.
+
+    :ivar base_dir: Base directory used by the system. Can be user-specified,
+        derived from an environment variable, or default to a predefined value.
+    :type base_dir: Path
+    :ivar candidates_dir: Directory to store candidate files.
+    :type candidates_dir: Path
+    :ivar moduli_dir: Directory to store moduli files.
+    :type moduli_dir: Path
+    :ivar log_dir: Directory to store log files.
+    :type log_dir: Path
+    :ivar moduli_generator_config: File path to the default moduli generator configuration.
+    :type moduli_generator_config: Path
+    :ivar log_file: File path to the default log file.
+    :type log_file: Path
+    :ivar moduli_file: File path to the default moduli output file.
+    :type moduli_file: Path
+    :ivar key_lengths: List of default key lengths for moduli generation.
+    :type key_lengths: List[int]
+    :ivar generator_type: Default type of the moduli generator.
+    :type generator_type: Str
+    :ivar nice_value: Default "nice" value for process scheduling priority.
+    :type nice_value: Int
+    :ivar config_id: Record number for linking constants in the system's configuration table.
+    :type config_id: Str
+    :ivar mariadb_cnf: File path to the default MariaDB configuration file.
+    :type mariadb_cnf: Path
+    :ivar moduli_file_pattern: Pattern used to name generated moduli files.
+    :type moduli_file_pattern: Str
+    :ivar db_name: Name of the default MariaDB database.
+    :type db_name: Str
+    :ivar table_name: Name of the default MariaDB table.
+    :type table_name: Str
+    :ivar view_name: Name of the default view in the MariaDB database.
+    :type view_name: Str
+    :ivar records_per_keylength: Default number of records per key length for moduli data.
+    :type records_per_keylength: Int
+    """
+
     def __init__(self, base_dir=None):
+        """
+        Represents a configuration and directory structure for moduli assembly
+        operation, including paths for candidate files, moduli files, logs, and
+        default configurations.
+
+        Provides default values and configurations for various parameters related
+        to moduli generation and database management.
+
+        :param base_dir: The base directory path for moduli assembly operations. If not provided,
+            defaults to the environment variable 'MODULI_HOME' or a preset default directory.
+        :type base_dir: Path or None
+        """
         # Use user-provided base dir, or env var, or default to ~/.moduli_assembly
         self.base_dir = Path(base_dir or osenv.get('MODULI_HOME', DEFAULT_DIR))
 
@@ -151,8 +227,18 @@ class ModuliConfig:
         self.view_name = DEFAULT_MARIADB_VIEW
         self.records_per_keylength = DEFAULT_RECORDS_PER_KEYLENGTH
 
+        # From pyproject.toml
+        self.version = __version__
+
     def ensure_directories(self):
-        """Create all required directories if they don't exist"""
+        """
+        Ensures that a set of directories (base, candidates, moduli, and log directories) exist.
+        If they do not exist, they will be created. This method ensures all necessary directories
+        are ready for further operations.
+
+        :return: The current instance after ensuring directories exist.
+        :rtype: Self
+        """
         for dir_path in [self.base_dir, self.candidates_dir, self.moduli_dir, self.log_dir]:
             dir_path.mkdir(parents=True, exist_ok=True)
 
@@ -160,17 +246,44 @@ class ModuliConfig:
 
     @staticmethod
     def with_base_dir(base_dir):
-        """Return a new config instance with a different base directory"""
+        """
+        Creates a new instance of ModuliConfig with the given base directory.
+
+        This static method provides a convenience to instantiate the ModuliConfig
+        class with a specified base directory. It ensures that the provided base
+        directory is explicitly set during the object creation.
+
+        :param base_dir: The base directory to be used for initialization.
+        :type base_dir: Str
+        :return: A new instance of the ModuliConfig class initialized with the given
+            base directory.
+        :rtype: ModuliConfig
+        """
         return ModuliConfig(base_dir)
 
     def get_logger(self):
+        """
+        Initializes and returns a logger instance configured for file-based logging.
+
+        This function ensures that the required directories and configuration files exist
+        before setting up the logging system. It verifies the existence of the base logging
+        directory, the default log directory, and the MariaDB configuration file. If they do not
+        exist, they are created as needed. Once these prerequisites are met, the logger is
+        configured with a specific logging level, format, and file output.
+
+        :raises OSError: If there is an issue, create required directories or files.
+        :raises IOError: If there is an issue, read the default MariaDB configuration file.
+
+        :return: Configured logger instance.
+        :rtype: Logging.Logger
+        """
 
         if not self.base_dir.exists():
             Path(self.base_dir).mkdir(parents=True, exist_ok=True)
         if not (self.base_dir / DEFAULT_LOG_DIR).exists():
             Path(self.base_dir / DEFAULT_LOG_DIR).mkdir(parents=True, exist_ok=True)
         if not self.mariadb_cnf.exists():
-            mysql_cnf = Path(DEFAULT_MARIADB_CNF).read_text()
+            mysql_cnf = Path(self.mariadb_cnf).read_text()
             Path(self.mariadb_cnf).write_text(mysql_cnf)
 
         basicConfig(
@@ -182,11 +295,29 @@ class ModuliConfig:
         return getLogger()
 
     def get_log_file(self, name):
-        """Get a full path to a log file"""
+        """
+        Retrieve the log file path, either by name or default log file path.
+
+        This method determines whether a specific log file name is provided. If a
+        name is given, the method constructs and returns the full path to the named
+        log file within the logging directory. If no name is provided, it returns the
+        path to the default log file.
+
+        :param name: Name of the log file to retrieve. If None, the default log file
+            path is returned.
+        :type name: Optional[str]
+        :return: The full path to the specified log file if a name is provided, or
+            the default log file path otherwise.
+        :rtype: Path
+        """
         if name:
             return self.log_dir / name
         else:
             return self.log_file
+
+    @property
+    def __version__(self):
+        return __version__
 
 
 # Create a default configuration instance

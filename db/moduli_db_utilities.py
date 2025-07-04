@@ -1,7 +1,7 @@
 import configparser
 from configparser import (ConfigParser)
 from pathlib import PosixPath as Path
-from typing import (Dict, Optional)
+from typing import (Dict, List, Optional)
 
 from mariadb import (Error, connect)
 
@@ -9,11 +9,22 @@ from moduli_generator.config import (ISO_UTC_TIMESTAMP, ModuliConfig, compress_d
                                      is_valid_identifier)
 
 
-# DEFAULT_CONFIG_ID,; DEFAULT_KEY_LENGTHS,; DEFAULT_MARIADB_DB,;
-# DEFAULT_MARIADB_TABLE,; DEFAULT_MARIADB_VIEW,; DEFAULT_RECORDS_PER_KEYLENGTH,
-
-
 def parse_mysql_config(mysql_cnf: str) -> Dict[str, Dict[str, str]]:
+    """
+    Parses a MySQL configuration file and returns its content as a dictionary.
+
+    This function processes a MySQL configuration file, validates its existence,
+    and extracts its content into a nested dictionary structure. The outer dictionary
+    keys correspond to section names, and the inner dictionaries map option names
+    to their respective values in each section.
+
+    :param mysql_cnf: Path to the MySQL configuration file.
+    :type mysql_cnf: Str
+    :raises FileNotFoundError: If the specified configuration file does not exist.
+    :raises ValueError: If the configuration file has parsing errors.
+    :return: Dictionary containing the parsed configuration sections and options.
+    :rtype: Dict[str, Dict[str, str]]
+    """
     if not (Path(mysql_cnf).is_file() and Path(mysql_cnf).exists()):
         raise FileNotFoundError(f"Configuration file not found: {Path(mysql_cnf).resolve()}")
 
@@ -31,15 +42,25 @@ def get_mysql_config_value(cnf: Dict[str, Dict[str, str]],
                            local_section: str,
                            local_key: str):
     """
-    Get a specific value from a parsed MySQL configuration.
+    Retrieves a value from a nested dictionary based on the provided section
+    and key. The function is primarily used to fetch configurations from a
+    MySQL configuration dictionary. If the specified section and key exist
+    in the dictionary, their corresponding value is returned. If either the
+    section or key is absent, the function returns None.
 
-    Args:
-        cnf (Dict[str, Dict[str, str]]): Parsed configuration dictionary
-        local_section (str): Section name
-        local_key (str): Key name
-
-    Returns:
-        Optional[str]: Value from the configuration or default
+    :param cnf: A dictionary representing a MySQL configuration where keys
+        are section names and values are dictionaries containing key-value
+        pairs within those sections.
+    :type cnf: Dict[str, Dict[str, str]]
+    :param local_section: The section name in the configuration dictionary
+        from which the key-value pair should be retrieved.
+    :type local_section: Str
+    :param local_key: The key within the specified section of the
+        configuration dictionary whose associated value needs to be fetched.
+    :type local_key: Str
+    :return: The value associated with the given section and key if it
+        exists, otherwise None.
+    :rtype: Str | None
     """
     if local_section in cnf and local_key in cnf[local_section]:
         return cnf[local_section][local_key]
@@ -47,24 +68,42 @@ def get_mysql_config_value(cnf: Dict[str, Dict[str, str]],
         return None
 
 
-# db/moduli_db_utilities.py
 class MariaDBConnector:
     """
-    Provides functionalities to connect to a MariaDB database using credentials
-    and configurations specified in a configuration file.
+    Handles connections and operations with a MariaDB database, providing functionality
+    for executing SQL queries, managing records, and retrieving data. The class is built
+    to interface with a structured schema defined by configuration and support additional
+    operations such as moduli retrieval and storage.
 
-    This class is used to establish a connection to a MariaDB database instance
-    by parsing database credentials from a provided configuration file and using
-    those parameters to initialize the database connection.
+    This class automatically establishes a connection to the database upon instantiation,
+    using connection details provided in a configuration object. Operations such as SQL
+    execution, record addition, deletion, and retrieval are executed using the connection
+    while ensuring proper resource management and error handling.
 
-    :ivar logger: Logger instance for logging messages related to the database
-        connection process.
-    :type logger: Logging.Logger
-    :ivar connection: Connection object used to interact with the MariaDB database.
-    :type connection: Mariadb.Connection
+    :ivar config_id: Identifier for the configuration associated with the database.
+    :ivar db_name: Name of the database to connect to.
+    :ivar table_name: Name of the table in the database used for records.
+    :ivar view_name: Name of the view in the database for specialized queries.
+    :ivar key_lengths: List of key sizes used for data grouping or retrieval.
+    :ivar records_per_keylength: Number of records required per key size.
+    :ivar logger: Logger instance for debugging and tracking the class operations.
+    :ivar connection: Active connection to the MariaDB database.
     """
 
     def __init__(self, config: ModuliConfig = default_config):
+        """
+        Represents a database connector configuration for a MariaDB instance.
+
+        This class initializes a database connection using details from the provided
+        configuration object. It sets up connection properties, logging, and reads
+        database credentials from a configuration file.
+
+        :param config: Configuration object containing database connectivity details
+            and other related parameters.
+        :type config: ModuliConfig
+
+        :raises RuntimeError: If a database connection cannot be established.
+        """
 
         # SQL Properties for Moduli DB
         self.config_id = config.config_id
@@ -97,15 +136,20 @@ class MariaDBConnector:
 
     def sql(self, query):
         """
-        Executes a given SQL query using the database connection, logs the results,
-        and ensures the cursor is properly closed after execution. This function
-        is used to run SQL commands and log each resulting row using the logger
-        associated with this object.
+        Executes an SQL query using the provided connection and logs the results.
 
-        :param query: The SQL query to be executed on the database.
+        This method interacts with the database by executing the given SQL query and
+        logging each result row using the logging mechanism configured for the class.
+        If an error occurs during query execution, it logs the error and raises a
+        RuntimeError to indicate failure.
+
+        :param query: The SQL query string to be executed on the database.
         :type query: Str
+
         :return: None
-        :rtyperr: None
+        :rtype: None
+
+        :raises RuntimeError: If the execution of the SQL query fails.
         """
         with self.connection.cursor() as cursor:
             try:
@@ -174,13 +218,17 @@ class MariaDBConnector:
         error during the operation, it raises a RuntimeError.
 
         :param table_name: The name of the database table from which records should be deleted.
-        :type table_name: str
+        :type table_name: Str
         :param where_clause: An optional SQL condition to filter which records should be deleted.
                              If not provided, all records in the table will be deleted.
         :type where_clause: Optional[str]
         :return: The number of rows affected by the DELETE operation.
-        :rtype: int
+        :rtype: Int
         """
+        # Validate identifiers
+        if not (is_valid_identifier(table_name)):
+            self.logger.error("Invalid database or table name")
+            return 0
 
         try:
             with self.connection.cursor() as cursor:
@@ -206,13 +254,16 @@ class MariaDBConnector:
 
     def store_screened_moduli(self, json_schema: dict):
         """
-        Save moduli from JSON schema to the database
-        
-        Args:
-            json_schema: Dictionary with moduli data
-            
-        Returns:
-            int: 0 for success, 1 for failure
+        Stores screened moduli data by iterating through a given JSON schema and adding the relevant
+        attributes to the instance. If an error occurs during the process, it logs the error and provides
+        a return code indicating failure or success.
+
+        :param json_schema: A dictionary containing modulus data where keys represent categories,
+                            and values are lists of modulus detail dictionaries. Each detail dictionary
+                            includes 'timestamp', 'key-size', and 'modulus'.
+        :type json_schema: Dict
+        :return: Returns 0 on success or 1 if an error occurs while processing the moduli.
+        :rtype: Int
         """
         for key, moduli_list in json_schema.items():
             for modulus in moduli_list:
@@ -228,7 +279,7 @@ class MariaDBConnector:
             output_file: Path = None
     ):
         """
-        Retrieves random moduli records from a database and optionally writes them to an output file. Ensures that
+        Retrieves moduli records from a database and optionally writes them to an output file. Ensures that
         sufficient records are available for each specified key size before proceeding. Logs the results and
         handles database interaction, including error management.
 
@@ -238,14 +289,21 @@ class MariaDBConnector:
         :return: A dictionary containing the retrieved moduli records categorized by key size. The dictionary
                  keys represent the key sizes, and the values are lists of records for the corresponding key
                  size. Returns None if insufficient records are available for any key size.
-        :rtype: dict or None
+        :rtype: Dict or None
         """
         moduli_query_sizes = []
         for item in self.key_lengths:
             moduli_query_sizes.append(item - 1)
 
+        # tbd - Replace Following with evaluation from self.stats()
+
         # First, check if we have enough records for each key size
         insufficient_sizes = []
+
+        # Validate identifiers
+        if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.view_name)):
+            self.logger.error("Invalid database or table name")
+            return 0
 
         try:
             with self.connection.cursor() as cursor:
@@ -277,6 +335,11 @@ class MariaDBConnector:
 
         # If we have enough records for all sizes, proceed with retrieval
         results = {}
+
+        # Validate identifiers
+        if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.view_name)):
+            self.logger.error("Invalid database or table name")
+            return 0
 
         try:
             with self.connection.cursor(dictionary=True) as cursor:
@@ -310,6 +373,28 @@ class MariaDBConnector:
         return results
 
     def _write_moduli_to_file(self, moduli_data: dict, output_file: Path):
+        """
+        This function writes moduli data to a specified file in a specific format. The output file
+        contains a header string and records for each key size provided in the moduli data. Each
+        record is formatted with specific information such as timestamp, type, tests, trials,
+        size, generator, and modulus. If an error occurs during the file writing process, it is
+        logged, and the exception is raised.
+
+        :param moduli_data: Dictionary where the key represents the key size (int), and the value
+            is a list of records. Each record is a dictionary containing the following fields:
+            - timestamp: Compressed timestamp string.
+            - type: The type of the modulus (str).
+            - tests: Result summary of tests performed (str).
+            - trials: Number of trials (int).
+            - size: Modulus size (int).
+            - generator: Value of the generator (int).
+            - modulus: String representation of the modulus.
+        :type moduli_data: Dict
+        :param output_file: Path representing the destination file to write moduli data.
+        :type output_file: Path
+        :return: None
+        :rtype: None
+        """
         try:
             with output_file.open('w') as of:
                 # Write File Header
@@ -338,3 +423,47 @@ class MariaDBConnector:
         except IOError as err:
             self.logger.error(f"Error writing to file {output_file}: {err}")
             raise
+
+    def stats(self) -> Dict[str, str]:
+        """
+
+        :return:
+        :rtype:
+        """
+        moduli_query_sizes = []
+        for item in self.key_lengths:
+            moduli_query_sizes.append(item - 1)
+
+        # First, check if we have enough records for each key size
+        status: List[int] = list()
+
+        # Validate identifiers
+        if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.view_name)):
+            self.logger.error("Invalid database or table name")
+            return 0
+
+        try:
+            with self.connection.cursor() as cursor:
+                for size in moduli_query_sizes:
+                    # Count query to check available records
+                    count_query = f"""
+                                  SELECT COUNT(*)
+                                  FROM {self.db_name}.{self.view_name}
+                                  WHERE size = {size} \
+                                  """
+                    cursor.execute(count_query)
+                    count = cursor.fetchone()[0]
+                    status.append(count)
+
+        except Error as err:
+            self.logger.error(f"Error retrieving random moduli: {err}")
+            raise RuntimeError(f"Database query failed: {err}")
+
+        # Output
+        results = dict(zip(moduli_query_sizes, status))
+        self.logger.info(f"Moduli statistics:")
+        self.logger.info('size  count')
+        for size, count in results.items():
+            self.logger.info(f'{size:>4} {count:>4}')
+
+        return results

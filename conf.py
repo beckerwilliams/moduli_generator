@@ -1,22 +1,25 @@
-# Configuration file for the Sphinx documentation builder.
-#
-project = 'moduli_generator'
-copyright = '2025 Ron Williams <becker.williams@gmail.com>'
-author = 'Ron Williams <becker.williams@gmail.com>'
-release = '2.0.16'
+import os
+import re
+import sys
 
-extensions = [
-    'myst_parser',
-    'sphinx.ext.autodoc'
+# Add project root to path
+sys.path.insert(0, os.path.abspath('..'))
+
+exclude_patterns = [
+    '.venv',
+    # '_build',
+    'Thumbs.db',
+    '.DS_Store'
 ]
-source_suffix = {
-    '.rst': 'restructuredtext',
-    '.txt': 'markdown',
-    '.md': 'markdown',
-}
 
-templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.venv', '.moduli_assembly', '.github']
+try:
+    from moduli_generator import __version__ as version
+except ImportError:
+    # Fallback to regex extraction
+    with open("../pyproject.toml", "r") as f:
+        content = f.read()
+    version_match = re.search(r'version\s*=\s*"([^"]+)"', content)
+    version = version_match.group(1) if version_match else "0.0.0"
 
-html_theme = 'alabaster'
-html_static_path = ['_static']
+# Use for Sphinx
+release = version
