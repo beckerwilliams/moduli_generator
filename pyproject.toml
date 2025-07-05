@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "moduli_generator"
-version = "2.1.1"
+version = "2.1.2"
 description = "Command Line Utility to build moduli for [/usr/local]/etc/ssh/moduli_file]"
 authors = ["Ron Williams <becker.williams@gmail.com>"]
 readme = "README.rst"
