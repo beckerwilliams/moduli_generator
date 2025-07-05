@@ -15,7 +15,7 @@ def parse_args():
     """
     Parse command-line arguments for the Moduli Generator and return the parsed arguments.
 
-    This function utilizes the `argparse` module to define and parse command-line options used
+    This function uses the `argparse` module to define and parse command-line options used
     for managing the secure moduli generation process. It provides a variety of configurable
     options, including base directory settings, directory paths for storing generated moduli,
     and specific configuration file paths. Additionally, the function supports specifying
@@ -76,7 +76,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def cli():
+def main():
     """
     CLI utility for the generation, saving, and storage of moduli. This function
     handles the entire workflow, including configuring paths, processing command-line arguments,
@@ -86,7 +86,7 @@ def cli():
     Detail logs are generated throughout the process to facilitate debugging and tracking.
 
     :return: The return code of the CLI function where 0 indicates successful execution.
-    :rtype: int
+    :rtype: Int
     """
 
     args = parse_args()
@@ -141,4 +141,4 @@ def cli():
 
 
 if __name__ == "__main__":
-    exit(cli())
+    exit(main())

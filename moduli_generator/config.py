@@ -10,7 +10,7 @@ from pathlib import PosixPath as Path
 from re import (compile, sub)
 from typing import Final
 
-from _version import __version__
+from moduli_generator._version import __version__
 
 __all__ = ['__version__',
            'ModuliConfig',

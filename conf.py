@@ -5,9 +5,9 @@ import sys
 # Add project root to path
 sys.path.insert(0, os.path.abspath('..'))
 
+project = 'Moduli Generator'
 exclude_patterns = [
     '.venv',
-    # '_build',
     'Thumbs.db',
     '.DS_Store'
 ]

@@ -225,11 +225,6 @@ class MariaDBConnector:
         :return: The number of rows affected by the DELETE operation.
         :rtype: Int
         """
-        # Validate identifiers
-        if not (is_valid_identifier(table_name)):
-            self.logger.error("Invalid database or table name")
-            return 0
-
         try:
             with self.connection.cursor() as cursor:
                 if where_clause:
@@ -245,6 +240,7 @@ class MariaDBConnector:
                 self.connection.commit()
                 cursor.close()
 
+                self.logger.debug(f"Moduli Consumed from DB: {rows_affected}")
                 print(f"Successfully deleted {rows_affected} rows from table: {table_name}")
                 return rows_affected
 
@@ -279,76 +275,46 @@ class MariaDBConnector:
             output_file: Path = None
     ):
         """
-        Retrieves moduli records from a database and optionally writes them to an output file. Ensures that
-        sufficient records are available for each specified key size before proceeding. Logs the results and
-        handles database interaction, including error management.
+        Retrieve random moduli for specified key sizes and optionally write them to a file.
 
-        :param output_file: Path to the output file where moduli records will be written. If None,
-                            the results will not be written to a file.
+        This function checks whether there are sufficient records for each key size before
+        retrieving them from the database. If the specified number of records exists for all
+        key sizes, records are fetched and optionally written to a file. It ensures that the
+        database and table names are valid before retrieving the records, logging the operation's
+        progress and potential errors.
+
+        :param output_file: The file path where the retrieved moduli should be saved.
+                            If not specified, the results are returned without saving.
         :type output_file: Path, optional
-        :return: A dictionary containing the retrieved moduli records categorized by key size. The dictionary
-                 keys represent the key sizes, and the values are lists of records for the corresponding key
-                 size. Returns None if insufficient records are available for any key size.
-        :rtype: Dict or None
+        :return: A dictionary mapping key sizes to the retrieved moduli records for each size.
+        :rtype: Dict
+        :raises RuntimeError: If there are insufficient records for any key size or the database
+                              query fails.
         """
-        moduli_query_sizes = []
-        for item in self.key_lengths:
-            moduli_query_sizes.append(item - 1)
-
-        # tbd - Replace Following with evaluation from self.stats()
-
-        # First, check if we have enough records for each key size
-        insufficient_sizes = []
-
-        # Validate identifiers
-        if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.view_name)):
-            self.logger.error("Invalid database or table name")
-            return 0
-
-        try:
-            with self.connection.cursor() as cursor:
-                for size in moduli_query_sizes:
-                    # Count query to check available records
-                    count_query = f"""
-                              SELECT COUNT(*)
-                              FROM {self.db_name}.{self.view_name}
-                              WHERE size = {size} \
-                              """
-                # count_query = f'SELECT COUNT(*) FROM {db}.{table} WHERE size = ? '
-                cursor.execute(count_query)
-                count = cursor.fetchone()[0]
-
-                if count < self.records_per_keylength:
-                    insufficient_sizes.append((size, count))
-                    self.logger.warning(
-                        f'Insufficient records for complete /etc/ssh/moduli:' +
-                        f' key size {size}: {count} available, {self.records_per_keylength} required')
-
-        except Error as err:
-            self.logger.error(f"Error retrieving random moduli: {err}")
-            raise RuntimeError(f"Database query failed: {err}")
-
-        # If any size has insufficient records, log and return None
-        if insufficient_sizes:
-            self.logger.error(f"Cannot create moduli file. Insufficient records for key sizes: {insufficient_sizes}")
-            return None
+        # Verify that a sufficient number of moduli for each keysize exist in the db
+        stats = self.stats()
+        for stat in stats:
+            if stats[stat] < self.records_per_keylength:
+                self.logger.info(
+                    f"Insufficient records for key size {stat[0]}: {stat[1]} available,"
+                    f" {self.records_per_keylength} required"
+                )
+                raise RuntimeError(
+                    f"Insufficient records for key size {stat[0]}: {stat[1]} available, "
+                    f"{self.records_per_keylength} required"
+                )
 
         # If we have enough records for all sizes, proceed with retrieval
-        results = {}
-
-        # Validate identifiers
-        if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.view_name)):
-            self.logger.error("Invalid database or table name")
-            return 0
+        moduli = {}
 
         try:
             with self.connection.cursor(dictionary=True) as cursor:
-                for size in moduli_query_sizes:
+                for size in self.key_lengths:
                     # Query to get random records for the current key size using the view
                     query = f"""
                         SELECT timestamp, type, tests, trials, size, generator, modulus
                         FROM {self.db_name}.{self.view_name}
-                        WHERE size = {size}
+                        WHERE size = {size - 1}  # GOTCHA - The STORED Moduli Size is 1 BIT LESS THAN THE KEY SIZE 
                         LIMIT {self.records_per_keylength} \
                         """
 
@@ -356,7 +322,7 @@ class MariaDBConnector:
 
                     # Store the results for this key size
                     records = list(cursor.fetchall())
-                    results[size] = records
+                    moduli[size] = records
 
                     # Log the number of records found
                     self.logger.info(f"Retrieved {len(records)} random records for key size {size}")
@@ -367,12 +333,12 @@ class MariaDBConnector:
 
         # If an output file is specified, and we have enough records for all sizes, write the results
         if output_file:
-            self._write_moduli_to_file(results, output_file)
+            self._write_moduli_to_file(moduli, output_file)
             self.logger.info(f"Successfully created moduli file with {self.records_per_keylength} records per key size")
 
-        return results
+        return moduli
 
-    def _write_moduli_to_file(self, moduli_data: dict, output_file: Path):
+    def _write_moduli_to_file(self, moduli_data: dict, output_file: Path) -> list:
         """
         This function writes moduli data to a specified file in a specific format. The output file
         contains a header string and records for each key size provided in the moduli data. Each
@@ -395,6 +361,7 @@ class MariaDBConnector:
         :return: None
         :rtype: None
         """
+        moduli_to_delete = []
         try:
             with output_file.open('w') as of:
                 # Write File Header
@@ -417,12 +384,17 @@ class MariaDBConnector:
                             record['modulus'],
                             '\n'
                         )))
+                        if record['modulus']:
+                            moduli_to_delete.append(record['modulus'])
 
             self.logger.info(f"Successfully wrote moduli to file: {output_file}")
+            self.logger.debug(f"Moduli to delete from DB: {moduli_to_delete}")
 
         except IOError as err:
             self.logger.error(f"Error writing to file {output_file}: {err}")
             raise
+
+        return moduli_to_delete
 
     def stats(self) -> Dict[str, str]:
         """
@@ -435,7 +407,7 @@ class MariaDBConnector:
             moduli_query_sizes.append(item - 1)
 
         # First, check if we have enough records for each key size
-        status: List[int] = list()
+        status: List[int, int] = list()
 
         # Validate identifiers
         if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.view_name)):

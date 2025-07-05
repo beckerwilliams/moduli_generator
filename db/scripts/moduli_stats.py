@@ -1,4 +1,5 @@
 import argparse
+from json import dump
 from logging import (DEBUG, basicConfig, getLogger)
 from pathlib import PosixPath as Path
 from sys import exit
@@ -7,7 +8,7 @@ from db.moduli_db_utilities import MariaDBConnector
 from moduli_generator.config import (ISO_UTC_TIMESTAMP, ModuliConfig, default_config)
 
 
-def test_show_stats(
+def main(
         config: ModuliConfig = default_config,
         output_file=None,
 ):
@@ -23,11 +24,19 @@ def test_show_stats(
     :param output_file: Path to the desired output file where moduli records will
         be written. Defaults to None, in which case a timestamped file will be
         created in the user's home directory.
-    :type output_file: str or None, optional
+    :type output_file: Str or None, optional
     :return: A list of moduli records retrieved from the database and written to the
         output file.
-    :rtype: list
+    :rtype: List
     """
+    parser = argparse.ArgumentParser(description='Get modulus-counts by key-length from database')
+    parser.add_argument(
+        '--output-file',
+        type=str,
+        help='Path to output file (default: ~/FRESH_MODULI_<UTC_TIMESTAMP>.ssh2-moduli2)'
+    )
+    args = parser.parse_args()
+
     # Configure logging
     basicConfig(
         level=DEBUG,
@@ -40,18 +49,19 @@ def test_show_stats(
     db = MariaDBConnector(config)
     logger.debug(f'MariaDB Connector Initialized: {config}')
 
-    # Determine the output file path
-    if output_file:
-        moduli_file = Path(output_file)
+    if output_file is None:
+        moduli_file = Path.home() / f'FRESH_MODULI_{ISO_UTC_TIMESTAMP(compress=True)}.ssh2-moduli'
     else:
-        moduli_file = Path.home() / f'FRESH_MODULI_{ISO_UTC_TIMESTAMP(compress=True)}.ssh-moduli2'
+        moduli_file = Path(args.output_file)
 
     # Get the records and save to the specified file
     status = db.stats()
+    with moduli_file.open('w') as of:
+        dump(status, of, indent=4)
+
+    logger.info(f'{status}')
+    print(f'{status}')
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Generate moduli file from database')
-    parser.add_argument('--output-file', default=None, type=str, help='Path to output file (default: None)')
-
-    args = parser.parse_args()
-    exit(test_show_stats(output_file=args.output_file))
+    exit(main())

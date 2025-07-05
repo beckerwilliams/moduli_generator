@@ -7,7 +7,7 @@ from typing import Any, Dict, List
 
 from mariadb import Error
 
-from _version import __version__
+from moduli_generator._version import __version__
 # Import the default configuration
 from moduli_generator.config import (
     ISO_UTC_TIMESTAMP,

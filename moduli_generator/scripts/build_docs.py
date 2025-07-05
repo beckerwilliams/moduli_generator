@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 
-def build_docs_in_package() -> int:
+def main() -> int:
     """Build documentation and include it in the package."""
     project_root = Path(__file__).resolve().parent.parent.parent
     docs_dir = project_root
@@ -66,4 +66,4 @@ def build_docs_in_package() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(build_docs_in_package() or 0)
+    sys.exit(main() or 0)
