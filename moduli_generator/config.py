@@ -10,13 +10,13 @@ from pathlib import PosixPath as Path
 from re import (compile, sub)
 from typing import Final
 
-from moduli_generator._version import __version__
+from moduli_generator.version import get_version
 
-__all__ = ['__version__',
+__all__ = ['get_version',
            'ModuliConfig',
            'default_config',
            'ISO_UTC_TIMESTAMP',
-           'compress_datetime_to_string',
+           'strip_date_punctuation',
            'is_valid_identifier'
            ]
 
@@ -70,6 +70,9 @@ DEFAULT_MARIADB_DB: Final[str] = 'moduli_db'
 DEFAULT_MARIADB_TABLE: Final[str] = 'moduli'
 DEFAULT_MARIADB_VIEW: Final[str] = 'moduli_view'
 
+# Flag to Delete Records from Moduli DB after successfully extracting and writing a complete ssh / moduli file
+DEFAULT_MARIADB_DELETE_RECORDS_ON_MODULI_WRITE: Final[bool] = False
+
 # Screened Moduli File Pattern
 DEFAULT_MODULI_FILENAME_PATTERN: Final[str] = r'moduli_????_*'
 
@@ -78,7 +81,7 @@ DEFAULT_RECORDS_PER_KEYLENGTH: Final[int] = 20
 
 
 # For Date Formats Sans Punctuation
-def compress_datetime_to_string(timestamp: datetime) -> str:
+def strip_date_punctuation(timestamp: datetime) -> str:
     """
     Compresses a datetime object into a compact string format by removing non-numeric
     characters from its ISO 8601 format string.
@@ -133,51 +136,60 @@ def is_valid_identifier(identifier: str) -> bool:
 
 class ModuliConfig:
     """
-    Represents the configuration settings and directory structure for a moduli generation
-    and management system.
+    Represents a configuration structure for moduli assembly, encompassing paths,
+    logs, database configurations, and default settings.
 
-    This class provides default paths, directories, and configuration files,
-    specified either as a user-provided base directory, an environment variable,
-    or a predefined default directory. It also initializes internal attributes
-    required to manage configurations for moduli generation and supports methods
-    to ensure required directories exist, logging, and flexible base directory
-    initialization.
+    This class provides directory management, default file paths, and configuration
+    for moduli generation and related operations. It ensures the existence of required
+    directories and offers methods for logging and configuration handling.
 
-    :ivar base_dir: Base directory used by the system. Can be user-specified,
-        derived from an environment variable, or default to a predefined value.
+    :ivar base_dir: The root directory for all moduli-related operations, derived
+         from the provided `base_dir` parameter or environment variables.
     :type base_dir: Path
-    :ivar candidates_dir: Directory to store candidate files.
+    :ivar candidates_dir: The directory path designated for candidate files
+         involved in the moduli assembly process.
     :type candidates_dir: Path
-    :ivar moduli_dir: Directory to store moduli files.
+    :ivar moduli_dir: The directory for storing generated moduli files.
     :type moduli_dir: Path
-    :ivar log_dir: Directory to store log files.
+    :ivar log_dir: The directory housing log files for the moduli assembly process.
     :type log_dir: Path
-    :ivar moduli_generator_config: File path to the default moduli generator configuration.
+    :ivar moduli_generator_config: Path to the default moduli generator
+         configuration file.
     :type moduli_generator_config: Path
-    :ivar log_file: File path to the default log file.
+    :ivar log_file: Default log file path.
     :type log_file: Path
-    :ivar moduli_file: File path to the default moduli output file.
+    :ivar moduli_file: Default path for storing the primary moduli output file.
     :type moduli_file: Path
-    :ivar key_lengths: List of default key lengths for moduli generation.
-    :type key_lengths: List[int]
-    :ivar generator_type: Default type of the moduli generator.
-    :type generator_type: Str
-    :ivar nice_value: Default "nice" value for process scheduling priority.
-    :type nice_value: Int
-    :ivar config_id: Record number for linking constants in the system's configuration table.
-    :type config_id: Str
-    :ivar mariadb_cnf: File path to the default MariaDB configuration file.
+    :ivar key_lengths: Default key lengths used during moduli generation.
+    :type key_lengths: list[int]
+    :ivar generator_type: Type of generator used for moduli generation.
+    :type generator_type: str
+    :ivar nice_value: Default nice value for process prioritization.
+    :type nice_value: int
+    :ivar config_id: Identifier used to associate constants with configuration
+         tables.
+    :type config_id: str
+    :ivar mariadb_cnf: Path to the MariaDB configuration file used during moduli
+         assembly.
     :type mariadb_cnf: Path
-    :ivar moduli_file_pattern: Pattern used to name generated moduli files.
-    :type moduli_file_pattern: Str
-    :ivar db_name: Name of the default MariaDB database.
-    :type db_name: Str
-    :ivar table_name: Name of the default MariaDB table.
-    :type table_name: Str
-    :ivar view_name: Name of the default view in the MariaDB database.
-    :type view_name: Str
-    :ivar records_per_keylength: Default number of records per key length for moduli data.
-    :type records_per_keylength: Int
+    :ivar moduli_file_pattern: Filename pattern for generated moduli files.
+    :type moduli_file_pattern: str
+    :ivar delete_records_on_moduli_write: Flag indicating whether records should
+         be deleted upon successful moduli file write operation.
+    :type delete_records_on_moduli_write: bool
+    :ivar db_name: Default database name for MariaDB configurations.
+    :type db_name: str
+    :ivar table_name: Name of the table used in the database for moduli record
+         storage.
+    :type table_name: str
+    :ivar view_name: Name of the database view associated with moduli records.
+    :type view_name: str
+    :ivar records_per_keylength: Number of records associated with each
+         key length in the moduli assembly process.
+    :type records_per_keylength: int
+    :ivar version: Current version of the moduli configuration as derived
+         from the `pyproject.toml`.
+    :type version: str
     """
 
     def __init__(self, base_dir=None):
@@ -222,13 +234,16 @@ class ModuliConfig:
         self.mariadb_cnf = self.base_dir / DEFAULT_MARIADB_CNF
         self.moduli_file_pattern = DEFAULT_MODULI_FILENAME_PATTERN
 
+        # Delete on successful Write Flag
+        self.delete_records_on_moduli_write = DEFAULT_MARIADB_DELETE_RECORDS_ON_MODULI_WRITE
+
         self.db_name = DEFAULT_MARIADB_DB
         self.table_name = DEFAULT_MARIADB_TABLE
         self.view_name = DEFAULT_MARIADB_VIEW
         self.records_per_keylength = DEFAULT_RECORDS_PER_KEYLENGTH
 
         # From pyproject.toml
-        self.version = __version__
+        self.version = get_version()
 
     def ensure_directories(self):
         """
@@ -317,7 +332,7 @@ class ModuliConfig:
 
     @property
     def __version__(self):
-        return __version__
+        return self.version
 
 
 # Create a default configuration instance

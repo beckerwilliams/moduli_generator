@@ -1,9 +1,18 @@
 import os
-import re
 import sys
 
-# Add project root to path
-sys.path.insert(0, os.path.abspath('..'))
+from moduli_generator.version import get_version
+
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.napoleon',
+    # 'myst_parser',  # If you're using MyST markdown
+    'sphinx_rtd_theme',  # If you're using the ReadTheDocs theme
+]
+
+# Add a project root to the system path
+sys.path.insert(0, os.path.abspath('.'))  # Try with the current directory first
 
 project = 'Moduli Generator'
 exclude_patterns = [
@@ -12,14 +21,6 @@ exclude_patterns = [
     '.DS_Store'
 ]
 
-try:
-    from moduli_generator import __version__ as version
-except ImportError:
-    # Fallback to regex extraction
-    with open("../pyproject.toml", "r") as f:
-        content = f.read()
-    version_match = re.search(r'version\s*=\s*"([^"]+)"', content)
-    version = version_match.group(1) if version_match else "0.0.0"
+html_theme = 'sphinx_rtd_theme'
 
-# Use for Sphinx
-release = version
+release = get_version()

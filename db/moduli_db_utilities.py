@@ -1,12 +1,24 @@
 import configparser
 from configparser import (ConfigParser)
 from pathlib import PosixPath as Path
-from typing import (Dict, List, Optional)
+from typing import (
+    Dict,
+    List,
+    Optional
+)
 
-from mariadb import (Error, connect)
+from mariadb import (
+    Error,
+    connect
+)
 
-from moduli_generator.config import (ISO_UTC_TIMESTAMP, ModuliConfig, compress_datetime_to_string, default_config,
-                                     is_valid_identifier)
+from moduli_generator.config import (
+    ISO_UTC_TIMESTAMP,
+    ModuliConfig,
+    strip_date_punctuation,
+    default_config,
+    is_valid_identifier
+)
 
 
 def parse_mysql_config(mysql_cnf: str) -> Dict[str, Dict[str, str]]:
@@ -40,7 +52,7 @@ def parse_mysql_config(mysql_cnf: str) -> Dict[str, Dict[str, str]]:
 
 def get_mysql_config_value(cnf: Dict[str, Dict[str, str]],
                            local_section: str,
-                           local_key: str):
+                           local_key: str)-> str:
     """
     Retrieves a value from a nested dictionary based on the provided section
     and key. The function is primarily used to fetch configurations from a
@@ -104,15 +116,19 @@ class MariaDBConnector:
 
         :raises RuntimeError: If a database connection cannot be established.
         """
-
-        # SQL Properties for Moduli DB
-        self.config_id = config.config_id
-        self.db_name = config.db_name
-        self.table_name = config.table_name
-        self.view_name = config.view_name
-
-        self.key_lengths = config.key_lengths
-        self.records_per_keylength = config.records_per_keylength
+        for key, value in config.__dict__.items():
+            if key in ["mariadb_cnf",
+                       "db_name",
+                       "table_name",
+                       "view_name",
+                       "config_id",
+                       "key_lengths",
+                       "records_per_keylength",
+                       "delete_records_on_moduli_write",
+                       "delete_records_on_read"
+                       'get_logger()'
+                       ]:
+                setattr(self, key, value)
 
         # COnfigure Logger for Module
         self.logger = config.get_logger()
@@ -134,7 +150,7 @@ class MariaDBConnector:
             self.logger.error(f"Error connecting to MariaDB Platform: {err}")
             raise RuntimeError(f"Database connection failed: {err}")
 
-    def sql(self, query):
+    def sql(self, query) -> None:
         """
         Executes an SQL query using the provided connection and logs the results.
 
@@ -210,7 +226,7 @@ class MariaDBConnector:
             self.logger.error(f"Error inserting candidate: {err}")
             return 0
 
-    def delete_records(self, table_name, where_clause=None):
+    def delete_records(self, table_name, where_clause=None) -> int:
         """
         Deletes records from a specified table in the database. It supports conditional deletion
         using a WHERE clause. The method executes a DELETE SQL statement and commits the changes.
@@ -248,7 +264,7 @@ class MariaDBConnector:
             print(f"Error deleting from table {table_name}: {e}")
             raise RuntimeError(f"Error deleting from table {table_name}: {e}")
 
-    def store_screened_moduli(self, json_schema: dict):
+    def store_screened_moduli(self, json_schema: dict) -> int:
         """
         Stores screened moduli data by iterating through a given JSON schema and adding the relevant
         attributes to the instance. If an error occurs during the process, it logs the error and provides
@@ -273,7 +289,7 @@ class MariaDBConnector:
     def get_moduli(
             self,
             output_file: Path = None
-    ):
+    ) -> Dict[int, list]:
         """
         Retrieve random moduli for specified key sizes and optionally write them to a file.
 
@@ -333,12 +349,12 @@ class MariaDBConnector:
 
         # If an output file is specified, and we have enough records for all sizes, write the results
         if output_file:
-            self._write_moduli_to_file(moduli, output_file)
+            self.write_record_to_file(moduli, output_file)
             self.logger.info(f"Successfully created moduli file with {self.records_per_keylength} records per key size")
 
         return moduli
 
-    def _write_moduli_to_file(self, moduli_data: dict, output_file: Path) -> list:
+    def write_record_to_file(self, moduli_data: dict, output_file: Path) -> list:
         """
         This function writes moduli data to a specified file in a specific format. The output file
         contains a header string and records for each key size provided in the moduli data. Each
@@ -375,7 +391,7 @@ class MariaDBConnector:
                         # Format: timestamp type tests trials size generator modulus
                         # The timestamp should already be in compressed format
                         of.write(' '.join((
-                            compress_datetime_to_string(record['timestamp']),
+                            strip_date_punctuation(record['timestamp']),
                             record['type'],
                             record['tests'],
                             str(record['trials']),

@@ -7,8 +7,6 @@ from typing import Any, Dict, List
 
 from mariadb import Error
 
-from moduli_generator._version import __version__
-# Import the default configuration
 from moduli_generator.config import (
     ISO_UTC_TIMESTAMP,
     ModuliConfig, default_config
@@ -18,7 +16,7 @@ __all__ = ['ModuliGenerator']
 
 
 class ModuliGenerator:
-    def __init__(self, conf=default_config):
+    def __init__(self, config=default_config):
         """
         Initializes an instance of the class with the given configuration and sets up
         necessary logging mechanisms. Various important directories and configuration
@@ -26,12 +24,11 @@ class ModuliGenerator:
         ensures that all critical paths and the logger are properly set during
         initialization.
 
-        :param conf: The configuration object containing paths and logging settings.
-        :type conf: Optional, default is `default_config`
+        :param config: The configuration object containing paths and logging settings.
+        :type config: Optional, default is `default_config`
         """
-        self.version = conf.version
-        self.config = conf
-
+        self.config = config
+        self.version = config.version
         self.logger = self.config.get_logger()
         self.logger.name = __name__
 
@@ -48,7 +45,7 @@ class ModuliGenerator:
 
     def _generate_candidates(self, key_length: int) -> Path:
         """
-        Internally generates cryptographic key candidates of a specified bit length
+        internally generates cryptographic key candidates of a specified bit length
         and stores them in a designated file.
 
         This function executes the `ssh-keygen` command with the required arguments
@@ -58,7 +55,7 @@ class ModuliGenerator:
         logged and re-raised for handling by the caller.
 
         :param key_length: The bit length of the cryptographic key to be generated.
-        :type key_length: Int
+        :type key_length: int
         :return: A path object pointing to the file containing key candidates.
         :rtype: Path
         :raises subprocess.CalledProcessError: If the `ssh-keygen` command fails to
@@ -275,4 +272,4 @@ class ModuliGenerator:
 
     @property
     def __version__(self):
-        return __version__
+        return self.config.version

@@ -7,6 +7,7 @@ from db.moduli_db_utilities import MariaDBConnector
 from moduli_generator import ModuliGenerator
 # Import the default configuration
 from moduli_generator.config import (default_config)
+from moduli_generator.scripts.write_moduli_file import write_moduli_file
 
 __all__ = ['cli']
 
@@ -70,7 +71,13 @@ def parse_args():
         "--nice-value",
         type=int,
         default=default_config.nice_value,
-        help="Process nice value for CPU intensive operations"
+        help="Process nice value for CPU inensive operations"
+    )
+    # records_per_keylength
+    parser.add_argument("--records-per-keylength",
+                        type=int,
+                        default=default_config.records_per_keylength,
+                        help="Number of moduli per key-length to capture in each produced moduli file"
     )
 
     return parser.parse_args()
@@ -99,6 +106,7 @@ def main():
     config.moduli_dir = config.base_dir / args.moduli_dir
     config.log_dir = config.base_dir / args.log_dir
     config.moduli_generator_config = config.base_dir / args.mariadb_cnf
+    config.records_per_keylength = args.records_per_keylength
 
     logger = config.get_logger()
     logger.name = __name__
@@ -131,6 +139,9 @@ def main():
     # Store Screened Moduli in MariaDB
     generator.store_moduli(MariaDBConnector(config))  # To DB
     logger.info(f'Moduli stored in DB')
+
+    # Create New Moduli File
+    write_moduli_file(config=config)
 
     # Stats and Cleanup
     duration = (datetime.now(UTC).replace(tzinfo=None) - start_time).seconds

@@ -1,7 +1,7 @@
 SSH2 Moduli File Generator
 ==========================
 
-Generate Broad `ssh moduli` files
+Generate Complete and Secure `ssh moduli` files
 
             /etc/ssh/moduli | /usr/local/etc/ssh/moduli | 'ssh-moduli' | ...
 

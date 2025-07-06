@@ -1,8 +1,8 @@
 .. ssh-moduli-builder documentation master file, created by sphinx-quickstart on Thu Nov 14 14:36:40 2024
 
-================
-moduli_generator
-================
+=======================================
+ssh-moduli-generator (moduli_generator)
+=======================================
 
 .. toctree::
     :maxdepth: 2
@@ -18,9 +18,7 @@ moduli_generator
     :maxdepth: 2
     :caption: API Reference:
 
-    MANIFIEST.in
     MODULI_GENERATOR
-    MODULI_CONFIG
     MODULI_DB
 
 
