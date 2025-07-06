@@ -16,7 +16,7 @@ __all__ = ['get_version',
            'ModuliConfig',
            'default_config',
            'ISO_UTC_TIMESTAMP',
-           'strip_date_punctuation',
+           'strip_punction_from_datetime_str',
            'is_valid_identifier'
            ]
 
@@ -31,7 +31,7 @@ def ISO_UTC_TIMESTAMP(compress: bool = False) -> str:
     :type compress: Bool
     :return: The ISO 8601 formatted a UTC timestamp as a string. If `compress` is
         True, the string will be in a compressed format (numerals only, no punctuation).
-    :rtype: Str
+    :rtype: str 
     """
 
     timestamp = datetime.now(UTC).replace(tzinfo=None).isoformat()
@@ -78,10 +78,11 @@ DEFAULT_MODULI_FILENAME_PATTERN: Final[str] = r'moduli_????_*'
 
 # The number of moduli per key-length to capture in each produced moduli file
 DEFAULT_RECORDS_PER_KEYLENGTH: Final[int] = 20
+#  ref: https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl
 
 
 # For Date Formats Sans Punctuation
-def strip_date_punctuation(timestamp: datetime) -> str:
+def strip_punction_from_datetime_str(timestamp: datetime) -> str:
     """
     Compresses a datetime object into a compact string format by removing non-numeric
     characters from its ISO 8601 format string.
@@ -90,7 +91,7 @@ def strip_date_punctuation(timestamp: datetime) -> str:
     :type timestamp: Datetime
     :return: A string representation of the given datetime with all non-numeric
         characters removed.
-    :rtype: Str
+    :rtype: str 
     """
     return sub(r'[^0-9]', '', timestamp.isoformat())
 
@@ -104,7 +105,7 @@ def is_valid_identifier(identifier: str) -> bool:
     exceed 64 characters.
 
     :param identifier: The identifier string to validate.
-    :type identifier: Str
+    :type identifier: str 
     :return: True if the identifier is valid, otherwise False.
     :rtype: Bool
     """
@@ -269,7 +270,7 @@ class ModuliConfig:
         directory is explicitly set during the object creation.
 
         :param base_dir: The base directory to be used for initialization.
-        :type base_dir: Str
+        :type base_dir: str 
         :return: A new instance of the ModuliConfig class initialized with the given
             base directory.
         :rtype: ModuliConfig

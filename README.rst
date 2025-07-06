@@ -81,6 +81,11 @@ HackTricks (SSH)
 
 `HackTricks <https://book.hacktricks.xyz/network-services-pentesting/pentesting-ssh>`_
 
+On the Sufficient Number of Moduli by Keysize
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`On the Sufficient Number of Moduli by Keysize (grok): <https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl>`_
+
 License
 -------
 

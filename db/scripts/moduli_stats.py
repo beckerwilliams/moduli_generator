@@ -24,7 +24,7 @@ def main(
     :param output_file: Path to the desired output file where moduli records will
         be written. Defaults to None, in which case a timestamped file will be
         created in the user's home directory.
-    :type output_file: Str or None, optional
+    :type output_file: str or None, optional
     :return: A list of moduli records retrieved from the database and written to the
         output file.
     :rtype: List

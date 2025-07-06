@@ -11,8 +11,7 @@ ssh-moduli-generator (moduli_generator)
     README.rst
     DOCUMENTATION.rst
     PYTHON_PACKAGING.rst
-    LICENSE.rst
-
+    LICENSE.
 
 .. toctree::
     :maxdepth: 2

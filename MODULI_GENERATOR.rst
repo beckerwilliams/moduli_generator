@@ -11,6 +11,5 @@ module moduli_generator
 
 .. autoclass:: moduli_generator.config.ModuliConfig
     :members:
-    :private-members:
 
 

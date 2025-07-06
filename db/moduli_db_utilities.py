@@ -15,7 +15,7 @@ from mariadb import (
 from moduli_generator.config import (
     ISO_UTC_TIMESTAMP,
     ModuliConfig,
-    strip_date_punctuation,
+    strip_punction_from_datetime_str,
     default_config,
     is_valid_identifier
 )
@@ -31,7 +31,7 @@ def parse_mysql_config(mysql_cnf: str) -> Dict[str, Dict[str, str]]:
     to their respective values in each section.
 
     :param mysql_cnf: Path to the MySQL configuration file.
-    :type mysql_cnf: Str
+    :type mysql_cnf: str 
     :raises FileNotFoundError: If the specified configuration file does not exist.
     :raises ValueError: If the configuration file has parsing errors.
     :return: Dictionary containing the parsed configuration sections and options.
@@ -66,13 +66,13 @@ def get_mysql_config_value(cnf: Dict[str, Dict[str, str]],
     :type cnf: Dict[str, Dict[str, str]]
     :param local_section: The section name in the configuration dictionary
         from which the key-value pair should be retrieved.
-    :type local_section: Str
+    :type local_section: str 
     :param local_key: The key within the specified section of the
         configuration dictionary whose associated value needs to be fetched.
-    :type local_key: Str
+    :type local_key: str 
     :return: The value associated with the given section and key if it
         exists, otherwise None.
-    :rtype: Str | None
+    :rtype: str  | None
     """
     if local_section in cnf and local_key in cnf[local_section]:
         return cnf[local_section][local_key]
@@ -160,7 +160,7 @@ class MariaDBConnector:
         RuntimeError to indicate failure.
 
         :param query: The SQL query string to be executed on the database.
-        :type query: Str
+        :type query: str 
 
         :return: None
         :rtype: None
@@ -187,13 +187,13 @@ class MariaDBConnector:
         the newly inserted row.
 
         :param timestamp: The time at which the record should be inserted.
-        :type timestamp: Int
+        :type timestamp: int
         :param key_size: The size of the key in bits.
-        :type key_size: Int
+        :type key_size: int
         :param modulus: The modulus value to be stored in the record.
-        :type modulus: Int
+        :type modulus: int
         :return: The identifier of the newly inserted row in the database.
-        :rtype: Int
+        :rtype: int
         """
         # Validate identifiers
         if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.table_name)):
@@ -234,12 +234,12 @@ class MariaDBConnector:
         error during the operation, it raises a RuntimeError.
 
         :param table_name: The name of the database table from which records should be deleted.
-        :type table_name: Str
+        :type table_name: str 
         :param where_clause: An optional SQL condition to filter which records should be deleted.
                              If not provided, all records in the table will be deleted.
         :type where_clause: Optional[str]
         :return: The number of rows affected by the DELETE operation.
-        :rtype: Int
+        :rtype: int
         """
         try:
             with self.connection.cursor() as cursor:
@@ -275,7 +275,7 @@ class MariaDBConnector:
                             includes 'timestamp', 'key-size', and 'modulus'.
         :type json_schema: Dict
         :return: Returns 0 on success or 1 if an error occurs while processing the moduli.
-        :rtype: Int
+        :rtype: int
         """
         for key, moduli_list in json_schema.items():
             for modulus in moduli_list:
@@ -370,7 +370,7 @@ class MariaDBConnector:
             - trials: Number of trials (int).
             - size: Modulus size (int).
             - generator: Value of the generator (int).
-            - modulus: String representation of the modulus.
+            - modulus: str ing representation of the modulus.
         :type moduli_data: Dict
         :param output_file: Path representing the destination file to write moduli data.
         :type output_file: Path
@@ -391,7 +391,7 @@ class MariaDBConnector:
                         # Format: timestamp type tests trials size generator modulus
                         # The timestamp should already be in compressed format
                         of.write(' '.join((
-                            strip_date_punctuation(record['timestamp']),
+                            strip_punction_from_datetime_str(record['timestamp']),
                             record['type'],
                             record['tests'],
                             str(record['trials']),
