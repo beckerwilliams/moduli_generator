@@ -1,0 +1,327 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>module db &mdash; Moduli Generator 2.1.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=179ab080"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="bug_report template" href=".github/ISSUE_TEMPLATE/bug_report.html" />
+    <link rel="prev" title="module moduli_generator" href="MODULI_GENERATOR.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Moduli Generator
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">SSH2 Moduli File Generator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DOCUMENTATION.html">Build Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="PYTHON_PACKAGING.html">Packaging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LICENSE.html">License</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="MODULI_GENERATOR.html">module moduli_generator</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">module db</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.add"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.add()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.delete_records"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.delete_records()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.get_moduli"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.get_moduli()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.sql"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.sql()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.stats"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.stats()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.store_screened_moduli"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.store_screened_moduli()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.write_record_to_file"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.write_record_to_file()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href=".github/ISSUE_TEMPLATE/bug_report.html">bug_report template</a></li>
+<li class="toctree-l1"><a class="reference internal" href=".github/ISSUE_TEMPLATE/feature_request.html">Feature Request Template</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Moduli Generator</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">module db</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/MODULI_DB.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-0">
+<span id="module-db"></span><h1>module db<a class="headerlink" href="#module-0" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">db.moduli_db_utilities.</span></span><span class="sig-name descname"><span class="pre">MariaDBConnector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config:</span> <span class="pre">~moduli_generator.config.ModuliConfig</span> <span class="pre">=</span> <span class="pre">&lt;moduli_generator.config.ModuliConfig</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector" title="Link to this definition"></a></dt>
+<dd><p>Handles connections and operations with a MariaDB database, providing functionality
+for executing SQL queries, managing records, and retrieving data. The class is built
+to interface with a structured schema defined by configuration and support additional
+operations such as moduli retrieval and storage.</p>
+<p>This class automatically establishes a connection to the database upon instantiation,
+using connection details provided in a configuration object. Operations such as SQL
+execution, record addition, deletion, and retrieval are executed using the connection
+while ensuring proper resource management and error handling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_id</strong> – Identifier for the configuration associated with the database.</p></li>
+<li><p><strong>db_name</strong> – Name of the database to connect to.</p></li>
+<li><p><strong>table_name</strong> – Name of the table in the database used for records.</p></li>
+<li><p><strong>view_name</strong> – Name of the view in the database for specialized queries.</p></li>
+<li><p><strong>key_lengths</strong> – List of key sizes used for data grouping or retrieval.</p></li>
+<li><p><strong>records_per_keylength</strong> – Number of records required per key size.</p></li>
+<li><p><strong>logger</strong> – Logger instance for debugging and tracking the class operations.</p></li>
+<li><p><strong>connection</strong> – Active connection to the MariaDB database.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modulus</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.add" title="Link to this definition"></a></dt>
+<dd><p>Adds a new record to the specified database table with the details provided.</p>
+<p>This method inserts a record into the database table defined by <cite>self.db_name</cite>
+and <cite>self.table_name</cite> using the provided input values. If the operation is
+successful, the method commits the transaction and returns the identifier of
+the newly inserted row.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>timestamp</strong> (<em>int</em>) – The time at which the record should be inserted.</p></li>
+<li><p><strong>key_size</strong> (<em>int</em>) – The size of the key in bits.</p></li>
+<li><p><strong>modulus</strong> (<em>int</em>) – The modulus value to be stored in the record.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The identifier of the newly inserted row in the database.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.delete_records">
+<span class="sig-name descname"><span class="pre">delete_records</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">where_clause</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.delete_records"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.delete_records" title="Link to this definition"></a></dt>
+<dd><p>Deletes records from a specified table in the database. It supports conditional deletion
+using a WHERE clause. The method executes a DELETE SQL statement and commits the changes.
+If the operation is successful, the number of rows affected is returned. If there is an
+error during the operation, it raises a RuntimeError.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table_name</strong> (<em>str</em>) – The name of the database table from which records should be deleted.</p></li>
+<li><p><strong>where_clause</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – An optional SQL condition to filter which records should be deleted.
+If not provided, all records in the table will be deleted.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The number of rows affected by the DELETE operation.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.get_moduli">
+<span class="sig-name descname"><span class="pre">get_moduli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">PosixPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.get_moduli"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.get_moduli" title="Link to this definition"></a></dt>
+<dd><p>Retrieve random moduli for specified key sizes and optionally write them to a file.</p>
+<p>This function checks whether there are sufficient records for each key size before
+retrieving them from the database. If the specified number of records exists for all
+key sizes, records are fetched and optionally written to a file. It ensures that the
+database and table names are valid before retrieving the records, logging the operation’s
+progress and potential errors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>output_file</strong> (<em>Path</em><em>, </em><em>optional</em>) – The file path where the retrieved moduli should be saved.
+If not specified, the results are returned without saving.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary mapping key sizes to the retrieved moduli records for each size.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RuntimeError</strong> – If there are insufficient records for any key size or the database
+query fails.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.sql">
+<span class="sig-name descname"><span class="pre">sql</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.sql"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.sql" title="Link to this definition"></a></dt>
+<dd><p>Executes an SQL query using the provided connection and logs the results.</p>
+<p>This method interacts with the database by executing the given SQL query and
+logging each result row using the logging mechanism configured for the class.
+If an error occurs during query execution, it logs the error and raises a
+RuntimeError to indicate failure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>query</strong> (<em>str</em>) – The SQL query string to be executed on the database.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RuntimeError</strong> – If the execution of the SQL query fails.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.stats">
+<span class="sig-name descname"><span class="pre">stats</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.stats" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.store_screened_moduli">
+<span class="sig-name descname"><span class="pre">store_screened_moduli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">json_schema</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.store_screened_moduli"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.store_screened_moduli" title="Link to this definition"></a></dt>
+<dd><p>Stores screened moduli data by iterating through a given JSON schema and adding the relevant
+attributes to the instance. If an error occurs during the process, it logs the error and provides
+a return code indicating failure or success.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>json_schema</strong> (<em>Dict</em>) – A dictionary containing modulus data where keys represent categories,
+and values are lists of modulus detail dictionaries. Each detail dictionary
+includes ‘timestamp’, ‘key-size’, and ‘modulus’.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns 0 on success or 1 if an error occurs while processing the moduli.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.write_record_to_file">
+<span class="sig-name descname"><span class="pre">write_record_to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">moduli_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">PosixPath</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.write_record_to_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.write_record_to_file" title="Link to this definition"></a></dt>
+<dd><p>This function writes moduli data to a specified file in a specific format. The output file
+contains a header string and records for each key size provided in the moduli data. Each
+record is formatted with specific information such as timestamp, type, tests, trials,
+size, generator, and modulus. If an error occurs during the file writing process, it is
+logged, and the exception is raised.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>moduli_data</strong> (<em>Dict</em>) – Dictionary where the key represents the key size (int), and the value
+is a list of records. Each record is a dictionary containing the following fields:
+- timestamp: Compressed timestamp string.
+- type: The type of the modulus (str).
+- tests: Result summary of tests performed (str).
+- trials: Number of trials (int).
+- size: Modulus size (int).
+- generator: Value of the generator (int).
+- modulus: str ing representation of the modulus.</p></li>
+<li><p><strong>output_file</strong> (<em>Path</em>) – Path representing the destination file to write moduli data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="MODULI_GENERATOR.html" class="btn btn-neutral float-left" title="module moduli_generator" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href=".github/ISSUE_TEMPLATE/bug_report.html" class="btn btn-neutral float-right" title="bug_report template" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

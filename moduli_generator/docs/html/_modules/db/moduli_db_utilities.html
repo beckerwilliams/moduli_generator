@@ -1,0 +1,595 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>db.moduli_db_utilities &mdash; Moduli Generator 2.1.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=179ab080"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Moduli Generator
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">SSH2 Moduli File Generator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../DOCUMENTATION.html">Build Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../PYTHON_PACKAGING.html">Packaging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../LICENSE.html">License</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../MODULI_GENERATOR.html">module moduli_generator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../MODULI_DB.html">module db</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../.github/ISSUE_TEMPLATE/bug_report.html">bug_report template</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../.github/ISSUE_TEMPLATE/feature_request.html">Feature Request Template</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Moduli Generator</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">db.moduli_db_utilities</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for db.moduli_db_utilities</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">configparser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">configparser</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">ConfigParser</span><span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">PosixPath</span> <span class="k">as</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Dict</span><span class="p">,</span>
+    <span class="n">List</span><span class="p">,</span>
+    <span class="n">Optional</span>
+<span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">mariadb</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Error</span><span class="p">,</span>
+    <span class="n">connect</span>
+<span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">moduli_generator.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ISO_UTC_TIMESTAMP</span><span class="p">,</span>
+    <span class="n">ModuliConfig</span><span class="p">,</span>
+    <span class="n">strip_date_punctuation</span><span class="p">,</span>
+    <span class="n">default_config</span><span class="p">,</span>
+    <span class="n">is_valid_identifier</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_mysql_config</span><span class="p">(</span><span class="n">mysql_cnf</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses a MySQL configuration file and returns its content as a dictionary.</span>
+
+<span class="sd">    This function processes a MySQL configuration file, validates its existence,</span>
+<span class="sd">    and extracts its content into a nested dictionary structure. The outer dictionary</span>
+<span class="sd">    keys correspond to section names, and the inner dictionaries map option names</span>
+<span class="sd">    to their respective values in each section.</span>
+
+<span class="sd">    :param mysql_cnf: Path to the MySQL configuration file.</span>
+<span class="sd">    :type mysql_cnf: str </span>
+<span class="sd">    :raises FileNotFoundError: If the specified configuration file does not exist.</span>
+<span class="sd">    :raises ValueError: If the configuration file has parsing errors.</span>
+<span class="sd">    :return: Dictionary containing the parsed configuration sections and options.</span>
+<span class="sd">    :rtype: Dict[str, Dict[str, str]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">mysql_cnf</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span> <span class="ow">and</span> <span class="n">Path</span><span class="p">(</span><span class="n">mysql_cnf</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()):</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Configuration file not found: </span><span class="si">{</span><span class="n">Path</span><span class="p">(</span><span class="n">mysql_cnf</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">cnf</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="p">(</span><span class="n">allow_no_value</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cnf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">mysql_cnf</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="n">local_section</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">cnf</span><span class="p">[</span><span class="n">local_section</span><span class="p">])</span> <span class="k">for</span> <span class="n">local_section</span> <span class="ow">in</span> <span class="n">cnf</span><span class="o">.</span><span class="n">sections</span><span class="p">()}</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="k">except</span> <span class="n">configparser</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error parsing configuration filerr: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_mysql_config_value</span><span class="p">(</span><span class="n">cnf</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>
+                           <span class="n">local_section</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                           <span class="n">local_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span><span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves a value from a nested dictionary based on the provided section</span>
+<span class="sd">    and key. The function is primarily used to fetch configurations from a</span>
+<span class="sd">    MySQL configuration dictionary. If the specified section and key exist</span>
+<span class="sd">    in the dictionary, their corresponding value is returned. If either the</span>
+<span class="sd">    section or key is absent, the function returns None.</span>
+
+<span class="sd">    :param cnf: A dictionary representing a MySQL configuration where keys</span>
+<span class="sd">        are section names and values are dictionaries containing key-value</span>
+<span class="sd">        pairs within those sections.</span>
+<span class="sd">    :type cnf: Dict[str, Dict[str, str]]</span>
+<span class="sd">    :param local_section: The section name in the configuration dictionary</span>
+<span class="sd">        from which the key-value pair should be retrieved.</span>
+<span class="sd">    :type local_section: str </span>
+<span class="sd">    :param local_key: The key within the specified section of the</span>
+<span class="sd">        configuration dictionary whose associated value needs to be fetched.</span>
+<span class="sd">    :type local_key: str </span>
+<span class="sd">    :return: The value associated with the given section and key if it</span>
+<span class="sd">        exists, otherwise None.</span>
+<span class="sd">    :rtype: str  | None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">local_section</span> <span class="ow">in</span> <span class="n">cnf</span> <span class="ow">and</span> <span class="n">local_key</span> <span class="ow">in</span> <span class="n">cnf</span><span class="p">[</span><span class="n">local_section</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">cnf</span><span class="p">[</span><span class="n">local_section</span><span class="p">][</span><span class="n">local_key</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="MariaDBConnector">
+<a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MariaDBConnector</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handles connections and operations with a MariaDB database, providing functionality</span>
+<span class="sd">    for executing SQL queries, managing records, and retrieving data. The class is built</span>
+<span class="sd">    to interface with a structured schema defined by configuration and support additional</span>
+<span class="sd">    operations such as moduli retrieval and storage.</span>
+
+<span class="sd">    This class automatically establishes a connection to the database upon instantiation,</span>
+<span class="sd">    using connection details provided in a configuration object. Operations such as SQL</span>
+<span class="sd">    execution, record addition, deletion, and retrieval are executed using the connection</span>
+<span class="sd">    while ensuring proper resource management and error handling.</span>
+
+<span class="sd">    :ivar config_id: Identifier for the configuration associated with the database.</span>
+<span class="sd">    :ivar db_name: Name of the database to connect to.</span>
+<span class="sd">    :ivar table_name: Name of the table in the database used for records.</span>
+<span class="sd">    :ivar view_name: Name of the view in the database for specialized queries.</span>
+<span class="sd">    :ivar key_lengths: List of key sizes used for data grouping or retrieval.</span>
+<span class="sd">    :ivar records_per_keylength: Number of records required per key size.</span>
+<span class="sd">    :ivar logger: Logger instance for debugging and tracking the class operations.</span>
+<span class="sd">    :ivar connection: Active connection to the MariaDB database.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">ModuliConfig</span> <span class="o">=</span> <span class="n">default_config</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Represents a database connector configuration for a MariaDB instance.</span>
+
+<span class="sd">        This class initializes a database connection using details from the provided</span>
+<span class="sd">        configuration object. It sets up connection properties, logging, and reads</span>
+<span class="sd">        database credentials from a configuration file.</span>
+
+<span class="sd">        :param config: Configuration object containing database connectivity details</span>
+<span class="sd">            and other related parameters.</span>
+<span class="sd">        :type config: ModuliConfig</span>
+
+<span class="sd">        :raises RuntimeError: If a database connection cannot be established.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;mariadb_cnf&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;db_name&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;table_name&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;view_name&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;config_id&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;key_lengths&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;records_per_keylength&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;delete_records_on_moduli_write&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;delete_records_on_read&quot;</span>
+                       <span class="s1">&#39;get_logger()&#39;</span>
+                       <span class="p">]:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="c1"># COnfigure Logger for Module</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="vm">__name__</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using MariaDB config: </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">mariadb_cnf</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">mysql_cnf</span> <span class="o">=</span> <span class="n">parse_mysql_config</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">mariadb_cnf</span><span class="p">)[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">connect</span><span class="p">(</span>
+                <span class="n">host</span><span class="o">=</span><span class="n">mysql_cnf</span><span class="p">[</span><span class="s2">&quot;host&quot;</span><span class="p">],</span>
+                <span class="n">port</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">mysql_cnf</span><span class="p">[</span><span class="s2">&quot;port&quot;</span><span class="p">]),</span>
+                <span class="n">user</span><span class="o">=</span><span class="n">mysql_cnf</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">],</span>
+                <span class="n">password</span><span class="o">=</span><span class="n">mysql_cnf</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">],</span>
+                <span class="n">database</span><span class="o">=</span><span class="n">mysql_cnf</span><span class="p">[</span><span class="s2">&quot;database&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">configparser</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error connecting to MariaDB Platform: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Database connection failed: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MariaDBConnector.sql">
+<a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.sql">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sql</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executes an SQL query using the provided connection and logs the results.</span>
+
+<span class="sd">        This method interacts with the database by executing the given SQL query and</span>
+<span class="sd">        logging each result row using the logging mechanism configured for the class.</span>
+<span class="sd">        If an error occurs during query execution, it logs the error and raises a</span>
+<span class="sd">        RuntimeError to indicate failure.</span>
+
+<span class="sd">        :param query: The SQL query string to be executed on the database.</span>
+<span class="sd">        :type query: str </span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+
+<span class="sd">        :raises RuntimeError: If the execution of the SQL query fails.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+                <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error executing SQL query: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Database query failed: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MariaDBConnector.add">
+<a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.add">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">key_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">modulus</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a new record to the specified database table with the details provided.</span>
+
+<span class="sd">        This method inserts a record into the database table defined by `self.db_name`</span>
+<span class="sd">        and `self.table_name` using the provided input values. If the operation is</span>
+<span class="sd">        successful, the method commits the transaction and returns the identifier of</span>
+<span class="sd">        the newly inserted row.</span>
+
+<span class="sd">        :param timestamp: The time at which the record should be inserted.</span>
+<span class="sd">        :type timestamp: int</span>
+<span class="sd">        :param key_size: The size of the key in bits.</span>
+<span class="sd">        :type key_size: int</span>
+<span class="sd">        :param modulus: The modulus value to be stored in the record.</span>
+<span class="sd">        :type modulus: int</span>
+<span class="sd">        :return: The identifier of the newly inserted row in the database.</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Validate identifiers</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">is_valid_identifier</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="p">)</span> <span class="ow">and</span> <span class="n">is_valid_identifier</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid database or table name&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
+                <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                        INSERT INTO </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="si">}</span><span class="s2"> (timestamp, config_id, size, modulus)</span>
+<span class="s2">                        VALUES (?, ?, ?, ?) </span><span class="se">\</span>
+<span class="s2">                        &quot;&quot;&quot;</span>
+                <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">(</span>
+                    <span class="n">timestamp</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">config_id</span><span class="p">,</span>
+                    <span class="n">key_size</span><span class="p">,</span>
+                    <span class="n">modulus</span><span class="p">,</span>
+                <span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="n">last_id</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">lastrowid</span>
+                <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+                <span class="c1"># Log success only after successful insertion</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Successfully added </span><span class="si">{</span><span class="n">key_size</span><span class="si">}</span><span class="s1"> bit modulus to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Last inserted row ID: </span><span class="si">{</span><span class="n">last_id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="n">last_id</span>
+
+        <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error inserting candidate: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="MariaDBConnector.delete_records">
+<a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.delete_records">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_records</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">where_clause</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deletes records from a specified table in the database. It supports conditional deletion</span>
+<span class="sd">        using a WHERE clause. The method executes a DELETE SQL statement and commits the changes.</span>
+<span class="sd">        If the operation is successful, the number of rows affected is returned. If there is an</span>
+<span class="sd">        error during the operation, it raises a RuntimeError.</span>
+
+<span class="sd">        :param table_name: The name of the database table from which records should be deleted.</span>
+<span class="sd">        :type table_name: str </span>
+<span class="sd">        :param where_clause: An optional SQL condition to filter which records should be deleted.</span>
+<span class="sd">                             If not provided, all records in the table will be deleted.</span>
+<span class="sd">        :type where_clause: Optional[str]</span>
+<span class="sd">        :return: The number of rows affected by the DELETE operation.</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">where_clause</span><span class="p">:</span>
+                    <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                            DELETE FROM </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2"> WHERE </span><span class="si">{</span><span class="n">where_clause</span><span class="si">}</span>
+<span class="s2">                            &quot;&quot;&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;DELETE FROM </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+                <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+
+                <span class="n">rows_affected</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">rowcount</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Moduli Consumed from DB: </span><span class="si">{</span><span class="n">rows_affected</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully deleted </span><span class="si">{</span><span class="n">rows_affected</span><span class="si">}</span><span class="s2"> rows from table: </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">rows_affected</span>
+
+        <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error deleting from table </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error deleting from table </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MariaDBConnector.store_screened_moduli">
+<a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.store_screened_moduli">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">store_screened_moduli</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_schema</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Stores screened moduli data by iterating through a given JSON schema and adding the relevant</span>
+<span class="sd">        attributes to the instance. If an error occurs during the process, it logs the error and provides</span>
+<span class="sd">        a return code indicating failure or success.</span>
+
+<span class="sd">        :param json_schema: A dictionary containing modulus data where keys represent categories,</span>
+<span class="sd">                            and values are lists of modulus detail dictionaries. Each detail dictionary</span>
+<span class="sd">                            includes &#39;timestamp&#39;, &#39;key-size&#39;, and &#39;modulus&#39;.</span>
+<span class="sd">        :type json_schema: Dict</span>
+<span class="sd">        :return: Returns 0 on success or 1 if an error occurs while processing the moduli.</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">moduli_list</span> <span class="ow">in</span> <span class="n">json_schema</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">modulus</span> <span class="ow">in</span> <span class="n">moduli_list</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">modulus</span><span class="p">[</span><span class="s2">&quot;timestamp&quot;</span><span class="p">],</span> <span class="n">modulus</span><span class="p">[</span><span class="s2">&quot;key-size&quot;</span><span class="p">],</span> <span class="n">modulus</span><span class="p">[</span><span class="s2">&quot;modulus&quot;</span><span class="p">])</span>
+                <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error storing modulus</span><span class="si">{</span><span class="n">modulus</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="MariaDBConnector.get_moduli">
+<a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.get_moduli">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_moduli</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">output_file</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve random moduli for specified key sizes and optionally write them to a file.</span>
+
+<span class="sd">        This function checks whether there are sufficient records for each key size before</span>
+<span class="sd">        retrieving them from the database. If the specified number of records exists for all</span>
+<span class="sd">        key sizes, records are fetched and optionally written to a file. It ensures that the</span>
+<span class="sd">        database and table names are valid before retrieving the records, logging the operation&#39;s</span>
+<span class="sd">        progress and potential errors.</span>
+
+<span class="sd">        :param output_file: The file path where the retrieved moduli should be saved.</span>
+<span class="sd">                            If not specified, the results are returned without saving.</span>
+<span class="sd">        :type output_file: Path, optional</span>
+<span class="sd">        :return: A dictionary mapping key sizes to the retrieved moduli records for each size.</span>
+<span class="sd">        :rtype: Dict</span>
+<span class="sd">        :raises RuntimeError: If there are insufficient records for any key size or the database</span>
+<span class="sd">                              query fails.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Verify that a sufficient number of moduli for each keysize exist in the db</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">stats</span><span class="p">[</span><span class="n">stat</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">records_per_keylength</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Insufficient records for key size </span><span class="si">{</span><span class="n">stat</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">stat</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> available,&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">records_per_keylength</span><span class="si">}</span><span class="s2"> required&quot;</span>
+                <span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Insufficient records for key size </span><span class="si">{</span><span class="n">stat</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">stat</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> available, &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">records_per_keylength</span><span class="si">}</span><span class="s2"> required&quot;</span>
+                <span class="p">)</span>
+
+        <span class="c1"># If we have enough records for all sizes, proceed with retrieval</span>
+        <span class="n">moduli</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">dictionary</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_lengths</span><span class="p">:</span>
+                    <span class="c1"># Query to get random records for the current key size using the view</span>
+                    <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                        SELECT timestamp, type, tests, trials, size, generator, modulus</span>
+<span class="s2">                        FROM </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">view_name</span><span class="si">}</span>
+<span class="s2">                        WHERE size = </span><span class="si">{</span><span class="n">size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">  # GOTCHA - The STORED Moduli Size is 1 BIT LESS THAN THE KEY SIZE </span>
+<span class="s2">                        LIMIT </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">records_per_keylength</span><span class="si">}</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">                        &quot;&quot;&quot;</span>
+
+                    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">)</span>
+
+                    <span class="c1"># Store the results for this key size</span>
+                    <span class="n">records</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+                    <span class="n">moduli</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="n">records</span>
+
+                    <span class="c1"># Log the number of records found</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Retrieved </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">records</span><span class="p">)</span><span class="si">}</span><span class="s2"> random records for key size </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error retrieving random moduli: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Database query failed: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># If an output file is specified, and we have enough records for all sizes, write the results</span>
+        <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_record_to_file</span><span class="p">(</span><span class="n">moduli</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully created moduli file with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">records_per_keylength</span><span class="si">}</span><span class="s2"> records per key size&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">moduli</span></div>
+
+
+<div class="viewcode-block" id="MariaDBConnector.write_record_to_file">
+<a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.write_record_to_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">write_record_to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">moduli_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function writes moduli data to a specified file in a specific format. The output file</span>
+<span class="sd">        contains a header string and records for each key size provided in the moduli data. Each</span>
+<span class="sd">        record is formatted with specific information such as timestamp, type, tests, trials,</span>
+<span class="sd">        size, generator, and modulus. If an error occurs during the file writing process, it is</span>
+<span class="sd">        logged, and the exception is raised.</span>
+
+<span class="sd">        :param moduli_data: Dictionary where the key represents the key size (int), and the value</span>
+<span class="sd">            is a list of records. Each record is a dictionary containing the following fields:</span>
+<span class="sd">            - timestamp: Compressed timestamp string.</span>
+<span class="sd">            - type: The type of the modulus (str).</span>
+<span class="sd">            - tests: Result summary of tests performed (str).</span>
+<span class="sd">            - trials: Number of trials (int).</span>
+<span class="sd">            - size: Modulus size (int).</span>
+<span class="sd">            - generator: Value of the generator (int).</span>
+<span class="sd">            - modulus: str ing representation of the modulus.</span>
+<span class="sd">        :type moduli_data: Dict</span>
+<span class="sd">        :param output_file: Path representing the destination file to write moduli data.</span>
+<span class="sd">        :type output_file: Path</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">moduli_to_delete</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">output_file</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">of</span><span class="p">:</span>
+                <span class="c1"># Write File Header</span>
+                <span class="n">of</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;# /etc/ssh/modul: dcrunch.threatwonk.net: </span><span class="si">{</span><span class="n">ISO_UTC_TIMESTAMP</span><span class="p">()</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Write data for each key size</span>
+                <span class="k">for</span> <span class="n">size</span><span class="p">,</span> <span class="n">records</span> <span class="ow">in</span> <span class="n">moduli_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">records</span><span class="p">:</span>
+                        <span class="c1"># Format: timestamp type tests trials size generator modulus</span>
+                        <span class="c1"># The timestamp should already be in compressed format</span>
+                        <span class="n">of</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span>
+                            <span class="n">strip_date_punctuation</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">]),</span>
+                            <span class="n">record</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span>
+                            <span class="n">record</span><span class="p">[</span><span class="s1">&#39;tests&#39;</span><span class="p">],</span>
+                            <span class="nb">str</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;trials&#39;</span><span class="p">]),</span>
+                            <span class="nb">str</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">]),</span>
+                            <span class="nb">str</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;generator&#39;</span><span class="p">]),</span>
+                            <span class="n">record</span><span class="p">[</span><span class="s1">&#39;modulus&#39;</span><span class="p">],</span>
+                            <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                        <span class="p">)))</span>
+                        <span class="k">if</span> <span class="n">record</span><span class="p">[</span><span class="s1">&#39;modulus&#39;</span><span class="p">]:</span>
+                            <span class="n">moduli_to_delete</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;modulus&#39;</span><span class="p">])</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully wrote moduli to file: </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Moduli to delete from DB: </span><span class="si">{</span><span class="n">moduli_to_delete</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error writing to file </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+
+        <span class="k">return</span> <span class="n">moduli_to_delete</span></div>
+
+
+<div class="viewcode-block" id="MariaDBConnector.stats">
+<a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.stats">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stats</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        :rtype:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">moduli_query_sizes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_lengths</span><span class="p">:</span>
+            <span class="n">moduli_query_sizes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># First, check if we have enough records for each key size</span>
+        <span class="n">status</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+        <span class="c1"># Validate identifiers</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">is_valid_identifier</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="p">)</span> <span class="ow">and</span> <span class="n">is_valid_identifier</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">view_name</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid database or table name&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">moduli_query_sizes</span><span class="p">:</span>
+                    <span class="c1"># Count query to check available records</span>
+                    <span class="n">count_query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                                  SELECT COUNT(*)</span>
+<span class="s2">                                  FROM </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">view_name</span><span class="si">}</span>
+<span class="s2">                                  WHERE size = </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">                                  &quot;&quot;&quot;</span>
+                    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">count_query</span><span class="p">)</span>
+                    <span class="n">count</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">status</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error retrieving random moduli: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Database query failed: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Output</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">moduli_query_sizes</span><span class="p">,</span> <span class="n">status</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Moduli statistics:&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;size  count&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">size</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">size</span><span class="si">:</span><span class="s1">&gt;4</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">count</span><span class="si">:</span><span class="s1">&gt;4</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">results</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

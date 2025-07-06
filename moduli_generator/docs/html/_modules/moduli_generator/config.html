@@ -1,0 +1,469 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moduli_generator.config &mdash; Moduli Generator 2.1.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=179ab080"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Moduli Generator
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">SSH2 Moduli File Generator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../DOCUMENTATION.html">Build Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../PYTHON_PACKAGING.html">Packaging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../LICENSE.html">License</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../MODULI_GENERATOR.html">module moduli_generator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../MODULI_DB.html">module db</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../.github/ISSUE_TEMPLATE/bug_report.html">bug_report template</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../.github/ISSUE_TEMPLATE/feature_request.html">Feature Request Template</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Moduli Generator</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../moduli_generator.html">moduli_generator</a></li>
+      <li class="breadcrumb-item active">moduli_generator.config</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for moduli_generator.config</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Configuration module for the moduli generator project.</span>
+<span class="sd">Centralizes all default configuration values.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">UTC</span><span class="p">,</span> <span class="n">datetime</span><span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">logging</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">DEBUG</span><span class="p">,</span> <span class="n">basicConfig</span><span class="p">,</span> <span class="n">getLogger</span><span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">os</span><span class="w"> </span><span class="kn">import</span> <span class="n">environ</span> <span class="k">as</span> <span class="n">osenv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">PosixPath</span> <span class="k">as</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">re</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="nb">compile</span><span class="p">,</span> <span class="n">sub</span><span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Final</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">moduli_generator.version</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_version</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;get_version&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;ModuliConfig&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;default_config&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;ISO_UTC_TIMESTAMP&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;strip_date_punctuation&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;is_valid_identifier&#39;</span>
+           <span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">ISO_UTC_TIMESTAMP</span><span class="p">(</span><span class="n">compress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate an ISO formatted UTC timestamp as a string. Optionally, the timestamp can</span>
+<span class="sd">    be compressed by enabling the `compress` parameter.</span>
+
+<span class="sd">    :param compress: Flag indicating whether the timestamp should be in compressed</span>
+<span class="sd">        format or not.</span>
+<span class="sd">    :type compress: Bool</span>
+<span class="sd">    :return: The ISO 8601 formatted a UTC timestamp as a string. If `compress` is</span>
+<span class="sd">        True, the string will be in a compressed format (numerals only, no punctuation).</span>
+<span class="sd">    :rtype: str </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">UTC</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">compress</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^0-9]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">timestamp</span>
+
+
+<span class="c1"># Moduli Generator Module&#39;s directory structure</span>
+<span class="n">DEFAULT_DIR</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;.moduli&#39;</span>
+<span class="n">DEFAULT_CANDIDATES_DIR</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;.candidates&#39;</span>
+<span class="n">DEFAULT_MODULI_DIR</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;.moduli&#39;</span>
+<span class="n">DEFAULT_LOG_DIR</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;.logs&#39;</span>
+
+<span class="c1"># Location of Moduli Configuration File (tbd - not yet used)</span>
+<span class="n">DEFAULT_MODULI_GENERATOR_CONFIG</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;moduli_generator.conf&#39;</span>
+
+<span class="c1"># The only log file this module recognizes</span>
+<span class="n">DEFAULT_LOG_FILE</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;moduli_generator.log&#39;</span>
+
+<span class="c1"># The Product: a Complete ssh-moduli file</span>
+<span class="n">DEFAULT_MODULI_FILE</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;ssh-moduli_</span><span class="si">{</span><span class="n">ISO_UTC_TIMESTAMP</span><span class="p">(</span><span class="n">compress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+
+<span class="c1"># SSH-KEYGEN Generator settings</span>
+<span class="n">DEFAULT_KEY_LENGTHS</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3072</span><span class="p">,</span> <span class="mi">4096</span><span class="p">,</span> <span class="mi">6144</span><span class="p">,</span> <span class="mi">7680</span><span class="p">,</span> <span class="mi">8192</span><span class="p">)</span>
+<span class="n">DEFAULT_GENERATOR_TYPE</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">DEFAULT_NICE_VALUE</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">15</span>
+<span class="n">DEFAULT_CONFIG_ID</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># JOIN to Moduli File Constants</span>
+
+<span class="c1"># MariaDB Configuration File (mysql.cnf)</span>
+<span class="n">DEFAULT_MARIADB_CNF</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;moduli_generator.cnf&quot;</span>
+
+<span class="c1"># Operational Database, Tables, and Views</span>
+<span class="n">DEFAULT_MARIADB_DB</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;moduli_db&#39;</span>
+<span class="n">DEFAULT_MARIADB_TABLE</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;moduli&#39;</span>
+<span class="n">DEFAULT_MARIADB_VIEW</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;moduli_view&#39;</span>
+
+<span class="c1"># Flag to Delete Records from Moduli DB after successfully extracting and writing a complete ssh / moduli file</span>
+<span class="n">DEFAULT_MARIADB_DELETE_RECORDS_ON_MODULI_WRITE</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="c1"># Screened Moduli File Pattern</span>
+<span class="n">DEFAULT_MODULI_FILENAME_PATTERN</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;moduli_????_*&#39;</span>
+
+<span class="c1"># The number of moduli per key-length to capture in each produced moduli file</span>
+<span class="n">DEFAULT_RECORDS_PER_KEYLENGTH</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">20</span>
+
+
+<span class="c1"># For Date Formats Sans Punctuation</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">strip_date_punctuation</span><span class="p">(</span><span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compresses a datetime object into a compact string format by removing non-numeric</span>
+<span class="sd">    characters from its ISO 8601 format string.</span>
+
+<span class="sd">    :param timestamp: A datetime object to compress into a string.</span>
+<span class="sd">    :type timestamp: Datetime</span>
+<span class="sd">    :return: A string representation of the given datetime with all non-numeric</span>
+<span class="sd">        characters removed.</span>
+<span class="sd">    :rtype: str </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^0-9]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">timestamp</span><span class="o">.</span><span class="n">isoformat</span><span class="p">())</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">is_valid_identifier</span><span class="p">(</span><span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determines if the given string is a valid identifier following specific</span>
+<span class="sd">    rules. Valid identifiers must either be unquoted strings containing only</span>
+<span class="sd">    alphanumeric characters, underscores, and dollar signs, or quoted strings</span>
+<span class="sd">    wrapped in backticks with proper pairing. Additionally, identifiers must not</span>
+<span class="sd">    exceed 64 characters.</span>
+
+<span class="sd">    :param identifier: The identifier string to validate.</span>
+<span class="sd">    :type identifier: str </span>
+<span class="sd">    :return: True if the identifier is valid, otherwise False.</span>
+<span class="sd">    :rtype: Bool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">identifier</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># Check for empty string or too long identifier</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">64</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># If the identifier is quoted with backticks, we need different validation</span>
+    <span class="k">if</span> <span class="n">identifier</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;`&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">identifier</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;`&#39;</span><span class="p">):</span>
+        <span class="c1"># For quoted identifiers, make sure the backticks are properly paired</span>
+        <span class="c1"># and that the identifier isn&#39;t just empty backticks</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span>
+
+    <span class="c1"># For unquoted identifiers, check that they only contain valid characters</span>
+    <span class="n">valid_pattern</span> <span class="o">=</span> <span class="nb">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[a-zA-Z0-9_$]+$&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Validate the pattern</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">valid_pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">identifier</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># MariaDB reserved words could be added here to make the validation stricter</span>
+    <span class="c1"># For a complete solution, a list of reserved words should be checked</span>
+
+    <span class="k">return</span> <span class="kc">True</span>
+
+
+<div class="viewcode-block" id="ModuliConfig">
+<a class="viewcode-back" href="../../MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModuliConfig</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a configuration structure for moduli assembly, encompassing paths,</span>
+<span class="sd">    logs, database configurations, and default settings.</span>
+
+<span class="sd">    This class provides directory management, default file paths, and configuration</span>
+<span class="sd">    for moduli generation and related operations. It ensures the existence of required</span>
+<span class="sd">    directories and offers methods for logging and configuration handling.</span>
+
+<span class="sd">    :ivar base_dir: The root directory for all moduli-related operations, derived</span>
+<span class="sd">         from the provided `base_dir` parameter or environment variables.</span>
+<span class="sd">    :type base_dir: Path</span>
+<span class="sd">    :ivar candidates_dir: The directory path designated for candidate files</span>
+<span class="sd">         involved in the moduli assembly process.</span>
+<span class="sd">    :type candidates_dir: Path</span>
+<span class="sd">    :ivar moduli_dir: The directory for storing generated moduli files.</span>
+<span class="sd">    :type moduli_dir: Path</span>
+<span class="sd">    :ivar log_dir: The directory housing log files for the moduli assembly process.</span>
+<span class="sd">    :type log_dir: Path</span>
+<span class="sd">    :ivar moduli_generator_config: Path to the default moduli generator</span>
+<span class="sd">         configuration file.</span>
+<span class="sd">    :type moduli_generator_config: Path</span>
+<span class="sd">    :ivar log_file: Default log file path.</span>
+<span class="sd">    :type log_file: Path</span>
+<span class="sd">    :ivar moduli_file: Default path for storing the primary moduli output file.</span>
+<span class="sd">    :type moduli_file: Path</span>
+<span class="sd">    :ivar key_lengths: Default key lengths used during moduli generation.</span>
+<span class="sd">    :type key_lengths: list[int]</span>
+<span class="sd">    :ivar generator_type: Type of generator used for moduli generation.</span>
+<span class="sd">    :type generator_type: str</span>
+<span class="sd">    :ivar nice_value: Default nice value for process prioritization.</span>
+<span class="sd">    :type nice_value: int</span>
+<span class="sd">    :ivar config_id: Identifier used to associate constants with configuration</span>
+<span class="sd">         tables.</span>
+<span class="sd">    :type config_id: str</span>
+<span class="sd">    :ivar mariadb_cnf: Path to the MariaDB configuration file used during moduli</span>
+<span class="sd">         assembly.</span>
+<span class="sd">    :type mariadb_cnf: Path</span>
+<span class="sd">    :ivar moduli_file_pattern: Filename pattern for generated moduli files.</span>
+<span class="sd">    :type moduli_file_pattern: str</span>
+<span class="sd">    :ivar delete_records_on_moduli_write: Flag indicating whether records should</span>
+<span class="sd">         be deleted upon successful moduli file write operation.</span>
+<span class="sd">    :type delete_records_on_moduli_write: bool</span>
+<span class="sd">    :ivar db_name: Default database name for MariaDB configurations.</span>
+<span class="sd">    :type db_name: str</span>
+<span class="sd">    :ivar table_name: Name of the table used in the database for moduli record</span>
+<span class="sd">         storage.</span>
+<span class="sd">    :type table_name: str</span>
+<span class="sd">    :ivar view_name: Name of the database view associated with moduli records.</span>
+<span class="sd">    :type view_name: str</span>
+<span class="sd">    :ivar records_per_keylength: Number of records associated with each</span>
+<span class="sd">         key length in the moduli assembly process.</span>
+<span class="sd">    :type records_per_keylength: int</span>
+<span class="sd">    :ivar version: Current version of the moduli configuration as derived</span>
+<span class="sd">         from the `pyproject.toml`.</span>
+<span class="sd">    :type version: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Represents a configuration and directory structure for moduli assembly</span>
+<span class="sd">        operation, including paths for candidate files, moduli files, logs, and</span>
+<span class="sd">        default configurations.</span>
+
+<span class="sd">        Provides default values and configurations for various parameters related</span>
+<span class="sd">        to moduli generation and database management.</span>
+
+<span class="sd">        :param base_dir: The base directory path for moduli assembly operations. If not provided,</span>
+<span class="sd">            defaults to the environment variable &#39;MODULI_HOME&#39; or a preset default directory.</span>
+<span class="sd">        :type base_dir: Path or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Use user-provided base dir, or env var, or default to ~/.moduli_assembly</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">base_dir</span> <span class="ow">or</span> <span class="n">osenv</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MODULI_HOME&#39;</span><span class="p">,</span> <span class="n">DEFAULT_DIR</span><span class="p">))</span>
+
+        <span class="c1"># Define subdirectories as properties</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">candidates_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_dir</span> <span class="o">/</span> <span class="n">DEFAULT_CANDIDATES_DIR</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">moduli_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_dir</span> <span class="o">/</span> <span class="n">DEFAULT_MODULI_DIR</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_dir</span> <span class="o">/</span> <span class="n">DEFAULT_LOG_DIR</span>
+
+        <span class="c1"># Default configuration files</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">moduli_generator_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_dir</span> <span class="o">/</span> <span class="n">DEFAULT_MODULI_GENERATOR_CONFIG</span>
+
+        <span class="c1"># Default log files</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_dir</span> <span class="o">/</span> <span class="n">DEFAULT_LOG_FILE</span>
+
+        <span class="c1"># Default moduli output files</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">moduli_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">moduli_dir</span> <span class="o">/</span> <span class="n">DEFAULT_MODULI_FILE</span>
+
+        <span class="c1"># Other defaults (For Generation and Screening, And Linking to Moduli File Constants Table (config_id)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key_lengths</span> <span class="o">=</span> <span class="n">DEFAULT_KEY_LENGTHS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generator_type</span> <span class="o">=</span> <span class="n">DEFAULT_GENERATOR_TYPE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nice_value</span> <span class="o">=</span> <span class="n">DEFAULT_NICE_VALUE</span>
+
+        <span class="c1"># Constants joined via this record number in the Constants table</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_id</span> <span class="o">=</span> <span class="n">DEFAULT_CONFIG_ID</span>
+
+        <span class="c1"># Default Mariadb Configuration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mariadb_cnf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_dir</span> <span class="o">/</span> <span class="n">DEFAULT_MARIADB_CNF</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">moduli_file_pattern</span> <span class="o">=</span> <span class="n">DEFAULT_MODULI_FILENAME_PATTERN</span>
+
+        <span class="c1"># Delete on successful Write Flag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delete_records_on_moduli_write</span> <span class="o">=</span> <span class="n">DEFAULT_MARIADB_DELETE_RECORDS_ON_MODULI_WRITE</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_name</span> <span class="o">=</span> <span class="n">DEFAULT_MARIADB_DB</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table_name</span> <span class="o">=</span> <span class="n">DEFAULT_MARIADB_TABLE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view_name</span> <span class="o">=</span> <span class="n">DEFAULT_MARIADB_VIEW</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">records_per_keylength</span> <span class="o">=</span> <span class="n">DEFAULT_RECORDS_PER_KEYLENGTH</span>
+
+        <span class="c1"># From pyproject.toml</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">get_version</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ModuliConfig.ensure_directories">
+<a class="viewcode-back" href="../../MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig.ensure_directories">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ensure_directories</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ensures that a set of directories (base, candidates, moduli, and log directories) exist.</span>
+<span class="sd">        If they do not exist, they will be created. This method ensures all necessary directories</span>
+<span class="sd">        are ready for further operations.</span>
+
+<span class="sd">        :return: The current instance after ensuring directories exist.</span>
+<span class="sd">        :rtype: Self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">dir_path</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">base_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidates_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">moduli_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_dir</span><span class="p">]:</span>
+            <span class="n">dir_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="ModuliConfig.with_base_dir">
+<a class="viewcode-back" href="../../MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig.with_base_dir">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">with_base_dir</span><span class="p">(</span><span class="n">base_dir</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a new instance of ModuliConfig with the given base directory.</span>
+
+<span class="sd">        This static method provides a convenience to instantiate the ModuliConfig</span>
+<span class="sd">        class with a specified base directory. It ensures that the provided base</span>
+<span class="sd">        directory is explicitly set during the object creation.</span>
+
+<span class="sd">        :param base_dir: The base directory to be used for initialization.</span>
+<span class="sd">        :type base_dir: str </span>
+<span class="sd">        :return: A new instance of the ModuliConfig class initialized with the given</span>
+<span class="sd">            base directory.</span>
+<span class="sd">        :rtype: ModuliConfig</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ModuliConfig</span><span class="p">(</span><span class="n">base_dir</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ModuliConfig.get_logger">
+<a class="viewcode-back" href="../../MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig.get_logger">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_logger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes and returns a logger instance configured for file-based logging.</span>
+
+<span class="sd">        This function ensures that the required directories and configuration files exist</span>
+<span class="sd">        before setting up the logging system. It verifies the existence of the base logging</span>
+<span class="sd">        directory, the default log directory, and the MariaDB configuration file. If they do not</span>
+<span class="sd">        exist, they are created as needed. Once these prerequisites are met, the logger is</span>
+<span class="sd">        configured with a specific logging level, format, and file output.</span>
+
+<span class="sd">        :raises OSError: If there is an issue, create required directories or files.</span>
+<span class="sd">        :raises IOError: If there is an issue, read the default MariaDB configuration file.</span>
+
+<span class="sd">        :return: Configured logger instance.</span>
+<span class="sd">        :rtype: Logging.Logger</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_dir</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_dir</span> <span class="o">/</span> <span class="n">DEFAULT_LOG_DIR</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_dir</span> <span class="o">/</span> <span class="n">DEFAULT_LOG_DIR</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mariadb_cnf</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">mysql_cnf</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mariadb_cnf</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+            <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mariadb_cnf</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">mysql_cnf</span><span class="p">)</span>
+
+        <span class="n">basicConfig</span><span class="p">(</span>
+            <span class="n">level</span><span class="o">=</span><span class="n">DEBUG</span><span class="p">,</span>
+            <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1">: </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">filename</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_file</span><span class="p">),</span>
+            <span class="n">filemode</span><span class="o">=</span><span class="s1">&#39;a&#39;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">getLogger</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ModuliConfig.get_log_file">
+<a class="viewcode-back" href="../../MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig.get_log_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_log_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve the log file path, either by name or default log file path.</span>
+
+<span class="sd">        This method determines whether a specific log file name is provided. If a</span>
+<span class="sd">        name is given, the method constructs and returns the full path to the named</span>
+<span class="sd">        log file within the logging directory. If no name is provided, it returns the</span>
+<span class="sd">        path to the default log file.</span>
+
+<span class="sd">        :param name: Name of the log file to retrieve. If None, the default log file</span>
+<span class="sd">            path is returned.</span>
+<span class="sd">        :type name: Optional[str]</span>
+<span class="sd">        :return: The full path to the specified log file if a name is provided, or</span>
+<span class="sd">            the default log file path otherwise.</span>
+<span class="sd">        :rtype: Path</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_dir</span> <span class="o">/</span> <span class="n">name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_file</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__version__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span></div>
+
+
+
+<span class="c1"># Create a default configuration instance</span>
+<span class="n">default_config</span> <span class="o">=</span> <span class="n">ModuliConfig</span><span class="p">()</span><span class="o">.</span><span class="n">ensure_directories</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

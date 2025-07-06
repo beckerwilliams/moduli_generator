@@ -1,0 +1,10 @@
+module config
+=============
+
+.. automodule:: moduli_generator.config
+    :members:
+    :undoc-members:
+
+.. autoclass:: moduli_generator.config
+    :members:
+    :private-members:
