@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>moduli_generator.config &mdash; Moduli Generator 2.1.3 documentation</title>
+  <title>moduli_generator.config &mdash; Moduli Generator 2.1.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=179ab080"></script>
+      <script src="../../_static/documentation_options.js?v=dc13204d"></script>
       <script src="../../_static/doctools.js?v=9a2dae69"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
@@ -106,32 +106,8 @@
            <span class="s1">&#39;DEFAULT_MARIADB&#39;</span>
            <span class="p">]</span>
 
-
-<div class="viewcode-block" id="ISO_UTC_TIMESTAMP">
-<a class="viewcode-back" href="../../MODULI_CONFIG.html#moduli_generator.config.ISO_UTC_TIMESTAMP">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">ISO_UTC_TIMESTAMP</span><span class="p">(</span><span class="n">compress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Generate an ISO formatted UTC timestamp as a string. Optionally, the timestamp can</span>
-<span class="sd">    be compressed by enabling the `compress` parameter.</span>
-
-<span class="sd">    :param compress: Flag indicating whether the timestamp should be in compressed</span>
-<span class="sd">        format or not.</span>
-<span class="sd">    :type compress: Bool</span>
-<span class="sd">    :return: The ISO 8601 formatted a UTC timestamp as a string. If `compress` is</span>
-<span class="sd">        True, the string will be in a compressed format (numerals only, no punctuation).</span>
-<span class="sd">    :rtype: str </span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">UTC</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">compress</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^0-9]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">timestamp</span></div>
-
-
-
 <span class="c1"># Moduli Generator Module&#39;s directory structure</span>
-<span class="n">DEFAULT_DIR</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;.test_moduli_generator&#39;</span>  <span class="c1"># tbd - Before Release, change to &#39;.moduli&#39;</span>
+<span class="n">DEFAULT_DIR</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;.moduli_generator&#39;</span>
 <span class="n">DEFAULT_CANDIDATES_DIR</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;.candidates&#39;</span>
 <span class="n">DEFAULT_MODULI_DIR</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;.moduli&#39;</span>
 <span class="n">DEFAULT_LOG_DIR</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;.logs&#39;</span>
@@ -141,9 +117,6 @@
 
 <span class="c1"># The only log file this module recognizes</span>
 <span class="n">DEFAULT_LOG_FILE</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;moduli_generator.log&#39;</span>
-
-<span class="c1"># The Product: a Complete ssh-moduli file</span>
-<span class="n">DEFAULT_MODULI_FILE</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;ssh-moduli_</span><span class="si">{</span><span class="n">ISO_UTC_TIMESTAMP</span><span class="p">(</span><span class="n">compress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
 
 <span class="c1"># SSH-KEYGEN Generator settings</span>
 <span class="n">DEFAULT_KEY_LENGTHS</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3072</span><span class="p">,</span> <span class="mi">4096</span><span class="p">,</span> <span class="mi">6144</span><span class="p">,</span> <span class="mi">7680</span><span class="p">,</span> <span class="mi">8192</span><span class="p">)</span>
@@ -155,12 +128,12 @@
 <span class="n">DEFAULT_MARIADB_CNF</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;moduli_generator.cnf&quot;</span>
 
 <span class="c1"># Operational Database, Tables, and Views</span>
-<span class="n">DEFAULT_MARIADB</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;test_moduli_db&#39;</span>  <span class="c1"># tbd - Before Release, set to &#39;moduli_db&#39;</span>
+<span class="n">DEFAULT_MARIADB</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;moduli_db&#39;</span>
 <span class="n">DEFAULT_MARIADB_TABLE</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;moduli&#39;</span>
 <span class="n">DEFAULT_MARIADB_VIEW</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;moduli_view&#39;</span>
 
 <span class="c1"># Flag to Delete Records from Moduli DB after successfully extracting and writing a complete ssh / moduli file</span>
-<span class="n">DEFAULT_MARIADB_DELETE_RECORDS_ON_MODULI_WRITE</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
 <span class="c1"># Screened Moduli File Pattern</span>
 <span class="n">DEFAULT_MODULI_FILENAME_PATTERN</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;moduli_????_*&#39;</span>
@@ -171,10 +144,38 @@
 
 <span class="c1">#  ref: https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl</span>
 
+<div class="viewcode-block" id="ISO_UTC_TIMESTAMP">
+<a class="viewcode-back" href="../../MODULI_GENERATOR.html#moduli_generator.config.ISO_UTC_TIMESTAMP">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ISO_UTC_TIMESTAMP</span><span class="p">(</span><span class="n">compress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate an ISO formatted UTC timestamp as a string. Optionally, the timestamp can</span>
+<span class="sd">    be compressed by enabling the `compress` parameter.</span>
+
+<span class="sd">    :param compress: Flag indicating whether the timestamp should be in compressed</span>
+<span class="sd">        format or not.</span>
+<span class="sd">    :type compress: Bool</span>
+<span class="sd">    :return: The ISO 8601 formatted a UTC timestamp as a string. If `compress` is</span>
+<span class="sd">        True, the string will be in a compressed format (numerals only, no punctuation).</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">UTC</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">compress</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^0-9]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">timestamp</span></div>
+
+
+
+<span class="c1"># The Product: a Complete ssh-moduli file</span>
+<span class="n">DEFAULT_MODULI_FILE</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;ssh-moduli_</span><span class="si">{</span><span class="n">ISO_UTC_TIMESTAMP</span><span class="p">(</span><span class="n">compress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+
+
+<span class="c1">##################################################################################</span>
 
 <span class="c1"># For Date Formats Sans Punctuation</span>
 <div class="viewcode-block" id="strip_punction_from_datetime_str">
-<a class="viewcode-back" href="../../MODULI_CONFIG.html#moduli_generator.config.strip_punction_from_datetime_str">[docs]</a>
+<a class="viewcode-back" href="../../MODULI_GENERATOR.html#moduli_generator.config.strip_punction_from_datetime_str">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">strip_punction_from_datetime_str</span><span class="p">(</span><span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compresses a datetime object into a compact string format by removing non-numeric</span>
@@ -191,7 +192,7 @@
 
 
 <div class="viewcode-block" id="is_valid_identifier">
-<a class="viewcode-back" href="../../MODULI_CONFIG.html#moduli_generator.config.is_valid_identifier">[docs]</a>
+<a class="viewcode-back" href="../../MODULI_GENERATOR.html#moduli_generator.config.is_valid_identifier">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">is_valid_identifier</span><span class="p">(</span><span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Determines if the given string is a valid identifier following specific</span>
@@ -341,7 +342,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">moduli_file_pattern</span> <span class="o">=</span> <span class="n">DEFAULT_MODULI_FILENAME_PATTERN</span>
 
         <span class="c1"># Delete on successful Write Flag</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">delete_records_on_moduli_write</span> <span class="o">=</span> <span class="n">DEFAULT_MARIADB_DELETE_RECORDS_ON_MODULI_WRITE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delete_records_on_moduli_write</span> <span class="o">=</span> <span class="n">DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE</span>
 
         <span class="c1"># From pyproject.toml</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">get_version</span><span class="p">()</span>
@@ -361,26 +362,6 @@
             <span class="n">dir_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>
-
-
-<div class="viewcode-block" id="ModuliConfig.with_base_dir">
-<a class="viewcode-back" href="../../MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig.with_base_dir">[docs]</a>
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">with_base_dir</span><span class="p">(</span><span class="n">base_dir</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Creates a new instance of ModuliConfig with the given base directory.</span>
-
-<span class="sd">        This static method provides a convenience to instantiate the ModuliConfig</span>
-<span class="sd">        class with a specified base directory. It ensures that the provided base</span>
-<span class="sd">        directory is explicitly set during the object creation.</span>
-
-<span class="sd">        :param base_dir: The base directory to be used for initialization.</span>
-<span class="sd">        :type base_dir: str </span>
-<span class="sd">        :return: A new instance of the ModuliConfig class initialized with the given</span>
-<span class="sd">            base directory.</span>
-<span class="sd">        :rtype: ModuliConfig</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">ModuliConfig</span><span class="p">(</span><span class="n">base_dir</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ModuliConfig.get_logger">
@@ -441,6 +422,26 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_dir</span> <span class="o">/</span> <span class="n">name</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_file</span></div>
+
+
+<div class="viewcode-block" id="ModuliConfig.with_base_dir">
+<a class="viewcode-back" href="../../MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig.with_base_dir">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">with_base_dir</span><span class="p">(</span><span class="n">base_dir</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a new instance of ModuliConfig with the given base directory.</span>
+
+<span class="sd">        This static method provides a convenience to instantiate the ModuliConfig</span>
+<span class="sd">        class with a specified base directory. It ensures that the provided base</span>
+<span class="sd">        directory is explicitly set during the object creation.</span>
+
+<span class="sd">        :param base_dir: The base directory to be used for initialization.</span>
+<span class="sd">        :type base_dir: str</span>
+<span class="sd">        :return: A new instance of the ModuliConfig class initialized with the given</span>
+<span class="sd">            base directory.</span>
+<span class="sd">        :rtype: ModuliConfig</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ModuliConfig</span><span class="p">(</span><span class="n">base_dir</span><span class="p">)</span></div>
 
 
     <span class="nd">@property</span>

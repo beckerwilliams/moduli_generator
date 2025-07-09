@@ -8,10 +8,9 @@ module moduli_generator
     :members:
     :private-members:
 
+.. automodule:: moduli_generator.config
+    :members:
+
 .. autoclass:: moduli_generator.config.ModuliConfig
     :members:
-    :private-members:
-
-
-
-
+    :private_members:

@@ -21,29 +21,8 @@ __all__ = ['get_version',
            'DEFAULT_MARIADB'
            ]
 
-
-def ISO_UTC_TIMESTAMP(compress: bool = False) -> str:
-    """
-    Generate an ISO formatted UTC timestamp as a string. Optionally, the timestamp can
-    be compressed by enabling the `compress` parameter.
-
-    :param compress: Flag indicating whether the timestamp should be in compressed
-        format or not.
-    :type compress: Bool
-    :return: The ISO 8601 formatted a UTC timestamp as a string. If `compress` is
-        True, the string will be in a compressed format (numerals only, no punctuation).
-    :rtype: str 
-    """
-
-    timestamp = datetime.now(UTC).replace(tzinfo=None).isoformat()
-    if compress:
-        return sub(r'[^0-9]', '', timestamp)
-    else:
-        return timestamp
-
-
 # Moduli Generator Module's directory structure
-DEFAULT_DIR: Final[Path] = Path.home() / '.test_moduli_generator'  # tbd - Before Release, change to '.moduli'
+DEFAULT_DIR: Final[Path] = Path.home() / '.moduli_generator'
 DEFAULT_CANDIDATES_DIR: Final[str] = '.candidates'
 DEFAULT_MODULI_DIR: Final[str] = '.moduli'
 DEFAULT_LOG_DIR: Final[str] = '.logs'
@@ -53,9 +32,6 @@ DEFAULT_MODULI_GENERATOR_CONFIG: Final[str] = 'moduli_generator.conf'
 
 # The only log file this module recognizes
 DEFAULT_LOG_FILE: Final[str] = 'moduli_generator.log'
-
-# The Product: a Complete ssh-moduli file
-DEFAULT_MODULI_FILE: Final[str] = f'ssh-moduli_{ISO_UTC_TIMESTAMP(compress=True)}'
 
 # SSH-KEYGEN Generator settings
 DEFAULT_KEY_LENGTHS: Final[tuple[int, ...]] = (3072, 4096, 6144, 7680, 8192)
@@ -67,12 +43,12 @@ DEFAULT_CONFIG_ID: Final[int] = 1  # JOIN to Moduli File Constants
 DEFAULT_MARIADB_CNF: Final[str] = "moduli_generator.cnf"
 
 # Operational Database, Tables, and Views
-DEFAULT_MARIADB: Final[str] = 'test_moduli_db'  # tbd - Before Release, set to 'moduli_db'
+DEFAULT_MARIADB: Final[str] = 'moduli_db'
 DEFAULT_MARIADB_TABLE: Final[str] = 'moduli'
 DEFAULT_MARIADB_VIEW: Final[str] = 'moduli_view'
 
 # Flag to Delete Records from Moduli DB after successfully extracting and writing a complete ssh / moduli file
-DEFAULT_MARIADB_DELETE_RECORDS_ON_MODULI_WRITE: Final[bool] = False
+DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE: Final[bool] = True
 
 # Screened Moduli File Pattern
 DEFAULT_MODULI_FILENAME_PATTERN: Final[str] = r'moduli_????_*'
@@ -83,6 +59,31 @@ DEFAULT_MODULI_RECORDS_PER_KEYLENGTH: Final[int] = 20
 
 #  ref: https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl
 
+def ISO_UTC_TIMESTAMP(compress: bool = False) -> str:
+    """
+    Generate an ISO formatted UTC timestamp as a string. Optionally, the timestamp can
+    be compressed by enabling the `compress` parameter.
+
+    :param compress: Flag indicating whether the timestamp should be in compressed
+        format or not.
+    :type compress: Bool
+    :return: The ISO 8601 formatted a UTC timestamp as a string. If `compress` is
+        True, the string will be in a compressed format (numerals only, no punctuation).
+    :rtype: str
+    """
+
+    timestamp = datetime.now(UTC).replace(tzinfo=None).isoformat()
+    if compress:
+        return sub(r'[^0-9]', '', timestamp)
+    else:
+        return timestamp
+
+
+# The Product: a Complete ssh-moduli file
+DEFAULT_MODULI_FILE: Final[str] = f'ssh-moduli_{ISO_UTC_TIMESTAMP(compress=True)}'
+
+
+##################################################################################
 
 # For Date Formats Sans Punctuation
 def strip_punction_from_datetime_str(timestamp: datetime) -> str:
@@ -245,7 +246,7 @@ class ModuliConfig:
         self.moduli_file_pattern = DEFAULT_MODULI_FILENAME_PATTERN
 
         # Delete on successful Write Flag
-        self.delete_records_on_moduli_write = DEFAULT_MARIADB_DELETE_RECORDS_ON_MODULI_WRITE
+        self.delete_records_on_moduli_write = DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE
 
         # From pyproject.toml
         self.version = get_version()
@@ -263,23 +264,6 @@ class ModuliConfig:
             dir_path.mkdir(parents=True, exist_ok=True)
 
         return self
-
-    @staticmethod
-    def with_base_dir(base_dir):
-        """
-        Creates a new instance of ModuliConfig with the given base directory.
-
-        This static method provides a convenience to instantiate the ModuliConfig
-        class with a specified base directory. It ensures that the provided base
-        directory is explicitly set during the object creation.
-
-        :param base_dir: The base directory to be used for initialization.
-        :type base_dir: str 
-        :return: A new instance of the ModuliConfig class initialized with the given
-            base directory.
-        :rtype: ModuliConfig
-        """
-        return ModuliConfig(base_dir)
 
     def get_logger(self):
         """
@@ -334,6 +318,23 @@ class ModuliConfig:
             return self.log_dir / name
         else:
             return self.log_file
+
+    @staticmethod
+    def with_base_dir(base_dir):
+        """
+        Creates a new instance of ModuliConfig with the given base directory.
+
+        This static method provides a convenience to instantiate the ModuliConfig
+        class with a specified base directory. It ensures that the provided base
+        directory is explicitly set during the object creation.
+
+        :param base_dir: The base directory to be used for initialization.
+        :type base_dir: str
+        :return: A new instance of the ModuliConfig class initialized with the given
+            base directory.
+        :rtype: ModuliConfig
+        """
+        return ModuliConfig(base_dir)
 
     @property
     def __version__(self):

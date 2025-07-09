@@ -1,18 +1,18 @@
 [tool.poetry]
 name = "moduli_generator"
-version = "2.1.3"
+version = "2.1.5"
 description = "Command Line Utility to build moduli for [/usr/local]/etc/ssh/moduli_file]"
 authors = ["Ron Williams <becker.williams@gmail.com>"]
 readme = "README.rst"
 packages = [
-    {include = "moduli_generator"},
-    {include = "db"}
+	{ include = "moduli_generator" },
+	{ include = "db" }
 ]
 include = [
-    "docs/**/*"
+	"docs/**/*"
 ]
 exclude = [
-    "*.cnf"
+	"*.cnf"
 ]
 
 [tool.poetry.dependencies]

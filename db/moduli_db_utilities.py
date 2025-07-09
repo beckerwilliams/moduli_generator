@@ -12,13 +12,8 @@ from mariadb import (
     connect
 )
 
-from moduli_generator.config import (
-    ISO_UTC_TIMESTAMP,
-    ModuliConfig,
-    strip_punction_from_datetime_str,
-    default_config,
-    is_valid_identifier
-)
+from moduli_generator.config import (ISO_UTC_TIMESTAMP, ModuliConfig, default_config, is_valid_identifier,
+                                     strip_punction_from_datetime_str)
 
 
 def parse_mysql_config(mysql_cnf: str) -> Dict[str, Dict[str, str]]:
@@ -52,7 +47,7 @@ def parse_mysql_config(mysql_cnf: str) -> Dict[str, Dict[str, str]]:
 
 def get_mysql_config_value(cnf: Dict[str, Dict[str, str]],
                            local_section: str,
-                           local_key: str)-> str:
+                           local_key: str) -> str:
     """
     Retrieves a value from a nested dictionary based on the provided section
     and key. The function is primarily used to fetch configurations from a
@@ -175,7 +170,7 @@ class MariaDBConnector:
                     cursor.execute(query, params)
                 else:
                     cursor.execute(query)
-                
+
                 if fetch:
                     # For SELECT queries, fetch all results
                     results = cursor.fetchall()
@@ -187,7 +182,7 @@ class MariaDBConnector:
                     self.connection.commit()
                     self.logger.debug(f"Query affected {affected_rows} rows")
                     return None
-                
+
         except Error as err:
             self.logger.error(f"Error executing SQL query: {err}")
             self.logger.error(f"Query: {query}")
@@ -317,6 +312,35 @@ class MariaDBConnector:
             self.logger.error(f"Error inserting candidate: {err}")
             return 0
 
+    def add_batch(self, records: List[tuple]) -> bool:
+        """
+        Adds multiple records in a single transaction using execute_batch.
+
+        :param records: List of tuples containing (timestamp, key_size, modulus)
+        :return: True if all records were successfully added
+        """
+        if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.table_name)):
+            self.logger.error("Invalid database or table name")
+            return False
+
+        query = f"""
+                INSERT INTO {self.db_name}.{self.table_name} (timestamp, config_id, size, modulus)
+                VALUES (?, ?, ?, ?)
+                """
+
+        # Prepare parameters for batch execution
+        params_list = [(timestamp, self.config_id, key_size, modulus)
+                       for timestamp, key_size, modulus in records]
+
+        try:
+            success = self.execute_batch([query] * len(records), params_list)
+            if success:
+                self.logger.info(f'Successfully added {len(records)} records to {self.db_name}.{self.table_name}')
+            return success
+        except RuntimeError as err:
+            self.logger.error(f"Error inserting batch records: {err}")
+            return False
+
     def delete_records(self, table_name, where_clause=None) -> int:
         """
         Deletes records from a specified table in the database. It supports conditional deletion
@@ -382,7 +406,7 @@ class MariaDBConnector:
             output_file: Path = None
     ) -> Dict[int, list]:
         """
-        Retrieve random moduli for specified key sizes and optionally write them to a file.
+        Retrieve moduli for specified key sizes and optionally write them to a file.
 
         This function checks whether there are sufficient records for each key size before
         retrieving them from the database. If the specified number of records exists for all
@@ -417,7 +441,7 @@ class MariaDBConnector:
         try:
             with self.connection.cursor(dictionary=True) as cursor:
                 for size in self.key_lengths:
-                    # Query to get random records for the current key size using the view
+                    # Query to get records for the current key size using the view
                     query = f"""
                         SELECT timestamp, type, tests, trials, size, generator, modulus
                         FROM {self.db_name}.{self.view_name}
@@ -432,10 +456,10 @@ class MariaDBConnector:
                     moduli[size] = records
 
                     # Log the number of records found
-                    self.logger.info(f"Retrieved {len(records)} random records for key size {size}")
+                    self.logger.info(f"Retrieved {len(records)}  records for key size {size}")
 
         except Error as err:
-            self.logger.error(f"Error retrieving random moduli: {err}")
+            self.logger.error(f"Error retrieving moduli: {err}")
             raise RuntimeError(f"Database query failed: {err}")
 
         # If an output file is specified, and we have enough records for all sizes, write the results
@@ -535,7 +559,7 @@ class MariaDBConnector:
                     status.append(count)
 
         except Error as err:
-            self.logger.error(f"Error retrieving random moduli: {err}")
+            self.logger.error(f"Error retrieving moduli: {err}")
             raise RuntimeError(f"Database query failed: {err}")
 
         # Output
