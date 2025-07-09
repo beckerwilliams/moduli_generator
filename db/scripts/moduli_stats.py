@@ -33,7 +33,7 @@ def main(
     parser.add_argument(
         '--output-file',
         type=str,
-        help='Path to output file (default: ~/FRESH_MODULI_<UTC_TIMESTAMP>.ssh2-moduli2)'
+        help='Path to output file (default: ${HOME}/FRESH_MODULI_<UTC_TIMESTAMP>.ssh2-moduli2)'
     )
     args = parser.parse_args()
 

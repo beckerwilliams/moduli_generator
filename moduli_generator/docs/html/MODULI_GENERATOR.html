@@ -53,20 +53,13 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">module moduli_generator</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#moduli_generator.ModuliGenerator"><code class="docutils literal notranslate"><span class="pre">ModuliGenerator</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#moduli_generator.ModuliGenerator._generate_candidates"><code class="docutils literal notranslate"><span class="pre">ModuliGenerator._generate_candidates()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moduli_generator.ModuliGenerator._parse_moduli_files"><code class="docutils literal notranslate"><span class="pre">ModuliGenerator._parse_moduli_files()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moduli_generator.ModuliGenerator._screen_candidates"><code class="docutils literal notranslate"><span class="pre">ModuliGenerator._screen_candidates()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#moduli_generator.ModuliGenerator.generate_moduli"><code class="docutils literal notranslate"><span class="pre">ModuliGenerator.generate_moduli()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#moduli_generator.ModuliGenerator.list_moduli_files"><code class="docutils literal notranslate"><span class="pre">ModuliGenerator.list_moduli_files()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#moduli_generator.ModuliGenerator.save_moduli"><code class="docutils literal notranslate"><span class="pre">ModuliGenerator.save_moduli()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#moduli_generator.ModuliGenerator.store_moduli"><code class="docutils literal notranslate"><span class="pre">ModuliGenerator.store_moduli()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">ModuliGenerator</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#moduli_generator.ModuliGenerator._generate_candidates"><code class="docutils literal notranslate"><span class="pre">ModuliGenerator._generate_candidates()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#moduli_generator.ModuliGenerator._parse_moduli_files"><code class="docutils literal notranslate"><span class="pre">ModuliGenerator._parse_moduli_files()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#moduli_generator.ModuliGenerator._screen_candidates"><code class="docutils literal notranslate"><span class="pre">ModuliGenerator._screen_candidates()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">ModuliGenerator.generate_moduli()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">ModuliGenerator.list_moduli_files()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">ModuliGenerator.save_moduli()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id4"><code class="docutils literal notranslate"><span class="pre">ModuliGenerator.store_moduli()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#moduli_generator.config.ModuliConfig"><code class="docutils literal notranslate"><span class="pre">ModuliConfig</span></code></a><ul>
@@ -116,6 +109,73 @@
 <dt class="sig sig-object py" id="moduli_generator.ModuliGenerator">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">moduli_generator.</span></span><span class="sig-name descname"><span class="pre">ModuliGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config=&lt;moduli_generator.config.ModuliConfig</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/moduli_generator.html#ModuliGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moduli_generator.ModuliGenerator" title="Link to this definition"></a></dt>
 <dd><dl class="py method">
+<dt class="sig sig-object py" id="moduli_generator.ModuliGenerator._generate_candidates">
+<span class="sig-name descname"><span class="pre">_generate_candidates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">PosixPath</span></span></span><a class="reference internal" href="_modules/moduli_generator.html#ModuliGenerator._generate_candidates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moduli_generator.ModuliGenerator._generate_candidates" title="Link to this definition"></a></dt>
+<dd><p>internally generates cryptographic key candidates of a specified bit length
+and stores them in a designated file.</p>
+<p>This function executes the <cite>ssh-keygen</cite> command with the required arguments
+to generate modular exponentiation candidates for cryptographic usage. The
+resulting candidates are saved to a file in the designated directory defined
+in the configuration. Any exceptions raised during command execution are
+logged and re-raised for handling by the caller.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key_length</strong> (<em>int</em>) – The bit length of the cryptographic key to be generated.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A path object pointing to the file containing key candidates.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Path</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>subprocess.CalledProcessError</strong> – If the <cite>ssh-keygen</cite> command fails to
+execute successfully.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moduli_generator.ModuliGenerator._parse_moduli_files">
+<span class="sig-name descname"><span class="pre">_parse_moduli_files</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/moduli_generator.html#ModuliGenerator._parse_moduli_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moduli_generator.ModuliGenerator._parse_moduli_files" title="Link to this definition"></a></dt>
+<dd><p>Parses moduli files to extract relevant data and structures it into a dictionary.
+This method processes each line of a moduli file, skipping comments and blank
+lines. It extracts specific fields and organizes them into dictionaries,
+grouped under the ‘screened_moduli’ key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>FileNotFoundError</strong> – If a moduli file is not found during processing.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary where the key is ‘screened_moduli’ and the value is a list
+of dictionaries containing parsed moduli entries.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, List[Dict[str, Any]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="moduli_generator.ModuliGenerator._screen_candidates">
+<span class="sig-name descname"><span class="pre">_screen_candidates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">candidates_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">PosixPath</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">PosixPath</span></span></span><a class="reference internal" href="_modules/moduli_generator.html#ModuliGenerator._screen_candidates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moduli_generator.ModuliGenerator._screen_candidates" title="Link to this definition"></a></dt>
+<dd><p>Screens the given moduli candidate file by using the <cite>ssh-keygen</cite> command and processes it into a
+screened moduli file. The method also performs cleanup by removing the original candidate file
+after successful screening.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>candidates_file</strong> (<em>Path</em>) – The path to the file containing moduli candidates that need to be screened.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The path to the screened moduli file generated after processing.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="moduli_generator.ModuliGenerator.generate_moduli">
 <span class="sig-name descname"><span class="pre">generate_moduli</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">PosixPath</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/moduli_generator.html#ModuliGenerator.generate_moduli"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moduli_generator.ModuliGenerator.generate_moduli" title="Link to this definition"></a></dt>
 <dd><p>Generates cryptographic modulus files by first generating candidates and then
@@ -195,155 +255,6 @@ ensuring they have been stored in the database.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="id0">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">moduli_generator.</span></span><span class="sig-name descname"><span class="pre">ModuliGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config=&lt;moduli_generator.config.ModuliConfig</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/moduli_generator.html#ModuliGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
-<dd><dl class="py method">
-<dt class="sig sig-object py" id="moduli_generator.ModuliGenerator._generate_candidates">
-<span class="sig-name descname"><span class="pre">_generate_candidates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">PosixPath</span></span></span><a class="reference internal" href="_modules/moduli_generator.html#ModuliGenerator._generate_candidates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moduli_generator.ModuliGenerator._generate_candidates" title="Link to this definition"></a></dt>
-<dd><p>internally generates cryptographic key candidates of a specified bit length
-and stores them in a designated file.</p>
-<p>This function executes the <cite>ssh-keygen</cite> command with the required arguments
-to generate modular exponentiation candidates for cryptographic usage. The
-resulting candidates are saved to a file in the designated directory defined
-in the configuration. Any exceptions raised during command execution are
-logged and re-raised for handling by the caller.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>key_length</strong> (<em>int</em>) – The bit length of the cryptographic key to be generated.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A path object pointing to the file containing key candidates.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Path</p>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>subprocess.CalledProcessError</strong> – If the <cite>ssh-keygen</cite> command fails to
-execute successfully.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="moduli_generator.ModuliGenerator._parse_moduli_files">
-<span class="sig-name descname"><span class="pre">_parse_moduli_files</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/moduli_generator.html#ModuliGenerator._parse_moduli_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moduli_generator.ModuliGenerator._parse_moduli_files" title="Link to this definition"></a></dt>
-<dd><p>Parses moduli files to extract relevant data and structures it into a dictionary.
-This method processes each line of a moduli file, skipping comments and blank
-lines. It extracts specific fields and organizes them into dictionaries,
-grouped under the ‘screened_moduli’ key.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>FileNotFoundError</strong> – If a moduli file is not found during processing.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A dictionary where the key is ‘screened_moduli’ and the value is a list
-of dictionaries containing parsed moduli entries.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dict[str, List[Dict[str, Any]]]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="moduli_generator.ModuliGenerator._screen_candidates">
-<span class="sig-name descname"><span class="pre">_screen_candidates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">candidates_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">PosixPath</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">PosixPath</span></span></span><a class="reference internal" href="_modules/moduli_generator.html#ModuliGenerator._screen_candidates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moduli_generator.ModuliGenerator._screen_candidates" title="Link to this definition"></a></dt>
-<dd><p>Screens the given moduli candidate file by using the <cite>ssh-keygen</cite> command and processes it into a
-screened moduli file. The method also performs cleanup by removing the original candidate file
-after successful screening.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>candidates_file</strong> (<em>Path</em>) – The path to the file containing moduli candidates that need to be screened.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The path to the screened moduli file generated after processing.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Path</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id1">
-<span class="sig-name descname"><span class="pre">generate_moduli</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">PosixPath</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/moduli_generator.html#ModuliGenerator.generate_moduli"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id1" title="Link to this definition"></a></dt>
-<dd><p>Generates cryptographic modulus files by first generating candidates and then
-screening the generated candidates. This method uses a process pool executor
-to perform operations concurrently for efficiency.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A dictionary mapping integer key lengths to lists of file paths where
-modulus files are stored. Each key represents a specific key length, and
-the corresponding value is a list of paths to files containing moduli
-of that key length.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict[int, List[Path]]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id2">
-<span class="sig-name descname"><span class="pre">list_moduli_files</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/moduli_generator.html#ModuliGenerator.list_moduli_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id2" title="Link to this definition"></a></dt>
-<dd><p>Retrieves a list of files matching the specified pattern from the configured directory.</p>
-<p>This method searches within the directory defined in the <cite>moduli_dir</cite> configuration
-attribute for files that match the pattern defined in the <cite>moduli_file_pattern</cite> attribute.
-Returns them as a list of Path objects.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A list of Path objects representing the files matching the specified pattern.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>List[pathlib.Path]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id3">
-<span class="sig-name descname"><span class="pre">save_moduli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">moduli_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">PosixPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/moduli_generator.html#ModuliGenerator.save_moduli"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id3" title="Link to this definition"></a></dt>
-<dd><p>Saves moduli schema to a JSON file for backup and reference purposes. The schema
-is parsed and written into a new JSON file which is named using the current UTC
-timestamp for uniqueness.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>moduli_dir</strong> (<em>Path</em>) – Optional directory path to save the moduli schema. If not
-provided, the default directory from configuration (<cite>self.config.moduli_dir</cite>)
-is used.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>None</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id4">
-<span class="sig-name descname"><span class="pre">store_moduli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/moduli_generator.html#ModuliGenerator.store_moduli"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id4" title="Link to this definition"></a></dt>
-<dd><p>Stores moduli data into a given database and removes source files after successful storage.
-This function processes moduli files, parses them into a suitable format, stores them in the
-database using the provided database object, and then deletes the source files only after
-ensuring they have been stored in the database.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>db</strong> (<em>Object</em>) – The database object used to store the parsed moduli data.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>None</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
 <dt class="sig sig-object py" id="moduli_generator.config.ModuliConfig">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">moduli_generator.config.</span></span><span class="sig-name descname"><span class="pre">ModuliConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/moduli_generator/config.html#ModuliConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moduli_generator.config.ModuliConfig" title="Link to this definition"></a></dt>
 <dd><p>Represents a configuration structure for moduli assembly, encompassing paths,
@@ -373,7 +284,7 @@ tables.</p></li>
 assembly.</p></li>
 <li><p><strong>moduli_file_pattern</strong> – Filename pattern for generated moduli files.</p></li>
 <li><p><strong>delete_records_on_moduli_write</strong> – Flag indicating whether records should
-be deleted upon successful moduli file write operation.</p></li>
+be deleted upon a successful moduli file write operation.</p></li>
 <li><p><strong>db_name</strong> – Default database name for MariaDB configurations.</p></li>
 <li><p><strong>table_name</strong> – Name of the table used in the database for moduli record
 storage.</p></li>

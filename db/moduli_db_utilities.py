@@ -150,32 +150,123 @@ class MariaDBConnector:
             self.logger.error(f"Error connecting to MariaDB Platform: {err}")
             raise RuntimeError(f"Database connection failed: {err}")
 
-    def sql(self, query) -> None:
+    def sql(self, query: str, params: Optional[tuple] = None, fetch: bool = True) -> Optional[List[Dict]]:
         """
-        Executes an SQL query using the provided connection and logs the results.
+        Executes an SQL query using the provided connection with improved functionality.
 
-        This method interacts with the database by executing the given SQL query and
-        logging each result row using the logging mechanism configured for the class.
-        If an error occurs during query execution, it logs the error and raises a
-        RuntimeError to indicate failure.
+        This method executes SQL queries with proper parameter binding to prevent SQL injection,
+        handles both SELECT and non-SELECT queries, and provides better error handling and
+        transaction management.
 
         :param query: The SQL query string to be executed on the database.
-        :type query: str 
-
-        :return: None
-        :rtype: None
-
+        :type query: str
+        :param params: Optional tuple of parameters for parameterized queries to prevent SQL injection.
+        :type params: Optional[tuple]
+        :param fetch: Whether to fetch and return results (True for SELECT queries, False for INSERT/UPDATE/DELETE).
+        :type fetch: bool
+        :return: List of dictionaries for SELECT queries, None for non-SELECT queries.
+        :rtype: Optional[List[Dict]]
         :raises RuntimeError: If the execution of the SQL query fails.
         """
-        with self.connection.cursor() as cursor:
+        try:
+            with self.connection.cursor(dictionary=True) as cursor:
+                # Execute query with optional parameters
+                if params:
+                    cursor.execute(query, params)
+                else:
+                    cursor.execute(query)
+                
+                if fetch:
+                    # For SELECT queries, fetch all results
+                    results = cursor.fetchall()
+                    self.logger.debug(f"Query returned {len(results)} rows")
+                    return results
+                else:
+                    # For INSERT/UPDATE/DELETE queries, commit and return affected rows info
+                    affected_rows = cursor.rowcount
+                    self.connection.commit()
+                    self.logger.debug(f"Query affected {affected_rows} rows")
+                    return None
+                
+        except Error as err:
+            self.logger.error(f"Error executing SQL query: {err}")
+            self.logger.error(f"Query: {query}")
+            if params:
+                self.logger.error(f"Parameters: {params}")
+            # Rollback on error for write operations
+            if not fetch:
+                try:
+                    self.connection.rollback()
+                except Error:
+                    pass
+            raise RuntimeError(f"Database query failed: {err}")
+
+    def execute_select(self, query: str, params: Optional[tuple] = None) -> List[Dict]:
+        """
+        Execute a SELECT query and return results.
+
+        :param query: SELECT SQL query
+        :param params: Optional query parameters
+        :return: List of result dictionaries
+        """
+        return self.sql(query, params, fetch=True)
+
+    def execute_update(self, query: str, params: Optional[tuple] = None) -> int:
+        """
+        Execute an INSERT/UPDATE/DELETE query and return affected rows count.
+
+        :param query: INSERT/UPDATE/DELETE SQL query
+        :param params: Optional query parameters
+        :return: Number of affected rows
+        """
+        try:
+            with self.connection.cursor() as cursor:
+                if params:
+                    cursor.execute(query, params)
+                else:
+                    cursor.execute(query)
+
+            affected_rows = cursor.rowcount
+            self.connection.commit()
+            self.logger.debug(f"Query affected {affected_rows} rows")
+            return affected_rows
+
+        except Error as err:
+            self.logger.error(f"Error executing update query: {err}")
             try:
-                cursor.execute(query)
-                for row in cursor:
-                    self.logger.info(row)
-                cursor.close()
-            except Error as err:
-                self.logger.error(f"Error executing SQL query: {err}")
-                raise RuntimeError(f"Database query failed: {err}")
+                self.connection.rollback()
+            except Error:
+                pass
+            raise RuntimeError(f"Database update failed: {err}")
+
+    def execute_batch(self, queries: List[str], params_list: Optional[List[tuple]] = None) -> bool:
+        """
+        Execute multiple queries in a single transaction.
+
+        :param queries: List of SQL queries to execute
+        :param params_list: Optional list of parameter tuples for each query
+        :return: True if all queries succeeded
+        """
+        try:
+            with self.connection.cursor() as cursor:
+                for i, query in enumerate(queries):
+                    params = params_list[i] if params_list and i < len(params_list) else None
+                    if params:
+                        cursor.execute(query, params)
+                    else:
+                        cursor.execute(query)
+
+            self.connection.commit()
+            self.logger.debug(f"Successfully executed {len(queries)} in batch")
+            return True
+
+        except Error as err:
+            self.logger.error(f"Error executing batch queries: {err}")
+            try:
+                self.connection.rollback()
+            except Error:
+                pass
+            raise RuntimeError(f"Batch query execution failed: {err}")
 
     def add(self, timestamp: int, key_size: int, modulus: str) -> int:
         """

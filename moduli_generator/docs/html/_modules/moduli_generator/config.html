@@ -101,11 +101,14 @@
            <span class="s1">&#39;ModuliConfig&#39;</span><span class="p">,</span>
            <span class="s1">&#39;default_config&#39;</span><span class="p">,</span>
            <span class="s1">&#39;ISO_UTC_TIMESTAMP&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;strip_date_punctuation&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;is_valid_identifier&#39;</span>
+           <span class="s1">&#39;strip_punction_from_datetime_str&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;is_valid_identifier&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;DEFAULT_MARIADB&#39;</span>
            <span class="p">]</span>
 
 
+<div class="viewcode-block" id="ISO_UTC_TIMESTAMP">
+<a class="viewcode-back" href="../../MODULI_CONFIG.html#moduli_generator.config.ISO_UTC_TIMESTAMP">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ISO_UTC_TIMESTAMP</span><span class="p">(</span><span class="n">compress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate an ISO formatted UTC timestamp as a string. Optionally, the timestamp can</span>
@@ -123,11 +126,12 @@
     <span class="k">if</span> <span class="n">compress</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^0-9]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">timestamp</span>
+        <span class="k">return</span> <span class="n">timestamp</span></div>
+
 
 
 <span class="c1"># Moduli Generator Module&#39;s directory structure</span>
-<span class="n">DEFAULT_DIR</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;.moduli&#39;</span>
+<span class="n">DEFAULT_DIR</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;.test_moduli_generator&#39;</span>  <span class="c1"># tbd - Before Release, change to &#39;.moduli&#39;</span>
 <span class="n">DEFAULT_CANDIDATES_DIR</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;.candidates&#39;</span>
 <span class="n">DEFAULT_MODULI_DIR</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;.moduli&#39;</span>
 <span class="n">DEFAULT_LOG_DIR</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;.logs&#39;</span>
@@ -151,7 +155,7 @@
 <span class="n">DEFAULT_MARIADB_CNF</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;moduli_generator.cnf&quot;</span>
 
 <span class="c1"># Operational Database, Tables, and Views</span>
-<span class="n">DEFAULT_MARIADB_DB</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;moduli_db&#39;</span>
+<span class="n">DEFAULT_MARIADB</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;test_moduli_db&#39;</span>  <span class="c1"># tbd - Before Release, set to &#39;moduli_db&#39;</span>
 <span class="n">DEFAULT_MARIADB_TABLE</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;moduli&#39;</span>
 <span class="n">DEFAULT_MARIADB_VIEW</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;moduli_view&#39;</span>
 
@@ -162,11 +166,16 @@
 <span class="n">DEFAULT_MODULI_FILENAME_PATTERN</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;moduli_????_*&#39;</span>
 
 <span class="c1"># The number of moduli per key-length to capture in each produced moduli file</span>
-<span class="n">DEFAULT_RECORDS_PER_KEYLENGTH</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">DEFAULT_MODULI_RECORDS_PER_KEYLENGTH</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">20</span>
+
+
+<span class="c1">#  ref: https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl</span>
 
 
 <span class="c1"># For Date Formats Sans Punctuation</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">strip_date_punctuation</span><span class="p">(</span><span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="strip_punction_from_datetime_str">
+<a class="viewcode-back" href="../../MODULI_CONFIG.html#moduli_generator.config.strip_punction_from_datetime_str">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">strip_punction_from_datetime_str</span><span class="p">(</span><span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compresses a datetime object into a compact string format by removing non-numeric</span>
 <span class="sd">    characters from its ISO 8601 format string.</span>
@@ -177,9 +186,12 @@
 <span class="sd">        characters removed.</span>
 <span class="sd">    :rtype: str </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^0-9]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">timestamp</span><span class="o">.</span><span class="n">isoformat</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^0-9]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">timestamp</span><span class="o">.</span><span class="n">isoformat</span><span class="p">())</span></div>
 
 
+
+<div class="viewcode-block" id="is_valid_identifier">
+<a class="viewcode-back" href="../../MODULI_CONFIG.html#moduli_generator.config.is_valid_identifier">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">is_valid_identifier</span><span class="p">(</span><span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Determines if the given string is a valid identifier following specific</span>
@@ -216,7 +228,8 @@
     <span class="c1"># MariaDB reserved words could be added here to make the validation stricter</span>
     <span class="c1"># For a complete solution, a list of reserved words should be checked</span>
 
-    <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
 
 
 <div class="viewcode-block" id="ModuliConfig">
@@ -262,7 +275,7 @@
 <span class="sd">    :ivar moduli_file_pattern: Filename pattern for generated moduli files.</span>
 <span class="sd">    :type moduli_file_pattern: str</span>
 <span class="sd">    :ivar delete_records_on_moduli_write: Flag indicating whether records should</span>
-<span class="sd">         be deleted upon successful moduli file write operation.</span>
+<span class="sd">         be deleted upon a successful moduli file write operation.</span>
 <span class="sd">    :type delete_records_on_moduli_write: bool</span>
 <span class="sd">    :ivar db_name: Default database name for MariaDB configurations.</span>
 <span class="sd">    :type db_name: str</span>
@@ -314,6 +327,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">generator_type</span> <span class="o">=</span> <span class="n">DEFAULT_GENERATOR_TYPE</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nice_value</span> <span class="o">=</span> <span class="n">DEFAULT_NICE_VALUE</span>
 
+        <span class="c1"># Configure MariaDB</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_name</span> <span class="o">=</span> <span class="n">DEFAULT_MARIADB</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table_name</span> <span class="o">=</span> <span class="n">DEFAULT_MARIADB_TABLE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view_name</span> <span class="o">=</span> <span class="n">DEFAULT_MARIADB_VIEW</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">records_per_keylength</span> <span class="o">=</span> <span class="n">DEFAULT_MODULI_RECORDS_PER_KEYLENGTH</span>
+
         <span class="c1"># Constants joined via this record number in the Constants table</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config_id</span> <span class="o">=</span> <span class="n">DEFAULT_CONFIG_ID</span>
 
@@ -323,11 +342,6 @@
 
         <span class="c1"># Delete on successful Write Flag</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delete_records_on_moduli_write</span> <span class="o">=</span> <span class="n">DEFAULT_MARIADB_DELETE_RECORDS_ON_MODULI_WRITE</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">db_name</span> <span class="o">=</span> <span class="n">DEFAULT_MARIADB_DB</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">table_name</span> <span class="o">=</span> <span class="n">DEFAULT_MARIADB_TABLE</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">view_name</span> <span class="o">=</span> <span class="n">DEFAULT_MARIADB_VIEW</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">records_per_keylength</span> <span class="o">=</span> <span class="n">DEFAULT_RECORDS_PER_KEYLENGTH</span>
 
         <span class="c1"># From pyproject.toml</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">get_version</span><span class="p">()</span>

@@ -8,10 +8,10 @@ ssh-moduli-generator (moduli_generator)
     :maxdepth: 2
     :caption: Documentation:
 
-    README.rst
-    DOCUMENTATION.rst
-    PYTHON_PACKAGING.rst
-    LICENSE.
+    README
+    DOCUMENTATION
+    PYTHON_PACKAGING
+    LICENSE
 
 .. toctree::
     :maxdepth: 2
@@ -20,13 +20,12 @@ ssh-moduli-generator (moduli_generator)
     MODULI_GENERATOR
     MODULI_DB
 
-
 .. toctree::
     :maxdepth: 2
     :caption: Contributing:
 
-    .github/ISSUE_TEMPLATE/bug_report.rst
-    .github/ISSUE_TEMPLATE/feature_request.rst
+    .github/ISSUE_TEMPLATE/bug_report
+    .github/ISSUE_TEMPLATE/feature_request
 
 ==================
 Indices and tables

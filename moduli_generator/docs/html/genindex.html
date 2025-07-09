@@ -44,6 +44,7 @@
 <li class="toctree-l1"><a class="reference internal" href="README.html">SSH2 Moduli File Generator</a></li>
 <li class="toctree-l1"><a class="reference internal" href="DOCUMENTATION.html">Build Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="PYTHON_PACKAGING.html">Packaging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LICENSE.html">License</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
@@ -88,6 +89,7 @@
  | <a href="#D"><strong>D</strong></a>
  | <a href="#E"><strong>E</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#I"><strong>I</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#S"><strong>S</strong></a>
@@ -136,7 +138,7 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig.ensure_directories">ensure_directories() (moduli_generator.config.ModuliConfig method)</a>
+      <li><a href="MODULI_CONFIG.html#id1">ensure_directories() (moduli_generator.config.ModuliConfig method)</a>, <a href="MODULI_CONFIG.html#moduli_generator.config.ModuliConfig.ensure_directories">[1]</a>, <a href="MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig.ensure_directories">[2]</a>
 </li>
   </ul></td>
 </tr></table>
@@ -144,15 +146,29 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="MODULI_GENERATOR.html#id1">generate_moduli() (moduli_generator.ModuliGenerator method)</a>, <a href="MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.generate_moduli">[1]</a>
+      <li><a href="MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.generate_moduli">generate_moduli() (moduli_generator.ModuliGenerator method)</a>
 </li>
-      <li><a href="MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig.get_log_file">get_log_file() (moduli_generator.config.ModuliConfig method)</a>
+      <li><a href="MODULI_CONFIG.html#id2">get_log_file() (moduli_generator.config.ModuliConfig method)</a>, <a href="MODULI_CONFIG.html#moduli_generator.config.ModuliConfig.get_log_file">[1]</a>, <a href="MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig.get_log_file">[2]</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig.get_logger">get_logger() (moduli_generator.config.ModuliConfig method)</a>
+      <li><a href="MODULI_CONFIG.html#id3">get_logger() (moduli_generator.config.ModuliConfig method)</a>, <a href="MODULI_CONFIG.html#moduli_generator.config.ModuliConfig.get_logger">[1]</a>, <a href="MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig.get_logger">[2]</a>
 </li>
       <li><a href="MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.get_moduli">get_moduli() (db.moduli_db_utilities.MariaDBConnector method)</a>
+</li>
+      <li><a href="MODULI_CONFIG.html#moduli_generator.config.get_version">get_version() (in module moduli_generator.config)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="MODULI_CONFIG.html#moduli_generator.config.is_valid_identifier">is_valid_identifier() (in module moduli_generator.config)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="MODULI_CONFIG.html#moduli_generator.config.ISO_UTC_TIMESTAMP">ISO_UTC_TIMESTAMP() (in module moduli_generator.config)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -160,7 +176,7 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="MODULI_GENERATOR.html#id2">list_moduli_files() (moduli_generator.ModuliGenerator method)</a>, <a href="MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.list_moduli_files">[1]</a>
+      <li><a href="MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.list_moduli_files">list_moduli_files() (moduli_generator.ModuliGenerator method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -178,6 +194,8 @@
 </li>
         <li><a href="MODULI_GENERATOR.html#module-moduli_generator">moduli_generator</a>
 </li>
+        <li><a href="MODULI_CONFIG.html#module-moduli_generator.config">moduli_generator.config</a>
+</li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -188,9 +206,16 @@
         <li><a href="MODULI_GENERATOR.html#module-moduli_generator">module</a>
 </li>
       </ul></li>
-      <li><a href="MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig">ModuliConfig (class in moduli_generator.config)</a>
+      <li>
+    moduli_generator.config
+
+      <ul>
+        <li><a href="MODULI_CONFIG.html#module-moduli_generator.config">module</a>
 </li>
-      <li><a href="MODULI_GENERATOR.html#id0">ModuliGenerator (class in moduli_generator)</a>, <a href="MODULI_GENERATOR.html#moduli_generator.ModuliGenerator">[1]</a>
+      </ul></li>
+      <li><a href="MODULI_CONFIG.html#id0">ModuliConfig (class in moduli_generator.config)</a>, <a href="MODULI_CONFIG.html#moduli_generator.config.ModuliConfig">[1]</a>, <a href="MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig">[2]</a>
+</li>
+      <li><a href="MODULI_GENERATOR.html#moduli_generator.ModuliGenerator">ModuliGenerator (class in moduli_generator)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -198,17 +223,19 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="MODULI_GENERATOR.html#id3">save_moduli() (moduli_generator.ModuliGenerator method)</a>, <a href="MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.save_moduli">[1]</a>
+      <li><a href="MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.save_moduli">save_moduli() (moduli_generator.ModuliGenerator method)</a>
 </li>
       <li><a href="MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.sql">sql() (db.moduli_db_utilities.MariaDBConnector method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.stats">stats() (db.moduli_db_utilities.MariaDBConnector method)</a>
 </li>
-      <li><a href="MODULI_GENERATOR.html#id4">store_moduli() (moduli_generator.ModuliGenerator method)</a>, <a href="MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.store_moduli">[1]</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.store_moduli">store_moduli() (moduli_generator.ModuliGenerator method)</a>
 </li>
       <li><a href="MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.store_screened_moduli">store_screened_moduli() (db.moduli_db_utilities.MariaDBConnector method)</a>
+</li>
+      <li><a href="MODULI_CONFIG.html#moduli_generator.config.strip_punction_from_datetime_str">strip_punction_from_datetime_str() (in module moduli_generator.config)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -216,7 +243,7 @@
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig.with_base_dir">with_base_dir() (moduli_generator.config.ModuliConfig static method)</a>
+      <li><a href="MODULI_CONFIG.html#id4">with_base_dir() (moduli_generator.config.ModuliConfig static method)</a>, <a href="MODULI_CONFIG.html#moduli_generator.config.ModuliConfig.with_base_dir">[1]</a>, <a href="MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig.with_base_dir">[2]</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>

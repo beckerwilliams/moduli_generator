@@ -17,7 +17,8 @@ __all__ = ['get_version',
            'default_config',
            'ISO_UTC_TIMESTAMP',
            'strip_punction_from_datetime_str',
-           'is_valid_identifier'
+           'is_valid_identifier',
+           'DEFAULT_MARIADB'
            ]
 
 
@@ -42,7 +43,7 @@ def ISO_UTC_TIMESTAMP(compress: bool = False) -> str:
 
 
 # Moduli Generator Module's directory structure
-DEFAULT_DIR: Final[Path] = Path.home() / '.moduli'
+DEFAULT_DIR: Final[Path] = Path.home() / '.test_moduli_generator'  # tbd - Before Release, change to '.moduli'
 DEFAULT_CANDIDATES_DIR: Final[str] = '.candidates'
 DEFAULT_MODULI_DIR: Final[str] = '.moduli'
 DEFAULT_LOG_DIR: Final[str] = '.logs'
@@ -66,7 +67,7 @@ DEFAULT_CONFIG_ID: Final[int] = 1  # JOIN to Moduli File Constants
 DEFAULT_MARIADB_CNF: Final[str] = "moduli_generator.cnf"
 
 # Operational Database, Tables, and Views
-DEFAULT_MARIADB_DB: Final[str] = 'moduli_db'
+DEFAULT_MARIADB: Final[str] = 'test_moduli_db'  # tbd - Before Release, set to 'moduli_db'
 DEFAULT_MARIADB_TABLE: Final[str] = 'moduli'
 DEFAULT_MARIADB_VIEW: Final[str] = 'moduli_view'
 
@@ -77,7 +78,9 @@ DEFAULT_MARIADB_DELETE_RECORDS_ON_MODULI_WRITE: Final[bool] = False
 DEFAULT_MODULI_FILENAME_PATTERN: Final[str] = r'moduli_????_*'
 
 # The number of moduli per key-length to capture in each produced moduli file
-DEFAULT_RECORDS_PER_KEYLENGTH: Final[int] = 20
+DEFAULT_MODULI_RECORDS_PER_KEYLENGTH: Final[int] = 20
+
+
 #  ref: https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl
 
 
@@ -176,7 +179,7 @@ class ModuliConfig:
     :ivar moduli_file_pattern: Filename pattern for generated moduli files.
     :type moduli_file_pattern: str
     :ivar delete_records_on_moduli_write: Flag indicating whether records should
-         be deleted upon successful moduli file write operation.
+         be deleted upon a successful moduli file write operation.
     :type delete_records_on_moduli_write: bool
     :ivar db_name: Default database name for MariaDB configurations.
     :type db_name: str
@@ -228,6 +231,12 @@ class ModuliConfig:
         self.generator_type = DEFAULT_GENERATOR_TYPE
         self.nice_value = DEFAULT_NICE_VALUE
 
+        # Configure MariaDB
+        self.db_name = DEFAULT_MARIADB
+        self.table_name = DEFAULT_MARIADB_TABLE
+        self.view_name = DEFAULT_MARIADB_VIEW
+        self.records_per_keylength = DEFAULT_MODULI_RECORDS_PER_KEYLENGTH
+
         # Constants joined via this record number in the Constants table
         self.config_id = DEFAULT_CONFIG_ID
 
@@ -237,11 +246,6 @@ class ModuliConfig:
 
         # Delete on successful Write Flag
         self.delete_records_on_moduli_write = DEFAULT_MARIADB_DELETE_RECORDS_ON_MODULI_WRITE
-
-        self.db_name = DEFAULT_MARIADB_DB
-        self.table_name = DEFAULT_MARIADB_TABLE
-        self.view_name = DEFAULT_MARIADB_VIEW
-        self.records_per_keylength = DEFAULT_RECORDS_PER_KEYLENGTH
 
         # From pyproject.toml
         self.version = get_version()

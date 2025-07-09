@@ -53,7 +53,7 @@ def write_moduli_file(
         print(f'{len(fresh_moduli)} Moduli Records written to {config.moduli_file}')
 
         # Delete all records from db written to moduli file (tbd - decide when to remove)
-        if db.config.delete_records_on_moduli_write:
+        if db.delete_records_on_moduli_write:
             for modulus in moduli_to_delete:
                 db.delete_records(f'{db.db_name}.{db.table_name}', f'modulus = \"{modulus}\"')
                 logger.info(f'{len(moduli_to_delete)} Moduli Records deleted from DB')

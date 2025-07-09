@@ -99,7 +99,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">moduli_generator.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">ISO_UTC_TIMESTAMP</span><span class="p">,</span>
     <span class="n">ModuliConfig</span><span class="p">,</span>
-    <span class="n">strip_date_punctuation</span><span class="p">,</span>
+    <span class="n">strip_punction_from_datetime_str</span><span class="p">,</span>
     <span class="n">default_config</span><span class="p">,</span>
     <span class="n">is_valid_identifier</span>
 <span class="p">)</span>
@@ -255,15 +255,16 @@
 
 <span class="sd">        :raises RuntimeError: If the execution of the SQL query fails.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
                 <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
                 <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-            <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error executing SQL query: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Database query failed: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+        <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error executing SQL query: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Database query failed: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="MariaDBConnector.add">
@@ -494,7 +495,7 @@
                         <span class="c1"># Format: timestamp type tests trials size generator modulus</span>
                         <span class="c1"># The timestamp should already be in compressed format</span>
                         <span class="n">of</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span>
-                            <span class="n">strip_date_punctuation</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">]),</span>
+                            <span class="n">strip_punction_from_datetime_str</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">]),</span>
                             <span class="n">record</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span>
                             <span class="n">record</span><span class="p">[</span><span class="s1">&#39;tests&#39;</span><span class="p">],</span>
                             <span class="nb">str</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;trials&#39;</span><span class="p">]),</span>

@@ -73,12 +73,11 @@ def parse_args():
         default=default_config.nice_value,
         help="Process nice value for CPU inensive operations"
     )
-    # records_per_keylength
     parser.add_argument("--records-per-keylength",
                         type=int,
                         default=default_config.records_per_keylength,
                         help="Number of moduli per key-length to capture in each produced moduli file"
-    )
+                        )
 
     return parser.parse_args()
 
@@ -129,15 +128,15 @@ def main():
     start_time = datetime.now(UTC).replace(tzinfo=None)
     logger.info(f'Starting Moduli Generation at {start_time}')
     generator = ModuliGenerator(config)
-    generated_files = generator.generate_moduli()
-    logger.debug(f'Generated Moduli: {generated_files}')
+    # generated_files = generator.generate_moduli()
+    # logger.debug(f'Generated Moduli: {generated_files}')
 
     # Save screened moduli as JSON dict
     generator.save_moduli()  # to
     logger.debug(f'Moduli saved to {config.moduli_dir}')
 
     # Store Screened Moduli in MariaDB
-    generator.store_moduli(MariaDBConnector(config))  # To DB
+    # generator.store_moduli(MariaDBConnector(config))  # To DB
     logger.info(f'Moduli stored in DB')
 
     # Create New Moduli File
