@@ -8,10 +8,7 @@ from typing import (
     Optional
 )
 
-from mariadb import (
-    Error,
-    connect
-)
+from mariadb import (ConnectionPool, Error)  # Add this import
 
 from moduli_generator.config import (ISO_UTC_TIMESTAMP, ModuliConfig, default_config, is_valid_identifier,
                                      strip_punction_from_datetime_str)
@@ -78,58 +75,123 @@ def get_mysql_config_value(cnf: Dict[str, Dict[str, str]],
 
 class MariaDBConnector:
     """
-    Handles connections and operations with a MariaDB database, providing functionality
-    for executing SQL queries, managing records, and retrieving data. The class is built
-    to interface with a structured schema defined by configuration and support additional
-    operations such as moduli retrieval and storage.
+    Handles MariaDB connection pooling, SQL execution, and transaction management.
 
-    This class automatically establishes a connection to the database upon instantiation,
-    using connection details provided in a configuration object. Operations such as SQL
-    execution, record addition, deletion, and retrieval are executed using the connection
-    while ensuring proper resource management and error handling.
+    Provides functionality for managing database connections, executing SQL queries,
+    and working with transactions efficiently. This class supports a pool of database
+    connections for better performance and reliability. Safeguards database operations
+    by handling connection acquisition, query execution, and proper resource cleanup.
 
-    :ivar config_id: Identifier for the configuration associated with the database.
-    :ivar db_name: Name of the database to connect to.
-    :ivar table_name: Name of the table in the database used for records.
-    :ivar view_name: Name of the view in the database for specialized queries.
-    :ivar key_lengths: List of key sizes used for data grouping or retrieval.
-    :ivar records_per_keylength: Number of records required per key size.
-    :ivar logger: Logger instance for debugging and tracking the class operations.
-    :ivar connection: Active connection to the MariaDB database.
+    :ivar mariadb_cnf: Path to the MariaDB configuration file.
+    :type mariadb_cnf: str
+    :ivar db_name: The name of the database to operate on.
+    :type db_name: str
+    :ivar table_name: The name of the database table for inserts or operations.
+    :type table_name: str
+    :ivar view_name: The name of the view (if applicable) for operations.
+    :type view_name: str
+    :ivar config_id: Identifier tied to configuration for stored records.
+    :type config_id: str
+    :ivar key_lengths: List of key sizes to operate or validate against.
+    :type key_lengths: List[int]
+    :ivar records_per_keylength: Count of records per key size.
+    :type records_per_keylength: int
+    :ivar delete_records_on_moduli_write: Whether to delete existing records
+        when writing new moduli.
+    :type delete_records_on_moduli_write: bool
+    :ivar delete_records_on_read: Whether to delete records from the database
+        once they are read.
+    :type delete_records_on_read: bool
     """
 
     def __enter__(self):
+        """
+        This method is a special dunder method that is part of Python's context management protocol.
+        It is invoked when the runtime enters the context of a `with` statement. This method should be
+        used to establish any resource or setup actions required for the context.
+
+        :return: Returns the instance of the class, allowing to use it in a `with` statement.
+        :rtype: object
+        """
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.connection:
+        """
+        Handles the cleanup process when exiting a context manager for the object. Ensures that
+        the connection pool is properly closed if it exists and logs any errors that occur
+        during this operation.
+
+        :param exc_type: The exception type if an exception was raised, otherwise None
+        :type exc_type: type | None
+        :param exc_val: The exception value if an exception was raised, otherwise None
+        :type exc_val: Exception | None
+        :param exc_tb: The traceback object if an exception was raised, otherwise None
+        :type exc_tb: TracebackType | None
+        :return: Returns False to re-raise any exception encountered in the context
+        :rtype: bool
+        """
+        if hasattr(self, 'pool') and self.pool:
             try:
-                self.connection.close()
-                self.logger.debug("Database connection closed")
+                self.pool.close()
+                self.logger.debug("Connection pool closed")
             except Error as err:
-                self.logger.error(f"Error closing database connection: {err}")
+                self.logger.error(f"Error closing connection pool: {err}")
         return False
 
     @contextmanager
-    def transaction(self):
+    def get_connection(self):
         """
-        Context manager for managing database transactions.
+        Provides a context manager for safely obtaining and managing a connection
+        from the connection pool. Ensures the connection is properly closed and
+        returned to the pool after usage.
 
-        This context manager handles committing or rolling back a transaction
-        within a database connection. Upon successful execution of the block, the
-        transaction is committed. In the event of an exception, the transaction is
-        rolled back, and the error is logged.
-
-        :raises Exception: If an error occurs, it is logged and re-raised.
+        :return: Yields a connection object from the connection pool.
+        :rtype: Connection
         """
+        connection = None
         try:
-            yield
-            self.connection.commit()
-            self.logger.debug("Transaction committed")
-        except Exception as e:
-            self.connection.rollback()
-            self.logger.error(f"Transaction rolled back due to error: {e}")
+            connection = self.pool.get_connection()
+            yield connection
+        except Error as err:
+            self.logger.error(f"Error getting connection from pool: {err}")
             raise
+        finally:
+            if connection:
+                connection.close()  # Returns connection to pool
+
+    @contextmanager
+    def transaction(self, connection=None):
+        """
+        Provides a context manager for handling database transactions. It ensures that the
+        transaction is properly committed or rolled back and manages logging for the process.
+
+        :param connection: Optional existing connection to be used in the transaction. If not
+            provided, a new connection will be retrieved from the connection pool.
+        :type connection: Optional
+        :return: Yields the database connection within the transaction context.
+        :rtype: ContextManager
+        """
+        if connection:
+            # Use the provided connection
+            try:
+                yield connection
+                connection.commit()
+                self.logger.debug("Transaction committed")
+            except Exception as e:
+                connection.rollback()
+                self.logger.error(f"Transaction rolled back due to error: {e}")
+                raise
+        else:
+            # Get connection from pool
+            with self.get_connection() as conn:
+                try:
+                    yield conn
+                    conn.commit()
+                    self.logger.debug("Transaction committed")
+                except Exception as e:
+                    conn.rollback()
+                    self.logger.error(f"Transaction rolled back due to error: {e}")
+                    raise
 
     @contextmanager
     def file_writer(self, output_file: Path):
@@ -153,16 +215,19 @@ class MariaDBConnector:
 
     def __init__(self, config: ModuliConfig = default_config):
         """
-        Initializes the database connection and configures the module based on the provided configuration.
+        Initializes a class instance with provided configuration parameters and sets up a MariaDB
+        connection pool, along with configured logging for module operations.
 
-        :class ModuliConfig:
-            Represents the configuration necessary for initializing the module.
+        Detailed connection pool is established using connection parameters parsed from MariaDB
+        configuration file, ensuring efficient database interaction. Logging is configured for the
+        module using the provided logger in the configuration.
 
-        :param config: The configuration object containing all necessary database and runtime settings.
+        :param config: Configuration object containing necessary properties for initialization
+                       such as MariaDB setup, table/view names, logging preferences, and other
+                       settings.
         :type config: ModuliConfig
 
-        :raises RuntimeError: If a connection to the MariaDB platform fails due to configuration or
-                              connection errors.
+        :raises RuntimeError: If the connection pool creation fails due to database-related issues.
         """
         for key, value in config.__dict__.items():
             if key in ["mariadb_cnf",
@@ -173,7 +238,7 @@ class MariaDBConnector:
                        "key_lengths",
                        "records_per_keylength",
                        "delete_records_on_moduli_write",
-                       "delete_records_on_read"
+                       "delete_records_on_read",
                        'get_logger()'
                        ]:
                 setattr(self, key, value)
@@ -187,56 +252,60 @@ class MariaDBConnector:
         mysql_cnf = parse_mysql_config(config.mariadb_cnf)["client"]
 
         try:
-            self.connection = connect(
+            # Create connection pool instead of single connection
+            self.pool = ConnectionPool(
+                pool_name='moduli_pool',
+                pool_size=10,  # Adjust based on your needs
+                pool_reset_connection=True,
                 host=mysql_cnf["host"],
                 port=int(mysql_cnf["port"]),
                 user=mysql_cnf["user"],
                 password=mysql_cnf["password"],
                 database=mysql_cnf["database"]
             )
-        except configparser.Error as err:
-            self.logger.error(f"Error connecting to MariaDB Platform: {err}")
-            raise RuntimeError(f"Database connection failed: {err}")
+            self.logger.info(f"Connection pool created with size: 10")
+        except Error as err:
+            self.logger.error(f"Error creating connection pool: {err}")
+            raise RuntimeError(f"Connection pool creation failed: {err}")
 
     def sql(self, query: str, params: Optional[tuple] = None, fetch: bool = True) -> Optional[List[Dict]]:
         """
-        Executes a given SQL query within a transaction, optionally fetching query results
-        or returning the number of affected rows for non-SELECT queries.
+        Executes an SQL query with optional parameters and returns the results or
+        affected rows depending on the fetch flag.
 
-        This method handles execution of SQL queries, managing the transaction and logging
-        details of the operation. SELECT type queries fetch and return results, while
-        INSERT/UPDATE/DELETE type queries commit changes and optionally return affected
-        rows information.
+        This method manages database transactions, logs the results or errors, and
+        ensures proper resource cleanup. It also supports parameterized queries
+        for enhanced security against SQL injection.
 
-        :param query: SQL query to be executed.
+        :param query: The SQL query to be executed.
         :type query: str
-        :param params: Optional tuple of parameters to be bound to the query.
+        :param params: Optional tuple of parameters for the query, default is None.
         :type params: Optional[tuple]
-        :param fetch: Indicates whether to fetch results (True for SELECT queries).
+        :param fetch: A flag indicating whether to fetch and return query results
+            (True) or not (False). Defaults to True.
         :type fetch: bool
-        :return: A list of queried rows represented as dictionaries in case of SELECT
-                 queries, otherwise None.
+        :return: A list of results as dictionaries if fetch is True, or None if
+            fetch is False.
         :rtype: Optional[List[Dict]]
+        :raises RuntimeError: If an error occurs during query execution.
         """
         try:
-            with self.transaction():
-                with self.connection.cursor(dictionary=True) as cursor:
-                    # Execute query with optional parameters
-                    if params:
-                        cursor.execute(query, params)
-                    else:
-                        cursor.execute(query)
+            with self.get_connection() as connection:
+                with self.transaction(connection):
+                    with connection.cursor(dictionary=True) as cursor:
+                        if params:
+                            cursor.execute(query, params)
+                        else:
+                            cursor.execute(query)
 
-                    if fetch:
-                        # For SELECT queries, fetch all results
-                        results = cursor.fetchall()
-                        self.logger.debug(f"Query returned {len(results)} rows")
-                        return results
-                    else:
-                        # For INSERT/UPDATE/DELETE queries, commit and return affected rows info
-                        affected_rows = cursor.rowcount
-                        self.logger.debug(f"Query affected {affected_rows} rows")
-                        return None
+                        if fetch:
+                            results = cursor.fetchall()
+                            self.logger.debug(f"Query returned {len(results)} rows")
+                            return results
+                        else:
+                            affected_rows = cursor.rowcount
+                            self.logger.debug(f"Query affected {affected_rows} rows")
+                            return None
 
         except Error as err:
             self.logger.error(f"Error executing SQL query: {err}")
@@ -266,31 +335,29 @@ class MariaDBConnector:
 
     def execute_update(self, query: str, params: Optional[tuple] = None) -> int:
         """
-        Executes an update query on the database and returns the number of rows affected.
+        Executes an update query on the database and returns the number of rows affected. The
+        method ensures the query is executed within a managed connection and transaction block
+        to maintain database integrity and handle rollback in case of errors.
 
-        This method utilizes the database connection to execute an update query. Within
-        a transaction block, it uses the provided SQL query and optional parameters to
-        execute the query. If the query execution is successful, the number of rows
-        affected by the operation is returned. In the event of an error, it logs the
-        error message and raises a runtime exception.
-
-        :param query: The SQL query to execute on the database.
+        :param query: The SQL query to be executed.
         :type query: str
-        :param params: Optional tuple of parameters to bind to the query. Defaults to None.
+        :param params: Optional parameters to be used with the query.
         :type params: Optional[tuple]
-        :return: The number of rows affected by the executed query.
+        :return: The number of rows affected by the query execution.
         :rtype: int
+        :raises RuntimeError: If executing the update query fails.
         """
         try:
-            with self.transaction():
-                with self.connection.cursor() as cursor:
-                    if params:
-                        cursor.execute(query, params)
-                    else:
-                        cursor.execute(query)
-                    affected_rows = cursor.rowcount
-                    self.logger.debug(f"Query affected {affected_rows} rows")
-                    return affected_rows
+            with self.get_connection() as connection:
+                with self.transaction(connection):
+                    with connection.cursor() as cursor:
+                        if params:
+                            cursor.execute(query, params)
+                        else:
+                            cursor.execute(query)
+                        affected_rows = cursor.rowcount
+                        self.logger.debug(f"Query affected {affected_rows} rows")
+                        return affected_rows
 
         except Error as err:
             self.logger.error(f"Error executing update query: {err}")
@@ -298,30 +365,35 @@ class MariaDBConnector:
 
     def execute_batch(self, queries: List[str], params_list: Optional[List[tuple]] = None) -> bool:
         """
-        Executes a batch of SQL queries within a single transaction. This method ensures
-        that all queries are executed successfully together or none at all, maintaining
-        data consistency. It logs the success or failure of the operation for debugging purposes.
+        Execute multiple SQL queries in a batch with optional parameters.
 
-        :param queries: A list of SQL query strings to be executed in the batch.
-        :param params_list: A list of tuples representing the parameters for
-            each query. If no parameters are needed for a specific query, it may be
-            omitted or set as `None`. Default is `None`.
-        :return: Returns `True` if all queries are successfully executed within the batch.
+        This method allows execution of a series of SQL queries in a batch,
+        using transactions to ensure atomicity of operations. The queries can
+        have associated parameter tuples for execution.
+
+        :param queries: A list of SQL query strings to be executed in batch.
+        :type queries: List[str]
+        :param params_list: A list of tuples containing parameters to
+            correspond with each query. If provided, its length should not
+            exceed the length of the queries list. Defaults to None.
+        :type params_list: Optional[List[tuple]]
+        :return: Boolean indicating whether the batch execution was successful.
         :rtype: bool
-        :raises RuntimeError: If there is an error during the execution of queries
-            or committing the transaction.
+        :raises RuntimeError: If any error occurs during the execution of
+            the batch queries.
         """
         try:
-            with self.transaction():
-                with self.connection.cursor() as cursor:
-                    for i, query in enumerate(queries):
-                        params = params_list[i] if params_list and i < len(params_list) else None
-                        if params:
-                            cursor.execute(query, params)
-                        else:
-                            cursor.execute(query)
-                    self.logger.debug(f"Successfully executed {len(queries)} in batch")
-                    return True
+            with self.get_connection() as connection:
+                with self.transaction(connection):
+                    with connection.cursor() as cursor:
+                        for i, query in enumerate(queries):
+                            params = params_list[i] if params_list and i < len(params_list) else None
+                            if params:
+                                cursor.execute(query, params)
+                            else:
+                                cursor.execute(query)
+                        self.logger.debug(f"Successfully executed {len(queries)} in batch")
+                        return True
 
         except Error as err:
             self.logger.error(f"Error executing batch queries: {err}")
@@ -349,14 +421,15 @@ class MariaDBConnector:
             return 0
 
         try:
-            with self.transaction():
-                with self.connection.cursor() as cursor:
-                    query = f"""INSERT INTO {self.db_name}.{self.table_name} 
+            with self.get_connection() as connection:
+                with self.transaction(connection):
+                    with connection.cursor() as cursor:
+                        query = f"""INSERT INTO {self.db_name}.{self.table_name} 
                                (timestamp, config_id, size, modulus) VALUES (?, ?, ?, ?)"""
-                    cursor.execute(query, (timestamp, self.config_id, key_size, modulus))
-                    last_id = cursor.lastrowid
-                    self.logger.info(f'Successfully added {key_size} bit modulus')
-                    return last_id
+                        cursor.execute(query, (timestamp, self.config_id, key_size, modulus))
+                        last_id = cursor.lastrowid
+                        self.logger.info(f'Successfully added {key_size} bit modulus')
+                        return last_id
         except Error as err:
             self.logger.error(f"Error inserting candidate: {err}")
             return 0
@@ -417,12 +490,13 @@ class MariaDBConnector:
         :rtype: int
         """
         try:
-            with self.transaction():
-                with self.connection.cursor() as cursor:
-                    if where_clause:
-                        query = f"DELETE FROM {table_name} WHERE {where_clause}"
-                    else:
-                        query = f"DELETE FROM {table_name}"
+            with self.get_connection() as connection:
+                with self.transaction(connection):
+                    with connection.cursor() as cursor:
+                        if where_clause:
+                            query = f"DELETE FROM {table_name} WHERE {where_clause}"
+                        else:
+                            query = f"DELETE FROM {table_name}"
 
                     cursor.execute(query)
                     rows_affected = cursor.rowcount
@@ -435,34 +509,36 @@ class MariaDBConnector:
             print(f"Error deleting from table {table_name}: {e}")
             raise RuntimeError(f"Error deleting from table {table_name}: {e}")
 
-    def store_screened_moduli(self, json_schema: dict) -> int:
+    def store_screened_moduli(self, screened_moduli: dict) -> int:
         """
-        Stores screened moduli data from a given JSON schema into the storage.
+        Stores screened moduli data from the given dictionary into the storage.
 
-        This method iterates over the provided JSON schema dictionary, extracting
+        This method iterates over the provided moduli data, extracting
         moduli attributes and saving them using an internal method. The operation
         is performed within a database transaction to ensure atomicity. Errors
         encountered during the process are logged, and an appropriate status is
         returned.
 
-        :param json_schema: A dictionary containing moduli data mapped to corresponding keys.
-        :type json_schema: dict
+        :param screened_moduli: A dictionary containing moduli data mapped to corresponding keys.
+        :type screened_moduli: dict
         :return: An integer indicating the status of the operation,
                  where 0 indicates success and 1 indicates failure.
         :rtype: int
         """
         try:
-            with self.transaction():
-                for key, moduli_list in json_schema.items():
-                    for modulus in moduli_list:
-                        # Use the internal add method without its own transaction
-                        self._add_without_transaction(modulus["timestamp"], modulus["key-size"], modulus["modulus"])
+            with self.get_connection() as connection:
+                with self.transaction(connection):
+                    for key, moduli_list in screened_moduli.items():
+                        for modulus in moduli_list:
+                            # Use the internal add method without its own transaction
+                            self._add_without_transaction(connection, modulus["timestamp"], modulus["key-size"],
+                                                          modulus["modulus"])
             return 0
         except Error as err:
             self.logger.error(f"Error storing moduli: {err}")
             return 1
 
-    def _add_without_transaction(self, timestamp: int, key_size: int, modulus: str) -> int:
+    def _add_without_transaction(self, connection, timestamp: int, key_size: int, modulus: str) -> int:
         """
         Inserts a new record into the database table without wrapping the operation
         in a transaction. This method directly interacts with the database cursor
@@ -484,7 +560,7 @@ class MariaDBConnector:
             return 0
 
         try:
-            with self.connection.cursor() as cursor:
+            with connection.cursor() as cursor:
                 query = f"""INSERT INTO {self.db_name}.{self.table_name} 
                            (timestamp, config_id, size, modulus) VALUES (?, ?, ?, ?)"""
                 cursor.execute(query, (timestamp, self.config_id, key_size, modulus))
@@ -495,180 +571,169 @@ class MariaDBConnector:
             self.logger.error(f"Error inserting candidate: {err}")
             raise  # Re-raise to let transaction context manager handle rollback
 
+    def get_moduli(self, output_file: Path = None) -> Dict[int, list]:
+        """
+        Retrieves cryptographic moduli for specified key sizes by querying the database.
+        This function ensures that there are sufficient records for each key size
+        before performing the database query. If the optional output_file parameter
+        is provided, the retrieved moduli are written to the specified file.
 
-def get_moduli(
-        self,
-        output_file: Path = None
-) -> Dict[int, list]:
-    """
-    Retrieves cryptographic moduli records from the database for specified key lengths.
-    Ensures there are sufficient moduli records available for each key size prior to
-    retrieval. If a specific output file is provided, the obtained records are also
-    written to that file.
+        :param output_file: Optional file path to save the retrieved moduli.
+        :type output_file: Path, optional
+        :return: A dictionary where each key represents a key size and its corresponding value
+            is a list of records containing moduli.
+        :rtype: Dict[int, list]
+        :raises RuntimeError: If there are insufficient records for any key size or if the database query fails.
+        """
+        # Verify that a sufficient number of moduli for each keysize exist in the db
+        stats = self.stats()
+        for stat in stats:
+            if stats[stat] < self.records_per_keylength:
+                self.logger.info(
+                    f"Insufficient records for key size {stat}: {stats[stat]} available,"
+                    f" {self.records_per_keylength} required"
+                )
+                raise RuntimeError(
+                    f"Insufficient records for key size {stat}: {stats[stat]} available, "
+                    f"{self.records_per_keylength} required"
+                )
 
-    :param self: Instance of the class invoking this method.
-    :type self: Any
-    :param output_file: Path to a file where the retrieved moduli will be written,
-        if specified.
-    :type output_file: Path, optional
-    :return: Dictionary where key is the key size (int) and value is a list of records.
-    :rtype: Dict[int, list]
-    """
-    # Verify that a sufficient number of moduli for each keysize exist in the db
-    stats = self.stats()
-    for stat in stats:
-        if stats[stat] < self.records_per_keylength:
-            self.logger.info(
-                f"Insufficient records for key size {stat[0]}: {stat[1]} available,"
-                f" {self.records_per_keylength} required"
-            )
-            raise RuntimeError(
-                f"Insufficient records for key size {stat[0]}: {stat[1]} available, "
-                f"{self.records_per_keylength} required"
-            )
+        moduli = {}
 
-    # If we have enough records for all sizes, proceed with retrieval
-    moduli = {}
+        try:
+            with self.get_connection() as connection:
+                with connection.cursor(dictionary=True) as cursor:
+                    for size in self.key_lengths:
+                        query = f"""
+                                SELECT timestamp, type, tests, trials, size, generator, modulus
+                                FROM {self.db_name}.{self.view_name}
+                                WHERE size = {size - 1}
+                                LIMIT {self.records_per_keylength}
+                                """
 
-    try:
-        with self.connection.cursor(dictionary=True) as cursor:
-            for size in self.key_lengths:
-                # Query to get records for the current key size using the view
-                query = f"""
-                        SELECT timestamp, type, tests, trials, size, generator, modulus
-                        FROM {self.db_name}.{self.view_name}
-                        WHERE size = {size - 1}  # GOTCHA - The STORED Moduli Size is 1 BIT LESS THAN THE KEY SIZE 
-                        LIMIT {self.records_per_keylength} \
-                        """
+                        cursor.execute(query)
+                        records = list(cursor.fetchall())
+                        moduli[size] = records
 
-                cursor.execute(query, )
+                        self.logger.info(f"Retrieved {len(records)} records for key size {size}")
 
-                # Store the results for this key size
-                records = list(cursor.fetchall())
-                moduli[size] = records
+        except Error as err:
+            self.logger.error(f"Error retrieving moduli: {err}")
+            raise RuntimeError(f"Database query failed: {err}")
 
-                # Log the number of records found
-                self.logger.info(f"Retrieved {len(records)}  records for key size {size}")
+        if output_file:
+            self.write_record_to_file(moduli, output_file)
+            self.logger.info(f"Successfully created moduli file with {self.records_per_keylength} records per key size")
 
-    except Error as err:
-        self.logger.error(f"Error retrieving moduli: {err}")
-        raise RuntimeError(f"Database query failed: {err}")
+        return moduli
 
-    # If an output file is specified, and we have enough records for all sizes, write the results
-    if output_file:
-        self.write_record_to_file(moduli, output_file)
-        self.logger.info(f"Successfully created moduli file with {self.records_per_keylength} records per key size")
+    def write_record_to_file(self, moduli_data: dict, output_file: Path) -> list:
+        """
+        Writes moduli data records to a specified output file in a structured format.
+        This method creates or overwrites the specified output file, writing a header
+        and formatted moduli records for various key sizes. The function also maintains
+        a list of moduli that need to be removed from the database based on the input data.
 
-    return moduli
+        :param self: Instance of the class containing the method.
+        :type self: Any
+        :param moduli_data: Dictionary containing modulus records categorized by key sizes.
+            Each key is a key size, and the value is a list of records containing data such as
+            timestamp, type, tests, trials, size, generator, and modulus.
+        :type moduli_data: dict
+        :param output_file: Path object representing the file where moduli data will be written.
+        :type output_file: Path
+        :return: List of modulus values that need to be removed from the database.
+        :rtype: list
+        """
+        moduli_to_delete = []
+        try:
+            with self.file_writer(output_file) as ssh_moduli_file:
 
+                # Write File Header
+                ssh_moduli_file.write(
+                    # of.write(
+                    f'# /etc/ssh/modul: dcrunch.threatwonk.net: {ISO_UTC_TIMESTAMP()}\n'
+                )
 
-def write_record_to_file(self, moduli_data: dict, output_file: Path) -> list:
-    """
-    Writes moduli data records to a specified output file in a structured format.
-    This method creates or overwrites the specified output file, writing a header
-    and formatted moduli records for various key sizes. The function also maintains
-    a list of moduli that need to be removed from the database based on the input data.
+                # Write data for each key size
+                for size, records in moduli_data.items():
+                    for record in records:
+                        # Format: timestamp type tests trials size generator modulus
+                        # The timestamp should already be in compressed format
+                        ssh_moduli_file.write(' '.join((
+                            # of.write(' '.join((
+                            strip_punction_from_datetime_str(record['timestamp']),
+                            record['type'],
+                            record['tests'],
+                            str(record['trials']),
+                            str(record['size']),
+                            str(record['generator']),
+                            record['modulus'],
+                            '\n'
+                        )))
+                        if record['modulus']:
+                            moduli_to_delete.append(record['modulus'])
 
-    :param self: Instance of the class containing the method.
-    :type self: Any
-    :param moduli_data: Dictionary containing modulus records categorized by key sizes.
-        Each key is a key size, and the value is a list of records containing data such as
-        timestamp, type, tests, trials, size, generator, and modulus.
-    :type moduli_data: dict
-    :param output_file: Path object representing the file where moduli data will be written.
-    :type output_file: Path
-    :return: List of modulus values that need to be removed from the database.
-    :rtype: list
-    """
-    moduli_to_delete = []
-    try:
-        with self.file_writer(output_file) as ssh_moduli_file:
-            # with output_file.open('w') as of:
-            # Write File Header
-            ssh_moduli_file.write(
-                # of.write(
-                f'# /etc/ssh/modul: dcrunch.threatwonk.net: {ISO_UTC_TIMESTAMP()}\n'
-            )
+            self.logger.info(f"Successfully wrote moduli to file: {output_file}")
+            self.logger.debug(f"Moduli to delete from DB: {moduli_to_delete}")
 
-            # Write data for each key size
-            for size, records in moduli_data.items():
-                for record in records:
-                    # Format: timestamp type tests trials size generator modulus
-                    # The timestamp should already be in compressed format
-                    ssh_moduli_file.write(' '.join((
-                        # of.write(' '.join((
-                        strip_punction_from_datetime_str(record['timestamp']),
-                        record['type'],
-                        record['tests'],
-                        str(record['trials']),
-                        str(record['size']),
-                        str(record['generator']),
-                        record['modulus'],
-                        '\n'
-                    )))
-                    if record['modulus']:
-                        moduli_to_delete.append(record['modulus'])
+        except IOError as err:
+            self.logger.error(f"Error writing to file {output_file}: {err}")
+            raise
 
-        self.logger.info(f"Successfully wrote moduli to file: {output_file}")
-        self.logger.debug(f"Moduli to delete from DB: {moduli_to_delete}")
+        return moduli_to_delete
 
-    except IOError as err:
-        self.logger.error(f"Error writing to file {output_file}: {err}")
-        raise
+    def stats(self) -> Dict[str, str]:
+        """
+        Generates and retrieves record counts from a set of key moduli sizes. Performs
+        database queries to calculate and validate the count of available records for
+        specific key sizes based on predefined moduli sizes. Results are logged and
+        formatted as a dictionary mapping each modulus size to its corresponding count.
 
-    return moduli_to_delete
+        :param self: Represents the instance that holds required attributes like
+                     key_lengths, db_name, view_name, logger, and query execution
+                     functionalities.
+        :type self: object
+        :return: A dictionary where the keys are moduli sizes (adjusted from key_lengths)
+                 and the values are the respective record counts obtained from the
+                 database query.
+        :rtype: Dict[int, int]
+        :raises RuntimeError: If there is an error during the database query execution.
+        """
+        moduli_query_sizes = []
+        for item in self.key_lengths:
+            moduli_query_sizes.append(item - 1)
 
+        # First, check if we have enough records for each key size
+        status: List[int, int] = list()
 
-def stats(self) -> Dict[str, str]:
-    """
-    Generates and retrieves statistical data on a set of key moduli sizes. Performs
-    database queries to calculate and validate the count of available records for
-    specific key sizes based on predefined moduli sizes. Results are logged and
-    formatted as a dictionary mapping each modulus size to its corresponding count.
+        # Validate identifiers
+        if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.view_name)):
+            self.logger.error("Invalid database or table name")
+            return 0
 
-    :param self: Represents the instance that holds required attributes like
-                 key_lengths, db_name, view_name, logger, and query execution
-                 functionalities.
-    :type self: object
-    :return: A dictionary where the keys are moduli sizes (adjusted from key_lengths)
-             and the values are the respective record counts obtained from the
-             database query.
-    :rtype: Dict[int, int]
-    :raises RuntimeError: If there is an error during the database query execution.
-    """
-    moduli_query_sizes = []
-    for item in self.key_lengths:
-        moduli_query_sizes.append(item - 1)
+        try:
+            for size in moduli_query_sizes:
+                # Count query to check available records
+                count_query = f"""
+                                  SELECT COUNT(*)
+                                  FROM {self.db_name}.{self.view_name}
+                                  WHERE size = ?
+                                  """
+                result = self.execute_select(count_query, (size,))
+                count = result[0]['COUNT(*)']
+                status.append(count)
 
-    # First, check if we have enough records for each key size
-    status: List[int, int] = list()
+        except Exception as err:
+            self.logger.error(f"Error retrieving moduli: {err}")
+            raise RuntimeError(f"Database query failed: {err}")
 
-    # Validate identifiers
-    if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.view_name)):
-        self.logger.error("Invalid database or table name")
-        return 0
+        # Output
+        results = dict(zip(moduli_query_sizes, status))
 
-    try:
-        for size in moduli_query_sizes:
-            # Count query to check available records
-            count_query = f"""
-                              SELECT COUNT(*)
-                              FROM {self.db_name}.{self.view_name}
-                              WHERE size = ?
-                              """
-            result = self.execute_select(count_query, (size,))
-            count = result[0]['COUNT(*)']
-            status.append(count)
+        self.logger.info(f"Moduli statistics:")
+        self.logger.info('size  count')
+        for size, count in results.items():
+            self.logger.info(f'{size:>4} {count:>4}')
 
-    except Exception as err:
-        self.logger.error(f"Error retrieving moduli: {err}")
-        raise RuntimeError(f"Database query failed: {err}")
-
-    # Output
-    results = dict(zip(moduli_query_sizes, status))
-    self.logger.info(f"Moduli statistics:")
-    self.logger.info('size  count')
-    for size, count in results.items():
-        self.logger.info(f'{size:>4} {count:>4}')
-
-    return results
+        return results

@@ -9,8 +9,6 @@ ssh-moduli-generator (moduli_generator)
     :caption: Documentation:
 
     README
-    DOCUMENTATION
-    PYTHON_PACKAGING
     LICENSE
     CHANGELOG
 

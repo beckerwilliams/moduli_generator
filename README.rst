@@ -3,18 +3,14 @@ SSH2 Moduli File Generator
 
 Generate Complete and Secure `ssh moduli` files
 
-            /etc/ssh/moduli | /usr/local/etc/ssh/moduli | 'ssh-moduli' | ...
-
-Table of Contents
------------------
-
-* `Dependencies`_
-* `Installation`_
-* `Usage`_
-* `License`_
+Getting Started
+    * `Dependencies`_
+    * `Installation`_
+    * `Usage`_
+    * `License`_
 
 Dependencies
-------------
+############
 
 - OpenSSH2 ssh-keygen, *supporting* ``-M generate`` *and* ``-M screen``
 - Python version >=3.9
@@ -22,12 +18,12 @@ Dependencies
 - OpenSSL version >=3.0.6
 
 Overview
---------
+========
 
 .. note:: *Elapsed to complete run is about 7* **days** *on an Intel Quad Core i7*
 
 Capabilities
-~~~~~~~~~~~~
+------------
 
 Builds Complete /etc/ssh/moduli file
 

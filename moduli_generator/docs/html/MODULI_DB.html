@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>module db &mdash; Moduli Generator 2.1.5 documentation</title>
+  <title>module db &mdash; Moduli Generator 2.1.6 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=786ba454"></script>
+      <script src="_static/documentation_options.js?v=4f932e3e"></script>
       <script src="_static/doctools.js?v=9a2dae69"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -45,25 +45,31 @@
               <p class="caption" role="heading"><span class="caption-text">Documentation:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="README.html">SSH2 Moduli File Generator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html#overview">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="DOCUMENTATION.html">Build Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="PYTHON_PACKAGING.html">Packaging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="LICENSE.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CHANGELOG.html">CHANGELOG</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="MODULI_GENERATOR.html">module moduli_generator</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">module db</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector._add_without_transaction"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector._add_without_transaction()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.add"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.add()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.add_batch"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.add_batch()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.delete_records"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.delete_records()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.execute_batch"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.execute_batch()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.execute_select"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.execute_select()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.execute_update"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.execute_update()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.file_writer"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.file_writer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.get_connection"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.get_connection()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.get_moduli"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.get_moduli()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.sql"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.sql()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.stats"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.stats()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.store_screened_moduli"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.store_screened_moduli()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.transaction"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.transaction()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#db.moduli_db_utilities.MariaDBConnector.write_record_to_file"><code class="docutils literal notranslate"><span class="pre">MariaDBConnector.write_record_to_file()</span></code></a></li>
 </ul>
 </li>
@@ -105,46 +111,71 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">db.moduli_db_utilities.</span></span><span class="sig-name descname"><span class="pre">MariaDBConnector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config:</span> <span class="pre">~moduli_generator.config.ModuliConfig</span> <span class="pre">=</span> <span class="pre">&lt;moduli_generator.config.ModuliConfig</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector" title="Link to this definition"></a></dt>
-<dd><p>Handles connections and operations with a MariaDB database, providing functionality
-for executing SQL queries, managing records, and retrieving data. The class is built
-to interface with a structured schema defined by configuration and support additional
-operations such as moduli retrieval and storage.</p>
-<p>This class automatically establishes a connection to the database upon instantiation,
-using connection details provided in a configuration object. Operations such as SQL
-execution, record addition, deletion, and retrieval are executed using the connection
-while ensuring proper resource management and error handling.</p>
+<dd><p>Handles MariaDB connection pooling, SQL execution, and transaction management.</p>
+<p>Provides functionality for managing database connections, executing SQL queries,
+and working with transactions efficiently. This class supports a pool of database
+connections for better performance and reliability. Safeguards database operations
+by handling connection acquisition, query execution, and proper resource cleanup.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Variables<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config_id</strong> – Identifier for the configuration associated with the database.</p></li>
-<li><p><strong>db_name</strong> – Name of the database to connect to.</p></li>
-<li><p><strong>table_name</strong> – Name of the table in the database used for records.</p></li>
-<li><p><strong>view_name</strong> – Name of the view in the database for specialized queries.</p></li>
-<li><p><strong>key_lengths</strong> – List of key sizes used for data grouping or retrieval.</p></li>
-<li><p><strong>records_per_keylength</strong> – Number of records required per key size.</p></li>
-<li><p><strong>logger</strong> – Logger instance for debugging and tracking the class operations.</p></li>
-<li><p><strong>connection</strong> – Active connection to the MariaDB database.</p></li>
+<li><p><strong>mariadb_cnf</strong> – Path to the MariaDB configuration file.</p></li>
+<li><p><strong>db_name</strong> – The name of the database to operate on.</p></li>
+<li><p><strong>table_name</strong> – The name of the database table for inserts or operations.</p></li>
+<li><p><strong>view_name</strong> – The name of the view (if applicable) for operations.</p></li>
+<li><p><strong>config_id</strong> – Identifier tied to configuration for stored records.</p></li>
+<li><p><strong>key_lengths</strong> – List of key sizes to operate or validate against.</p></li>
+<li><p><strong>records_per_keylength</strong> – Count of records per key size.</p></li>
+<li><p><strong>delete_records_on_moduli_write</strong> – Whether to delete existing records
+when writing new moduli.</p></li>
+<li><p><strong>delete_records_on_read</strong> – Whether to delete records from the database
+once they are read.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.add">
-<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modulus</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.add" title="Link to this definition"></a></dt>
-<dd><p>Adds a new record to the specified database table with the details provided.</p>
-<p>This method inserts a record into the database table defined by <cite>self.db_name</cite>
-and <cite>self.table_name</cite> using the provided input values. If the operation is
-successful, the method commits the transaction and returns the identifier of
-the newly inserted row.</p>
+<dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector._add_without_transaction">
+<span class="sig-name descname"><span class="pre">_add_without_transaction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modulus</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector._add_without_transaction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector._add_without_transaction" title="Link to this definition"></a></dt>
+<dd><p>Inserts a new record into the database table without wrapping the operation
+in a transaction. This method directly interacts with the database cursor
+to execute an INSERT statement for storing the provided data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>timestamp</strong> (<em>int</em>) – The time at which the record should be inserted.</p></li>
-<li><p><strong>key_size</strong> (<em>int</em>) – The size of the key in bits.</p></li>
-<li><p><strong>modulus</strong> (<em>int</em>) – The modulus value to be stored in the record.</p></li>
+<li><p><strong>timestamp</strong> (<em>int</em>) – The timestamp for the record being inserted.</p></li>
+<li><p><strong>key_size</strong> (<em>int</em>) – The size of the cryptographic key in bits.</p></li>
+<li><p><strong>modulus</strong> (<em>str</em>) – The cryptographic modulus as a string.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The identifier of the newly inserted row in the database.</p>
+<dd class="field-even"><p>The last inserted ID of the record.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Error</strong> – If there is an issue during the database operation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modulus</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.add" title="Link to this definition"></a></dt>
+<dd><p>Inserts a record into a specified database table. The record includes details such
+as a timestamp, key size, and modulus value. The method validates the database name
+and table name before attempting to insert data. If the validation fails or there
+is an error during the insertion, the operation will fail gracefully.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>timestamp</strong> (<em>int</em>) – Timestamp representing the time associated with the record.</p></li>
+<li><p><strong>key_size</strong> (<em>int</em>) – Size of the key (in bits) to be added.</p></li>
+<li><p><strong>modulus</strong> (<em>str</em>) – The modulus value to be added.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The identifier of the last inserted row if successful, otherwise 0.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
@@ -155,13 +186,24 @@ the newly inserted row.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.add_batch">
 <span class="sig-name descname"><span class="pre">add_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">records</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.add_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.add_batch" title="Link to this definition"></a></dt>
-<dd><p>Adds multiple records in a single transaction using execute_batch.</p>
+<dd><p>Add a batch of records to the specified table within the database.</p>
+<p>This method validates the database and table names, prepares the SQL query
+for batch insertion, and attempts to execute the batch operation. If the
+execution is successful, a log message is generated indicating the number
+of records successfully added. If an error occurs during the operation,
+the error is logged, and the function returns False.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>records</strong> – List of tuples containing (timestamp, key_size, modulus)</p>
+<dd class="field-odd"><p><strong>records</strong> (<em>List</em><em>[</em><em>tuple</em><em>]</em>) – A list of tuples, where each tuple represents a record to
+be inserted. Each record should contain the timestamp, key size, and
+modulus values.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>True if all records were successfully added</p>
+<dd class="field-even"><p>A boolean indicating whether the batch operation was successful.
+Returns True if successful, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -169,20 +211,20 @@ the newly inserted row.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.delete_records">
 <span class="sig-name descname"><span class="pre">delete_records</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">where_clause</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.delete_records"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.delete_records" title="Link to this definition"></a></dt>
-<dd><p>Deletes records from a specified table in the database. It supports conditional deletion
-using a WHERE clause. The method executes a DELETE SQL statement and commits the changes.
-If the operation is successful, the number of rows affected is returned. If there is an
-error during the operation, it raises a RuntimeError.</p>
+<dd><p>Deletes records from the specified table in the database, with an optional
+WHERE clause to filter the records to be deleted. If no WHERE clause is provided,
+all records in the table will be deleted. The method returns the number of rows
+affected by the DELETE operation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>table_name</strong> (<em>str</em>) – The name of the database table from which records should be deleted.</p></li>
-<li><p><strong>where_clause</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – An optional SQL condition to filter which records should be deleted.
-If not provided, all records in the table will be deleted.</p></li>
+<li><p><strong>table_name</strong> (<em>str</em>) – The name of the table from which records are to be deleted.</p></li>
+<li><p><strong>where_clause</strong> (<em>str</em><em>, </em><em>optional</em>) – An optional SQL WHERE clause to specify the conditions
+for the DELETE operation. Defaults to None.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The number of rows affected by the DELETE operation.</p>
+<dd class="field-even"><p>The number of rows deleted from the table.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
@@ -193,16 +235,28 @@ If not provided, all records in the table will be deleted.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.execute_batch">
 <span class="sig-name descname"><span class="pre">execute_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.execute_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.execute_batch" title="Link to this definition"></a></dt>
-<dd><p>Execute multiple queries in a single transaction.</p>
+<dd><p>Execute multiple SQL queries in a batch with optional parameters.</p>
+<p>This method allows execution of a series of SQL queries in a batch,
+using transactions to ensure atomicity of operations. The queries can
+have associated parameter tuples for execution.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>queries</strong> – List of SQL queries to execute</p></li>
-<li><p><strong>params_list</strong> – Optional list of parameter tuples for each query</p></li>
+<li><p><strong>queries</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – A list of SQL query strings to be executed in batch.</p></li>
+<li><p><strong>params_list</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>tuple</em><em>]</em><em>]</em>) – A list of tuples containing parameters to
+correspond with each query. If provided, its length should not
+exceed the length of the queries list. Defaults to None.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>True if all queries succeeded</p>
+<dd class="field-even"><p>Boolean indicating whether the batch execution was successful.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RuntimeError</strong> – If any error occurs during the execution of
+the batch queries.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -210,16 +264,24 @@ If not provided, all records in the table will be deleted.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.execute_select">
 <span class="sig-name descname"><span class="pre">execute_select</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.execute_select"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.execute_select" title="Link to this definition"></a></dt>
-<dd><p>Execute a SELECT query and return results.</p>
+<dd><p>Executes a SELECT SQL query and returns the results.</p>
+<p>This method takes an SQL query and optional parameters, executes the query,
+and fetches the results from the database. The results are returned as a
+list of dictionaries, where each dictionary corresponds to a row retrieved
+from the database.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>query</strong> – SELECT SQL query</p></li>
-<li><p><strong>params</strong> – Optional query parameters</p></li>
+<li><p><strong>query</strong> (<em>str</em>) – The SQL query to be executed.</p></li>
+<li><p><strong>params</strong> (<em>Optional</em><em>[</em><em>tuple</em><em>]</em>) – A tuple of optional parameters to use during query execution,
+defaults to None.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>List of result dictionaries</p>
+<dd class="field-even"><p>A list of dictionaries representing the rows of the result set.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[Dict]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -227,16 +289,59 @@ If not provided, all records in the table will be deleted.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.execute_update">
 <span class="sig-name descname"><span class="pre">execute_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.execute_update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.execute_update" title="Link to this definition"></a></dt>
-<dd><p>Execute an INSERT/UPDATE/DELETE query and return affected rows count.</p>
+<dd><p>Executes an update query on the database and returns the number of rows affected. The
+method ensures the query is executed within a managed connection and transaction block
+to maintain database integrity and handle rollback in case of errors.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>query</strong> – INSERT/UPDATE/DELETE SQL query</p></li>
-<li><p><strong>params</strong> – Optional query parameters</p></li>
+<li><p><strong>query</strong> (<em>str</em>) – The SQL query to be executed.</p></li>
+<li><p><strong>params</strong> (<em>Optional</em><em>[</em><em>tuple</em><em>]</em>) – Optional parameters to be used with the query.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Number of affected rows</p>
+<dd class="field-even"><p>The number of rows affected by the query execution.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RuntimeError</strong> – If executing the update query fails.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.file_writer">
+<span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">PosixPath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.file_writer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.file_writer" title="Link to this definition"></a></dt>
+<dd><p>Context manager for safely opening a file for writing.</p>
+<p>When used, this context manager ensures that the specified file is opened for
+writing and properly closed after use, even in the event of an error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>output_file</strong> (<em>Path</em>) – The path of the file to be written.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A file handle for writing.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>TextIO</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.get_connection">
+<span class="sig-name descname"><span class="pre">get_connection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.get_connection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.get_connection" title="Link to this definition"></a></dt>
+<dd><p>Provides a context manager for safely obtaining and managing a connection
+from the connection pool. Ensures the connection is properly closed and
+returned to the pool after usage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Yields a connection object from the connection pool.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Connection</p>
 </dd>
 </dl>
 </dd></dl>
@@ -244,26 +349,23 @@ If not provided, all records in the table will be deleted.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.get_moduli">
 <span class="sig-name descname"><span class="pre">get_moduli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">PosixPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.get_moduli"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.get_moduli" title="Link to this definition"></a></dt>
-<dd><p>Retrieve moduli for specified key sizes and optionally write them to a file.</p>
-<p>This function checks whether there are sufficient records for each key size before
-retrieving them from the database. If the specified number of records exists for all
-key sizes, records are fetched and optionally written to a file. It ensures that the
-database and table names are valid before retrieving the records, logging the operation’s
-progress and potential errors.</p>
+<dd><p>Retrieves cryptographic moduli for specified key sizes by querying the database.
+This function ensures that there are sufficient records for each key size
+before performing the database query. If the optional output_file parameter
+is provided, the retrieved moduli are written to the specified file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>output_file</strong> (<em>Path</em><em>, </em><em>optional</em>) – The file path where the retrieved moduli should be saved.
-If not specified, the results are returned without saving.</p>
+<dd class="field-odd"><p><strong>output_file</strong> (<em>Path</em><em>, </em><em>optional</em>) – Optional file path to save the retrieved moduli.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A dictionary mapping key sizes to the retrieved moduli records for each size.</p>
+<dd class="field-even"><p>A dictionary where each key represents a key size and its corresponding value
+is a list of records containing moduli.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dict</p>
+<dd class="field-odd"><p>Dict[int, list]</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>RuntimeError</strong> – If there are insufficient records for any key size or the database
-query fails.</p>
+<dd class="field-even"><p><strong>RuntimeError</strong> – If there are insufficient records for any key size or if the database query fails.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -271,26 +373,29 @@ query fails.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.sql">
 <span class="sig-name descname"><span class="pre">sql</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fetch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.sql"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.sql" title="Link to this definition"></a></dt>
-<dd><p>Executes an SQL query using the provided connection with improved functionality.</p>
-<p>This method executes SQL queries with proper parameter binding to prevent SQL injection,
-handles both SELECT and non-SELECT queries, and provides better error handling and
-transaction management.</p>
+<dd><p>Executes an SQL query with optional parameters and returns the results or
+affected rows depending on the fetch flag.</p>
+<p>This method manages database transactions, logs the results or errors, and
+ensures proper resource cleanup. It also supports parameterized queries
+for enhanced security against SQL injection.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>query</strong> (<em>str</em>) – The SQL query string to be executed on the database.</p></li>
-<li><p><strong>params</strong> (<em>Optional</em><em>[</em><em>tuple</em><em>]</em>) – Optional tuple of parameters for parameterized queries to prevent SQL injection.</p></li>
-<li><p><strong>fetch</strong> (<em>bool</em>) – Whether to fetch and return results (True for SELECT queries, False for INSERT/UPDATE/DELETE).</p></li>
+<li><p><strong>query</strong> (<em>str</em>) – The SQL query to be executed.</p></li>
+<li><p><strong>params</strong> (<em>Optional</em><em>[</em><em>tuple</em><em>]</em>) – Optional tuple of parameters for the query, default is None.</p></li>
+<li><p><strong>fetch</strong> (<em>bool</em>) – A flag indicating whether to fetch and return query results
+(True) or not (False). Defaults to True.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>List of dictionaries for SELECT queries, None for non-SELECT queries.</p>
+<dd class="field-even"><p>A list of results as dictionaries if fetch is True, or None if
+fetch is False.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Optional[List[Dict]]</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>RuntimeError</strong> – If the execution of the SQL query fails.</p>
+<dd class="field-even"><p><strong>RuntimeError</strong> – If an error occurs during query execution.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -298,30 +403,46 @@ transaction management.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.stats">
 <span class="sig-name descname"><span class="pre">stats</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.stats" title="Link to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p></p>
+<dd><p>Generates and retrieves record counts from a set of key moduli sizes. Performs
+database queries to calculate and validate the count of available records for
+specific key sizes based on predefined moduli sizes. Results are logged and
+formatted as a dictionary mapping each modulus size to its corresponding count.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>self</strong> (<em>object</em>) – Represents the instance that holds required attributes like
+key_lengths, db_name, view_name, logger, and query execution
+functionalities.</p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p></p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary where the keys are moduli sizes (adjusted from key_lengths)
+and the values are the respective record counts obtained from the
+database query.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[int, int]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RuntimeError</strong> – If there is an error during the database query execution.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.store_screened_moduli">
-<span class="sig-name descname"><span class="pre">store_screened_moduli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">json_schema</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.store_screened_moduli"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.store_screened_moduli" title="Link to this definition"></a></dt>
-<dd><p>Stores screened moduli data by iterating through a given JSON schema and adding the relevant
-attributes to the instance. If an error occurs during the process, it logs the error and provides
-a return code indicating failure or success.</p>
+<span class="sig-name descname"><span class="pre">store_screened_moduli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">screened_moduli</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.store_screened_moduli"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.store_screened_moduli" title="Link to this definition"></a></dt>
+<dd><p>Stores screened moduli data from the given dictionary into the storage.</p>
+<p>This method iterates over the provided moduli data, extracting
+moduli attributes and saving them using an internal method. The operation
+is performed within a database transaction to ensure atomicity. Errors
+encountered during the process are logged, and an appropriate status is
+returned.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>json_schema</strong> (<em>Dict</em>) – A dictionary containing modulus data where keys represent categories,
-and values are lists of modulus detail dictionaries. Each detail dictionary
-includes ‘timestamp’, ‘key-size’, and ‘modulus’.</p>
+<dd class="field-odd"><p><strong>screened_moduli</strong> (<em>dict</em>) – A dictionary containing moduli data mapped to corresponding keys.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Returns 0 on success or 1 if an error occurs while processing the moduli.</p>
+<dd class="field-even"><p>An integer indicating the status of the operation,
+where 0 indicates success and 1 indicates failure.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
@@ -330,33 +451,46 @@ includes ‘timestamp’, ‘key-size’, and ‘modulus’.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.transaction">
+<span class="sig-name descname"><span class="pre">transaction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.transaction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.transaction" title="Link to this definition"></a></dt>
+<dd><p>Provides a context manager for handling database transactions. It ensures that the
+transaction is properly committed or rolled back and manages logging for the process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>connection</strong> (<em>Optional</em>) – Optional existing connection to be used in the transaction. If not
+provided, a new connection will be retrieved from the connection pool.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Yields the database connection within the transaction context.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ContextManager</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="db.moduli_db_utilities.MariaDBConnector.write_record_to_file">
 <span class="sig-name descname"><span class="pre">write_record_to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">moduli_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">PosixPath</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="_modules/db/moduli_db_utilities.html#MariaDBConnector.write_record_to_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#db.moduli_db_utilities.MariaDBConnector.write_record_to_file" title="Link to this definition"></a></dt>
-<dd><p>This function writes moduli data to a specified file in a specific format. The output file
-contains a header string and records for each key size provided in the moduli data. Each
-record is formatted with specific information such as timestamp, type, tests, trials,
-size, generator, and modulus. If an error occurs during the file writing process, it is
-logged, and the exception is raised.</p>
+<dd><p>Writes moduli data records to a specified output file in a structured format.
+This method creates or overwrites the specified output file, writing a header
+and formatted moduli records for various key sizes. The function also maintains
+a list of moduli that need to be removed from the database based on the input data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>moduli_data</strong> (<em>Dict</em>) – Dictionary where the key represents the key size (int), and the value
-is a list of records. Each record is a dictionary containing the following fields:
-- timestamp: Compressed timestamp string.
-- type: The type of the modulus (str).
-- tests: Result summary of tests performed (str).
-- trials: Number of trials (int).
-- size: Modulus size (int).
-- generator: Value of the generator (int).
-- modulus: str ing representation of the modulus.</p></li>
-<li><p><strong>output_file</strong> (<em>Path</em>) – Path representing the destination file to write moduli data.</p></li>
+<li><p><strong>self</strong> (<em>Any</em>) – Instance of the class containing the method.</p></li>
+<li><p><strong>moduli_data</strong> (<em>dict</em>) – Dictionary containing modulus records categorized by key sizes.
+Each key is a key size, and the value is a list of records containing data such as
+timestamp, type, tests, trials, size, generator, and modulus.</p></li>
+<li><p><strong>output_file</strong> (<em>Path</em>) – Path object representing the file where moduli data will be written.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>None</p>
+<dd class="field-even"><p>List of modulus values that need to be removed from the database.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>None</p>
+<dd class="field-odd"><p>list</p>
 </dd>
 </dl>
 </dd></dl>

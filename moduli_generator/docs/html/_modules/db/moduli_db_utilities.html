@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>db.moduli_db_utilities &mdash; Moduli Generator 2.1.4 documentation</title>
+  <title>db.moduli_db_utilities &mdash; Moduli Generator 2.1.8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=dc13204d"></script>
+      <script src="../../_static/documentation_options.js?v=03f109e5"></script>
       <script src="../../_static/doctools.js?v=9a2dae69"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
@@ -45,12 +45,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../DOCUMENTATION.html">Build Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../PYTHON_PACKAGING.html">Packaging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../LICENSE.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CHANGELOG.html">Changelog</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../MODULI_GENERATOR.html"><code class="docutils literal notranslate"><span class="pre">ModuliGenerator</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../MODULI_GENERATOR.html#id0"><code class="docutils literal notranslate"><span class="pre">ModuliGenerator</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../MODULI_CONFIG.html">module moduli_generator.config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../MODULI_GENERATOR.html">module moduli_generator</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../MODULI_DB.html">module db</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Contributing:</span></p>
@@ -86,6 +85,7 @@
   <h1>Source code for db.moduli_db_utilities</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">configparser</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">configparser</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">ConfigParser</span><span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">contextmanager</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">PosixPath</span> <span class="k">as</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Dict</span><span class="p">,</span>
@@ -93,10 +93,7 @@
     <span class="n">Optional</span>
 <span class="p">)</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">mariadb</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">Error</span><span class="p">,</span>
-    <span class="n">connect</span>
-<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mariadb</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">ConnectionPool</span><span class="p">,</span> <span class="n">Error</span><span class="p">)</span>  <span class="c1"># Add this import</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">moduli_generator.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">ISO_UTC_TIMESTAMP</span><span class="p">,</span> <span class="n">ModuliConfig</span><span class="p">,</span> <span class="n">default_config</span><span class="p">,</span> <span class="n">is_valid_identifier</span><span class="p">,</span>
                                      <span class="n">strip_punction_from_datetime_str</span><span class="p">)</span>
@@ -165,39 +162,168 @@
 <a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MariaDBConnector</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Handles connections and operations with a MariaDB database, providing functionality</span>
-<span class="sd">    for executing SQL queries, managing records, and retrieving data. The class is built</span>
-<span class="sd">    to interface with a structured schema defined by configuration and support additional</span>
-<span class="sd">    operations such as moduli retrieval and storage.</span>
+<span class="sd">    Handles MariaDB connection pooling, SQL execution, and transaction management.</span>
 
-<span class="sd">    This class automatically establishes a connection to the database upon instantiation,</span>
-<span class="sd">    using connection details provided in a configuration object. Operations such as SQL</span>
-<span class="sd">    execution, record addition, deletion, and retrieval are executed using the connection</span>
-<span class="sd">    while ensuring proper resource management and error handling.</span>
+<span class="sd">    Provides functionality for managing database connections, executing SQL queries,</span>
+<span class="sd">    and working with transactions efficiently. This class supports a pool of database</span>
+<span class="sd">    connections for better performance and reliability. Safeguards database operations</span>
+<span class="sd">    by handling connection acquisition, query execution, and proper resource cleanup.</span>
 
-<span class="sd">    :ivar config_id: Identifier for the configuration associated with the database.</span>
-<span class="sd">    :ivar db_name: Name of the database to connect to.</span>
-<span class="sd">    :ivar table_name: Name of the table in the database used for records.</span>
-<span class="sd">    :ivar view_name: Name of the view in the database for specialized queries.</span>
-<span class="sd">    :ivar key_lengths: List of key sizes used for data grouping or retrieval.</span>
-<span class="sd">    :ivar records_per_keylength: Number of records required per key size.</span>
-<span class="sd">    :ivar logger: Logger instance for debugging and tracking the class operations.</span>
-<span class="sd">    :ivar connection: Active connection to the MariaDB database.</span>
+<span class="sd">    :ivar mariadb_cnf: Path to the MariaDB configuration file.</span>
+<span class="sd">    :type mariadb_cnf: str</span>
+<span class="sd">    :ivar db_name: The name of the database to operate on.</span>
+<span class="sd">    :type db_name: str</span>
+<span class="sd">    :ivar table_name: The name of the database table for inserts or operations.</span>
+<span class="sd">    :type table_name: str</span>
+<span class="sd">    :ivar view_name: The name of the view (if applicable) for operations.</span>
+<span class="sd">    :type view_name: str</span>
+<span class="sd">    :ivar config_id: Identifier tied to configuration for stored records.</span>
+<span class="sd">    :type config_id: str</span>
+<span class="sd">    :ivar key_lengths: List of key sizes to operate or validate against.</span>
+<span class="sd">    :type key_lengths: List[int]</span>
+<span class="sd">    :ivar records_per_keylength: Count of records per key size.</span>
+<span class="sd">    :type records_per_keylength: int</span>
+<span class="sd">    :ivar delete_records_on_moduli_write: Whether to delete existing records</span>
+<span class="sd">        when writing new moduli.</span>
+<span class="sd">    :type delete_records_on_moduli_write: bool</span>
+<span class="sd">    :ivar delete_records_on_read: Whether to delete records from the database</span>
+<span class="sd">        once they are read.</span>
+<span class="sd">    :type delete_records_on_read: bool</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is a special dunder method that is part of Python&#39;s context management protocol.</span>
+<span class="sd">        It is invoked when the runtime enters the context of a `with` statement. This method should be</span>
+<span class="sd">        used to establish any resource or setup actions required for the context.</span>
+
+<span class="sd">        :return: Returns the instance of the class, allowing to use it in a `with` statement.</span>
+<span class="sd">        :rtype: object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handles the cleanup process when exiting a context manager for the object. Ensures that</span>
+<span class="sd">        the connection pool is properly closed if it exists and logs any errors that occur</span>
+<span class="sd">        during this operation.</span>
+
+<span class="sd">        :param exc_type: The exception type if an exception was raised, otherwise None</span>
+<span class="sd">        :type exc_type: type | None</span>
+<span class="sd">        :param exc_val: The exception value if an exception was raised, otherwise None</span>
+<span class="sd">        :type exc_val: Exception | None</span>
+<span class="sd">        :param exc_tb: The traceback object if an exception was raised, otherwise None</span>
+<span class="sd">        :type exc_tb: TracebackType | None</span>
+<span class="sd">        :return: Returns False to re-raise any exception encountered in the context</span>
+<span class="sd">        :rtype: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;pool&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Connection pool closed&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error closing connection pool: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="MariaDBConnector.get_connection">
+<a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.get_connection">[docs]</a>
+    <span class="nd">@contextmanager</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Provides a context manager for safely obtaining and managing a connection</span>
+<span class="sd">        from the connection pool. Ensures the connection is properly closed and</span>
+<span class="sd">        returned to the pool after usage.</span>
+
+<span class="sd">        :return: Yields a connection object from the connection pool.</span>
+<span class="sd">        :rtype: Connection</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">connection</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">connection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">get_connection</span><span class="p">()</span>
+            <span class="k">yield</span> <span class="n">connection</span>
+        <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error getting connection from pool: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">connection</span><span class="p">:</span>
+                <span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>  <span class="c1"># Returns connection to pool</span></div>
+
+
+<div class="viewcode-block" id="MariaDBConnector.transaction">
+<a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.transaction">[docs]</a>
+    <span class="nd">@contextmanager</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">transaction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Provides a context manager for handling database transactions. It ensures that the</span>
+<span class="sd">        transaction is properly committed or rolled back and manages logging for the process.</span>
+
+<span class="sd">        :param connection: Optional existing connection to be used in the transaction. If not</span>
+<span class="sd">            provided, a new connection will be retrieved from the connection pool.</span>
+<span class="sd">        :type connection: Optional</span>
+<span class="sd">        :return: Yields the database connection within the transaction context.</span>
+<span class="sd">        :rtype: ContextManager</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">connection</span><span class="p">:</span>
+            <span class="c1"># Use the provided connection</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">connection</span>
+                <span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Transaction committed&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">connection</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Transaction rolled back due to error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Get connection from pool</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="n">conn</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Transaction committed&quot;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Transaction rolled back due to error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span></div>
+
+
+<div class="viewcode-block" id="MariaDBConnector.file_writer">
+<a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.file_writer">[docs]</a>
+    <span class="nd">@contextmanager</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">file_writer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="n">Path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Context manager for safely opening a file for writing.</span>
+
+<span class="sd">        When used, this context manager ensures that the specified file is opened for</span>
+<span class="sd">        writing and properly closed after use, even in the event of an error.</span>
+
+<span class="sd">        :param output_file: The path of the file to be written.</span>
+<span class="sd">        :type output_file: Path</span>
+<span class="sd">        :return: A file handle for writing.</span>
+<span class="sd">        :rtype: TextIO</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">output_file</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_handle</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">file_handle</span>
+        <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error writing to file </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span></div>
+
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">ModuliConfig</span> <span class="o">=</span> <span class="n">default_config</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Represents a database connector configuration for a MariaDB instance.</span>
+<span class="sd">        Initializes a class instance with provided configuration parameters and sets up a MariaDB</span>
+<span class="sd">        connection pool, along with configured logging for module operations.</span>
 
-<span class="sd">        This class initializes a database connection using details from the provided</span>
-<span class="sd">        configuration object. It sets up connection properties, logging, and reads</span>
-<span class="sd">        database credentials from a configuration file.</span>
+<span class="sd">        Detailed connection pool is established using connection parameters parsed from MariaDB</span>
+<span class="sd">        configuration file, ensuring efficient database interaction. Logging is configured for the</span>
+<span class="sd">        module using the provided logger in the configuration.</span>
 
-<span class="sd">        :param config: Configuration object containing database connectivity details</span>
-<span class="sd">            and other related parameters.</span>
+<span class="sd">        :param config: Configuration object containing necessary properties for initialization</span>
+<span class="sd">                       such as MariaDB setup, table/view names, logging preferences, and other</span>
+<span class="sd">                       settings.</span>
 <span class="sd">        :type config: ModuliConfig</span>
 
-<span class="sd">        :raises RuntimeError: If a database connection cannot be established.</span>
+<span class="sd">        :raises RuntimeError: If the connection pool creation fails due to database-related issues.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;mariadb_cnf&quot;</span><span class="p">,</span>
@@ -208,7 +334,7 @@
                        <span class="s2">&quot;key_lengths&quot;</span><span class="p">,</span>
                        <span class="s2">&quot;records_per_keylength&quot;</span><span class="p">,</span>
                        <span class="s2">&quot;delete_records_on_moduli_write&quot;</span><span class="p">,</span>
-                       <span class="s2">&quot;delete_records_on_read&quot;</span>
+                       <span class="s2">&quot;delete_records_on_read&quot;</span><span class="p">,</span>
                        <span class="s1">&#39;get_logger()&#39;</span>
                        <span class="p">]:</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
@@ -222,68 +348,68 @@
         <span class="n">mysql_cnf</span> <span class="o">=</span> <span class="n">parse_mysql_config</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">mariadb_cnf</span><span class="p">)[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">connect</span><span class="p">(</span>
+            <span class="c1"># Create connection pool instead of single connection</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pool</span> <span class="o">=</span> <span class="n">ConnectionPool</span><span class="p">(</span>
+                <span class="n">pool_name</span><span class="o">=</span><span class="s1">&#39;moduli_pool&#39;</span><span class="p">,</span>
+                <span class="n">pool_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>  <span class="c1"># Adjust based on your needs</span>
+                <span class="n">pool_reset_connection</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="n">host</span><span class="o">=</span><span class="n">mysql_cnf</span><span class="p">[</span><span class="s2">&quot;host&quot;</span><span class="p">],</span>
                 <span class="n">port</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">mysql_cnf</span><span class="p">[</span><span class="s2">&quot;port&quot;</span><span class="p">]),</span>
                 <span class="n">user</span><span class="o">=</span><span class="n">mysql_cnf</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">],</span>
                 <span class="n">password</span><span class="o">=</span><span class="n">mysql_cnf</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">],</span>
                 <span class="n">database</span><span class="o">=</span><span class="n">mysql_cnf</span><span class="p">[</span><span class="s2">&quot;database&quot;</span><span class="p">]</span>
             <span class="p">)</span>
-        <span class="k">except</span> <span class="n">configparser</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error connecting to MariaDB Platform: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Database connection failed: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Connection pool created with size: 10&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error creating connection pool: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Connection pool creation failed: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MariaDBConnector.sql">
 <a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.sql">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sql</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">fetch</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Executes an SQL query using the provided connection with improved functionality.</span>
+<span class="sd">        Executes an SQL query with optional parameters and returns the results or</span>
+<span class="sd">        affected rows depending on the fetch flag.</span>
 
-<span class="sd">        This method executes SQL queries with proper parameter binding to prevent SQL injection,</span>
-<span class="sd">        handles both SELECT and non-SELECT queries, and provides better error handling and</span>
-<span class="sd">        transaction management.</span>
+<span class="sd">        This method manages database transactions, logs the results or errors, and</span>
+<span class="sd">        ensures proper resource cleanup. It also supports parameterized queries</span>
+<span class="sd">        for enhanced security against SQL injection.</span>
 
-<span class="sd">        :param query: The SQL query string to be executed on the database.</span>
+<span class="sd">        :param query: The SQL query to be executed.</span>
 <span class="sd">        :type query: str</span>
-<span class="sd">        :param params: Optional tuple of parameters for parameterized queries to prevent SQL injection.</span>
+<span class="sd">        :param params: Optional tuple of parameters for the query, default is None.</span>
 <span class="sd">        :type params: Optional[tuple]</span>
-<span class="sd">        :param fetch: Whether to fetch and return results (True for SELECT queries, False for INSERT/UPDATE/DELETE).</span>
+<span class="sd">        :param fetch: A flag indicating whether to fetch and return query results</span>
+<span class="sd">            (True) or not (False). Defaults to True.</span>
 <span class="sd">        :type fetch: bool</span>
-<span class="sd">        :return: List of dictionaries for SELECT queries, None for non-SELECT queries.</span>
+<span class="sd">        :return: A list of results as dictionaries if fetch is True, or None if</span>
+<span class="sd">            fetch is False.</span>
 <span class="sd">        :rtype: Optional[List[Dict]]</span>
-<span class="sd">        :raises RuntimeError: If the execution of the SQL query fails.</span>
+<span class="sd">        :raises RuntimeError: If an error occurs during query execution.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">dictionary</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
-                <span class="c1"># Execute query with optional parameters</span>
-                <span class="k">if</span> <span class="n">params</span><span class="p">:</span>
-                    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">transaction</span><span class="p">(</span><span class="n">connection</span><span class="p">):</span>
+                    <span class="k">with</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">dictionary</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">params</span><span class="p">:</span>
+                            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
 
-                <span class="k">if</span> <span class="n">fetch</span><span class="p">:</span>
-                    <span class="c1"># For SELECT queries, fetch all results</span>
-                    <span class="n">results</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Query returned </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="si">}</span><span class="s2"> rows&quot;</span><span class="p">)</span>
-                    <span class="k">return</span> <span class="n">results</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="c1"># For INSERT/UPDATE/DELETE queries, commit and return affected rows info</span>
-                    <span class="n">affected_rows</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">rowcount</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Query affected </span><span class="si">{</span><span class="n">affected_rows</span><span class="si">}</span><span class="s2"> rows&quot;</span><span class="p">)</span>
-                    <span class="k">return</span> <span class="kc">None</span>
+                        <span class="k">if</span> <span class="n">fetch</span><span class="p">:</span>
+                            <span class="n">results</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Query returned </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="si">}</span><span class="s2"> rows&quot;</span><span class="p">)</span>
+                            <span class="k">return</span> <span class="n">results</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">affected_rows</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">rowcount</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Query affected </span><span class="si">{</span><span class="n">affected_rows</span><span class="si">}</span><span class="s2"> rows&quot;</span><span class="p">)</span>
+                            <span class="k">return</span> <span class="kc">None</span>
 
         <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error executing SQL query: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Query: </span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">params</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parameters: </span><span class="si">{</span><span class="n">params</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="c1"># Rollback on error for write operations</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">fetch</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
-                <span class="k">except</span> <span class="n">Error</span><span class="p">:</span>
-                    <span class="k">pass</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Database query failed: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
 
@@ -291,11 +417,20 @@
 <a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.execute_select">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">execute_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Execute a SELECT query and return results.</span>
+<span class="sd">        Executes a SELECT SQL query and returns the results.</span>
 
-<span class="sd">        :param query: SELECT SQL query</span>
-<span class="sd">        :param params: Optional query parameters</span>
-<span class="sd">        :return: List of result dictionaries</span>
+<span class="sd">        This method takes an SQL query and optional parameters, executes the query,</span>
+<span class="sd">        and fetches the results from the database. The results are returned as a</span>
+<span class="sd">        list of dictionaries, where each dictionary corresponds to a row retrieved</span>
+<span class="sd">        from the database.</span>
+
+<span class="sd">        :param query: The SQL query to be executed.</span>
+<span class="sd">        :type query: str</span>
+<span class="sd">        :param params: A tuple of optional parameters to use during query execution,</span>
+<span class="sd">            defaults to None.</span>
+<span class="sd">        :type params: Optional[tuple]</span>
+<span class="sd">        :return: A list of dictionaries representing the rows of the result set.</span>
+<span class="sd">        :rtype: List[Dict]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">fetch</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
@@ -304,30 +439,32 @@
 <a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.execute_update">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">execute_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Execute an INSERT/UPDATE/DELETE query and return affected rows count.</span>
+<span class="sd">        Executes an update query on the database and returns the number of rows affected. The</span>
+<span class="sd">        method ensures the query is executed within a managed connection and transaction block</span>
+<span class="sd">        to maintain database integrity and handle rollback in case of errors.</span>
 
-<span class="sd">        :param query: INSERT/UPDATE/DELETE SQL query</span>
-<span class="sd">        :param params: Optional query parameters</span>
-<span class="sd">        :return: Number of affected rows</span>
+<span class="sd">        :param query: The SQL query to be executed.</span>
+<span class="sd">        :type query: str</span>
+<span class="sd">        :param params: Optional parameters to be used with the query.</span>
+<span class="sd">        :type params: Optional[tuple]</span>
+<span class="sd">        :return: The number of rows affected by the query execution.</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        :raises RuntimeError: If executing the update query fails.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">params</span><span class="p">:</span>
-                    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-
-            <span class="n">affected_rows</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">rowcount</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Query affected </span><span class="si">{</span><span class="n">affected_rows</span><span class="si">}</span><span class="s2"> rows&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">affected_rows</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">transaction</span><span class="p">(</span><span class="n">connection</span><span class="p">):</span>
+                    <span class="k">with</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">params</span><span class="p">:</span>
+                            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+                        <span class="n">affected_rows</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">rowcount</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Query affected </span><span class="si">{</span><span class="n">affected_rows</span><span class="si">}</span><span class="s2"> rows&quot;</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="n">affected_rows</span>
 
         <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error executing update query: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
-            <span class="k">except</span> <span class="n">Error</span><span class="p">:</span>
-                <span class="k">pass</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Database update failed: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
 
@@ -335,31 +472,38 @@
 <a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.execute_batch">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">execute_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queries</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">params_list</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Execute multiple queries in a single transaction.</span>
+<span class="sd">        Execute multiple SQL queries in a batch with optional parameters.</span>
 
-<span class="sd">        :param queries: List of SQL queries to execute</span>
-<span class="sd">        :param params_list: Optional list of parameter tuples for each query</span>
-<span class="sd">        :return: True if all queries succeeded</span>
+<span class="sd">        This method allows execution of a series of SQL queries in a batch,</span>
+<span class="sd">        using transactions to ensure atomicity of operations. The queries can</span>
+<span class="sd">        have associated parameter tuples for execution.</span>
+
+<span class="sd">        :param queries: A list of SQL query strings to be executed in batch.</span>
+<span class="sd">        :type queries: List[str]</span>
+<span class="sd">        :param params_list: A list of tuples containing parameters to</span>
+<span class="sd">            correspond with each query. If provided, its length should not</span>
+<span class="sd">            exceed the length of the queries list. Defaults to None.</span>
+<span class="sd">        :type params_list: Optional[List[tuple]]</span>
+<span class="sd">        :return: Boolean indicating whether the batch execution was successful.</span>
+<span class="sd">        :rtype: bool</span>
+<span class="sd">        :raises RuntimeError: If any error occurs during the execution of</span>
+<span class="sd">            the batch queries.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">query</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">queries</span><span class="p">):</span>
-                    <span class="n">params</span> <span class="o">=</span> <span class="n">params_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">params_list</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">params_list</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
-                    <span class="k">if</span> <span class="n">params</span><span class="p">:</span>
-                        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully executed </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">queries</span><span class="p">)</span><span class="si">}</span><span class="s2"> in batch&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">transaction</span><span class="p">(</span><span class="n">connection</span><span class="p">):</span>
+                    <span class="k">with</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">query</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">queries</span><span class="p">):</span>
+                            <span class="n">params</span> <span class="o">=</span> <span class="n">params_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">params_list</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">params_list</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+                            <span class="k">if</span> <span class="n">params</span><span class="p">:</span>
+                                <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully executed </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">queries</span><span class="p">)</span><span class="si">}</span><span class="s2"> in batch&quot;</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="kc">True</span>
 
         <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error executing batch queries: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
-            <span class="k">except</span> <span class="n">Error</span><span class="p">:</span>
-                <span class="k">pass</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Batch query execution failed: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
 
@@ -367,20 +511,18 @@
 <a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.add">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">key_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">modulus</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Adds a new record to the specified database table with the details provided.</span>
+<span class="sd">        Inserts a record into a specified database table. The record includes details such</span>
+<span class="sd">        as a timestamp, key size, and modulus value. The method validates the database name</span>
+<span class="sd">        and table name before attempting to insert data. If the validation fails or there</span>
+<span class="sd">        is an error during the insertion, the operation will fail gracefully.</span>
 
-<span class="sd">        This method inserts a record into the database table defined by `self.db_name`</span>
-<span class="sd">        and `self.table_name` using the provided input values. If the operation is</span>
-<span class="sd">        successful, the method commits the transaction and returns the identifier of</span>
-<span class="sd">        the newly inserted row.</span>
-
-<span class="sd">        :param timestamp: The time at which the record should be inserted.</span>
+<span class="sd">        :param timestamp: Timestamp representing the time associated with the record.</span>
 <span class="sd">        :type timestamp: int</span>
-<span class="sd">        :param key_size: The size of the key in bits.</span>
+<span class="sd">        :param key_size: Size of the key (in bits) to be added.</span>
 <span class="sd">        :type key_size: int</span>
-<span class="sd">        :param modulus: The modulus value to be stored in the record.</span>
-<span class="sd">        :type modulus: int</span>
-<span class="sd">        :return: The identifier of the newly inserted row in the database.</span>
+<span class="sd">        :param modulus: The modulus value to be added.</span>
+<span class="sd">        :type modulus: str</span>
+<span class="sd">        :return: The identifier of the last inserted row if successful, otherwise 0.</span>
 <span class="sd">        :rtype: int</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Validate identifiers</span>
@@ -389,27 +531,15 @@
             <span class="k">return</span> <span class="mi">0</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
-                <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">                        INSERT INTO </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="si">}</span><span class="s2"> (timestamp, config_id, size, modulus)</span>
-<span class="s2">                        VALUES (?, ?, ?, ?) </span><span class="se">\</span>
-<span class="s2">                        &quot;&quot;&quot;</span>
-                <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">(</span>
-                    <span class="n">timestamp</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">config_id</span><span class="p">,</span>
-                    <span class="n">key_size</span><span class="p">,</span>
-                    <span class="n">modulus</span><span class="p">,</span>
-                <span class="p">))</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-                <span class="n">last_id</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">lastrowid</span>
-                <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-
-                <span class="c1"># Log success only after successful insertion</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Successfully added </span><span class="si">{</span><span class="n">key_size</span><span class="si">}</span><span class="s1"> bit modulus to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Last inserted row ID: </span><span class="si">{</span><span class="n">last_id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-
-                <span class="k">return</span> <span class="n">last_id</span>
-
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">transaction</span><span class="p">(</span><span class="n">connection</span><span class="p">):</span>
+                    <span class="k">with</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
+                        <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;INSERT INTO </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="si">}</span><span class="s2"> </span>
+<span class="s2">                               (timestamp, config_id, size, modulus) VALUES (?, ?, ?, ?)&quot;&quot;&quot;</span>
+                        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_id</span><span class="p">,</span> <span class="n">key_size</span><span class="p">,</span> <span class="n">modulus</span><span class="p">))</span>
+                        <span class="n">last_id</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">lastrowid</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Successfully added </span><span class="si">{</span><span class="n">key_size</span><span class="si">}</span><span class="s1"> bit modulus&#39;</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="n">last_id</span>
         <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error inserting candidate: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="mi">0</span></div>
@@ -419,10 +549,21 @@
 <a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.add_batch">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">records</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">tuple</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Adds multiple records in a single transaction using execute_batch.</span>
+<span class="sd">        Add a batch of records to the specified table within the database.</span>
 
-<span class="sd">        :param records: List of tuples containing (timestamp, key_size, modulus)</span>
-<span class="sd">        :return: True if all records were successfully added</span>
+<span class="sd">        This method validates the database and table names, prepares the SQL query</span>
+<span class="sd">        for batch insertion, and attempts to execute the batch operation. If the</span>
+<span class="sd">        execution is successful, a log message is generated indicating the number</span>
+<span class="sd">        of records successfully added. If an error occurs during the operation,</span>
+<span class="sd">        the error is logged, and the function returns False.</span>
+
+<span class="sd">        :param records: A list of tuples, where each tuple represents a record to</span>
+<span class="sd">            be inserted. Each record should contain the timestamp, key size, and</span>
+<span class="sd">            modulus values.</span>
+<span class="sd">        :type records: List[tuple]</span>
+<span class="sd">        :return: A boolean indicating whether the batch operation was successful.</span>
+<span class="sd">            Returns True if successful, False otherwise.</span>
+<span class="sd">        :rtype: bool</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">is_valid_identifier</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="p">)</span> <span class="ow">and</span> <span class="n">is_valid_identifier</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="p">)):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid database or table name&quot;</span><span class="p">)</span>
@@ -451,37 +592,34 @@
 <a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.delete_records">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">delete_records</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">where_clause</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Deletes records from a specified table in the database. It supports conditional deletion</span>
-<span class="sd">        using a WHERE clause. The method executes a DELETE SQL statement and commits the changes.</span>
-<span class="sd">        If the operation is successful, the number of rows affected is returned. If there is an</span>
-<span class="sd">        error during the operation, it raises a RuntimeError.</span>
+<span class="sd">        Deletes records from the specified table in the database, with an optional</span>
+<span class="sd">        WHERE clause to filter the records to be deleted. If no WHERE clause is provided,</span>
+<span class="sd">        all records in the table will be deleted. The method returns the number of rows</span>
+<span class="sd">        affected by the DELETE operation.</span>
 
-<span class="sd">        :param table_name: The name of the database table from which records should be deleted.</span>
-<span class="sd">        :type table_name: str </span>
-<span class="sd">        :param where_clause: An optional SQL condition to filter which records should be deleted.</span>
-<span class="sd">                             If not provided, all records in the table will be deleted.</span>
-<span class="sd">        :type where_clause: Optional[str]</span>
-<span class="sd">        :return: The number of rows affected by the DELETE operation.</span>
+<span class="sd">        :param table_name: The name of the table from which records are to be deleted.</span>
+<span class="sd">        :type table_name: str</span>
+<span class="sd">        :param where_clause: An optional SQL WHERE clause to specify the conditions</span>
+<span class="sd">            for the DELETE operation. Defaults to None.</span>
+<span class="sd">        :type where_clause: str, optional</span>
+<span class="sd">        :return: The number of rows deleted from the table.</span>
 <span class="sd">        :rtype: int</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">where_clause</span><span class="p">:</span>
-                    <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">                            DELETE FROM </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2"> WHERE </span><span class="si">{</span><span class="n">where_clause</span><span class="si">}</span>
-<span class="s2">                            &quot;&quot;&quot;</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;DELETE FROM </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">transaction</span><span class="p">(</span><span class="n">connection</span><span class="p">):</span>
+                    <span class="k">with</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">where_clause</span><span class="p">:</span>
+                            <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;DELETE FROM </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2"> WHERE </span><span class="si">{</span><span class="n">where_clause</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;DELETE FROM </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&quot;</span>
 
-                <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+                    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+                    <span class="n">rows_affected</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">rowcount</span>
 
-                <span class="n">rows_affected</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">rowcount</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-                <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Moduli Consumed from DB: </span><span class="si">{</span><span class="n">rows_affected</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully deleted </span><span class="si">{</span><span class="n">rows_affected</span><span class="si">}</span><span class="s2"> rows from table: </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">rows_affected</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Moduli Consumed from DB: </span><span class="si">{</span><span class="n">rows_affected</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully deleted </span><span class="si">{</span><span class="n">rows_affected</span><span class="si">}</span><span class="s2"> rows from table: </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">rows_affected</span>
 
         <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error deleting from table </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -490,93 +628,124 @@
 
 <div class="viewcode-block" id="MariaDBConnector.store_screened_moduli">
 <a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.store_screened_moduli">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">store_screened_moduli</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_schema</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">store_screened_moduli</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">screened_moduli</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Stores screened moduli data by iterating through a given JSON schema and adding the relevant</span>
-<span class="sd">        attributes to the instance. If an error occurs during the process, it logs the error and provides</span>
-<span class="sd">        a return code indicating failure or success.</span>
+<span class="sd">        Stores screened moduli data from the given dictionary into the storage.</span>
 
-<span class="sd">        :param json_schema: A dictionary containing modulus data where keys represent categories,</span>
-<span class="sd">                            and values are lists of modulus detail dictionaries. Each detail dictionary</span>
-<span class="sd">                            includes &#39;timestamp&#39;, &#39;key-size&#39;, and &#39;modulus&#39;.</span>
-<span class="sd">        :type json_schema: Dict</span>
-<span class="sd">        :return: Returns 0 on success or 1 if an error occurs while processing the moduli.</span>
+<span class="sd">        This method iterates over the provided moduli data, extracting</span>
+<span class="sd">        moduli attributes and saving them using an internal method. The operation</span>
+<span class="sd">        is performed within a database transaction to ensure atomicity. Errors</span>
+<span class="sd">        encountered during the process are logged, and an appropriate status is</span>
+<span class="sd">        returned.</span>
+
+<span class="sd">        :param screened_moduli: A dictionary containing moduli data mapped to corresponding keys.</span>
+<span class="sd">        :type screened_moduli: dict</span>
+<span class="sd">        :return: An integer indicating the status of the operation,</span>
+<span class="sd">                 where 0 indicates success and 1 indicates failure.</span>
 <span class="sd">        :rtype: int</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">moduli_list</span> <span class="ow">in</span> <span class="n">json_schema</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">for</span> <span class="n">modulus</span> <span class="ow">in</span> <span class="n">moduli_list</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">modulus</span><span class="p">[</span><span class="s2">&quot;timestamp&quot;</span><span class="p">],</span> <span class="n">modulus</span><span class="p">[</span><span class="s2">&quot;key-size&quot;</span><span class="p">],</span> <span class="n">modulus</span><span class="p">[</span><span class="s2">&quot;modulus&quot;</span><span class="p">])</span>
-                <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error storing modulus</span><span class="si">{</span><span class="n">modulus</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="k">return</span> <span class="mi">1</span>
-        <span class="k">return</span> <span class="mi">0</span></div>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">transaction</span><span class="p">(</span><span class="n">connection</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">moduli_list</span> <span class="ow">in</span> <span class="n">screened_moduli</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="k">for</span> <span class="n">modulus</span> <span class="ow">in</span> <span class="n">moduli_list</span><span class="p">:</span>
+                            <span class="c1"># Use the internal add method without its own transaction</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_add_without_transaction</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">modulus</span><span class="p">[</span><span class="s2">&quot;timestamp&quot;</span><span class="p">],</span> <span class="n">modulus</span><span class="p">[</span><span class="s2">&quot;key-size&quot;</span><span class="p">],</span>
+                                                          <span class="n">modulus</span><span class="p">[</span><span class="s2">&quot;modulus&quot;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error storing moduli: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="MariaDBConnector._add_without_transaction">
+<a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector._add_without_transaction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_add_without_transaction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">key_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">modulus</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Inserts a new record into the database table without wrapping the operation</span>
+<span class="sd">        in a transaction. This method directly interacts with the database cursor</span>
+<span class="sd">        to execute an INSERT statement for storing the provided data.</span>
+
+<span class="sd">        :param timestamp: The timestamp for the record being inserted.</span>
+<span class="sd">        :type timestamp: int</span>
+<span class="sd">        :param key_size: The size of the cryptographic key in bits.</span>
+<span class="sd">        :type key_size: int</span>
+<span class="sd">        :param modulus: The cryptographic modulus as a string.</span>
+<span class="sd">        :type modulus: str</span>
+<span class="sd">        :return: The last inserted ID of the record.</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        :raises Error: If there is an issue during the database operation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Validate identifiers</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">is_valid_identifier</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="p">)</span> <span class="ow">and</span> <span class="n">is_valid_identifier</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid database or table name&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
+                <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;INSERT INTO </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="si">}</span><span class="s2"> </span>
+<span class="s2">                           (timestamp, config_id, size, modulus) VALUES (?, ?, ?, ?)&quot;&quot;&quot;</span>
+                <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_id</span><span class="p">,</span> <span class="n">key_size</span><span class="p">,</span> <span class="n">modulus</span><span class="p">))</span>
+                <span class="n">last_id</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">lastrowid</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Successfully added </span><span class="si">{</span><span class="n">key_size</span><span class="si">}</span><span class="s1"> bit modulus&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">last_id</span>
+        <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error inserting candidate: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>  <span class="c1"># Re-raise to let transaction context manager handle rollback</span></div>
 
 
 <div class="viewcode-block" id="MariaDBConnector.get_moduli">
 <a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.get_moduli">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_moduli</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span>
-            <span class="n">output_file</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_moduli</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieve moduli for specified key sizes and optionally write them to a file.</span>
+<span class="sd">        Retrieves cryptographic moduli for specified key sizes by querying the database.</span>
+<span class="sd">        This function ensures that there are sufficient records for each key size</span>
+<span class="sd">        before performing the database query. If the optional output_file parameter</span>
+<span class="sd">        is provided, the retrieved moduli are written to the specified file.</span>
 
-<span class="sd">        This function checks whether there are sufficient records for each key size before</span>
-<span class="sd">        retrieving them from the database. If the specified number of records exists for all</span>
-<span class="sd">        key sizes, records are fetched and optionally written to a file. It ensures that the</span>
-<span class="sd">        database and table names are valid before retrieving the records, logging the operation&#39;s</span>
-<span class="sd">        progress and potential errors.</span>
-
-<span class="sd">        :param output_file: The file path where the retrieved moduli should be saved.</span>
-<span class="sd">                            If not specified, the results are returned without saving.</span>
+<span class="sd">        :param output_file: Optional file path to save the retrieved moduli.</span>
 <span class="sd">        :type output_file: Path, optional</span>
-<span class="sd">        :return: A dictionary mapping key sizes to the retrieved moduli records for each size.</span>
-<span class="sd">        :rtype: Dict</span>
-<span class="sd">        :raises RuntimeError: If there are insufficient records for any key size or the database</span>
-<span class="sd">                              query fails.</span>
+<span class="sd">        :return: A dictionary where each key represents a key size and its corresponding value</span>
+<span class="sd">            is a list of records containing moduli.</span>
+<span class="sd">        :rtype: Dict[int, list]</span>
+<span class="sd">        :raises RuntimeError: If there are insufficient records for any key size or if the database query fails.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Verify that a sufficient number of moduli for each keysize exist in the db</span>
         <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">stats</span><span class="p">[</span><span class="n">stat</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">records_per_keylength</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Insufficient records for key size </span><span class="si">{</span><span class="n">stat</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">stat</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> available,&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Insufficient records for key size </span><span class="si">{</span><span class="n">stat</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="n">stat</span><span class="p">]</span><span class="si">}</span><span class="s2"> available,&quot;</span>
                     <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">records_per_keylength</span><span class="si">}</span><span class="s2"> required&quot;</span>
                 <span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Insufficient records for key size </span><span class="si">{</span><span class="n">stat</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">stat</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> available, &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Insufficient records for key size </span><span class="si">{</span><span class="n">stat</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="n">stat</span><span class="p">]</span><span class="si">}</span><span class="s2"> available, &quot;</span>
                     <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">records_per_keylength</span><span class="si">}</span><span class="s2"> required&quot;</span>
                 <span class="p">)</span>
 
-        <span class="c1"># If we have enough records for all sizes, proceed with retrieval</span>
         <span class="n">moduli</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">dictionary</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_lengths</span><span class="p">:</span>
-                    <span class="c1"># Query to get records for the current key size using the view</span>
-                    <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">                        SELECT timestamp, type, tests, trials, size, generator, modulus</span>
-<span class="s2">                        FROM </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">view_name</span><span class="si">}</span>
-<span class="s2">                        WHERE size = </span><span class="si">{</span><span class="n">size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">  # GOTCHA - The STORED Moduli Size is 1 BIT LESS THAN THE KEY SIZE </span>
-<span class="s2">                        LIMIT </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">records_per_keylength</span><span class="si">}</span><span class="s2"> </span><span class="se">\</span>
-<span class="s2">                        &quot;&quot;&quot;</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_connection</span><span class="p">()</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">dictionary</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_lengths</span><span class="p">:</span>
+                        <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                                SELECT timestamp, type, tests, trials, size, generator, modulus</span>
+<span class="s2">                                FROM </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">view_name</span><span class="si">}</span>
+<span class="s2">                                WHERE size = </span><span class="si">{</span><span class="n">size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span>
+<span class="s2">                                LIMIT </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">records_per_keylength</span><span class="si">}</span>
+<span class="s2">                                &quot;&quot;&quot;</span>
 
-                    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">)</span>
+                        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+                        <span class="n">records</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+                        <span class="n">moduli</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="n">records</span>
 
-                    <span class="c1"># Store the results for this key size</span>
-                    <span class="n">records</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
-                    <span class="n">moduli</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="n">records</span>
-
-                    <span class="c1"># Log the number of records found</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Retrieved </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">records</span><span class="p">)</span><span class="si">}</span><span class="s2">  records for key size </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Retrieved </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">records</span><span class="p">)</span><span class="si">}</span><span class="s2"> records for key size </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error retrieving moduli: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Database query failed: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="c1"># If an output file is specified, and we have enough records for all sizes, write the results</span>
         <span class="k">if</span> <span class="n">output_file</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">write_record_to_file</span><span class="p">(</span><span class="n">moduli</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully created moduli file with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">records_per_keylength</span><span class="si">}</span><span class="s2"> records per key size&quot;</span><span class="p">)</span>
@@ -588,32 +757,29 @@
 <a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.write_record_to_file">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">write_record_to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">moduli_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This function writes moduli data to a specified file in a specific format. The output file</span>
-<span class="sd">        contains a header string and records for each key size provided in the moduli data. Each</span>
-<span class="sd">        record is formatted with specific information such as timestamp, type, tests, trials,</span>
-<span class="sd">        size, generator, and modulus. If an error occurs during the file writing process, it is</span>
-<span class="sd">        logged, and the exception is raised.</span>
+<span class="sd">        Writes moduli data records to a specified output file in a structured format.</span>
+<span class="sd">        This method creates or overwrites the specified output file, writing a header</span>
+<span class="sd">        and formatted moduli records for various key sizes. The function also maintains</span>
+<span class="sd">        a list of moduli that need to be removed from the database based on the input data.</span>
 
-<span class="sd">        :param moduli_data: Dictionary where the key represents the key size (int), and the value</span>
-<span class="sd">            is a list of records. Each record is a dictionary containing the following fields:</span>
-<span class="sd">            - timestamp: Compressed timestamp string.</span>
-<span class="sd">            - type: The type of the modulus (str).</span>
-<span class="sd">            - tests: Result summary of tests performed (str).</span>
-<span class="sd">            - trials: Number of trials (int).</span>
-<span class="sd">            - size: Modulus size (int).</span>
-<span class="sd">            - generator: Value of the generator (int).</span>
-<span class="sd">            - modulus: str ing representation of the modulus.</span>
-<span class="sd">        :type moduli_data: Dict</span>
-<span class="sd">        :param output_file: Path representing the destination file to write moduli data.</span>
+<span class="sd">        :param self: Instance of the class containing the method.</span>
+<span class="sd">        :type self: Any</span>
+<span class="sd">        :param moduli_data: Dictionary containing modulus records categorized by key sizes.</span>
+<span class="sd">            Each key is a key size, and the value is a list of records containing data such as</span>
+<span class="sd">            timestamp, type, tests, trials, size, generator, and modulus.</span>
+<span class="sd">        :type moduli_data: dict</span>
+<span class="sd">        :param output_file: Path object representing the file where moduli data will be written.</span>
 <span class="sd">        :type output_file: Path</span>
-<span class="sd">        :return: None</span>
-<span class="sd">        :rtype: None</span>
+<span class="sd">        :return: List of modulus values that need to be removed from the database.</span>
+<span class="sd">        :rtype: list</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">moduli_to_delete</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">with</span> <span class="n">output_file</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">of</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_writer</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">ssh_moduli_file</span><span class="p">:</span>
+
                 <span class="c1"># Write File Header</span>
-                <span class="n">of</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                <span class="n">ssh_moduli_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                    <span class="c1"># of.write(</span>
                     <span class="sa">f</span><span class="s1">&#39;# /etc/ssh/modul: dcrunch.threatwonk.net: </span><span class="si">{</span><span class="n">ISO_UTC_TIMESTAMP</span><span class="p">()</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
                 <span class="p">)</span>
 
@@ -622,7 +788,8 @@
                     <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">records</span><span class="p">:</span>
                         <span class="c1"># Format: timestamp type tests trials size generator modulus</span>
                         <span class="c1"># The timestamp should already be in compressed format</span>
-                        <span class="n">of</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span>
+                        <span class="n">ssh_moduli_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span>
+                            <span class="c1"># of.write(&#39; &#39;.join((</span>
                             <span class="n">strip_punction_from_datetime_str</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">]),</span>
                             <span class="n">record</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span>
                             <span class="n">record</span><span class="p">[</span><span class="s1">&#39;tests&#39;</span><span class="p">],</span>
@@ -649,9 +816,20 @@
 <a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.stats">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">stats</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates and retrieves record counts from a set of key moduli sizes. Performs</span>
+<span class="sd">        database queries to calculate and validate the count of available records for</span>
+<span class="sd">        specific key sizes based on predefined moduli sizes. Results are logged and</span>
+<span class="sd">        formatted as a dictionary mapping each modulus size to its corresponding count.</span>
 
-<span class="sd">        :return:</span>
-<span class="sd">        :rtype:</span>
+<span class="sd">        :param self: Represents the instance that holds required attributes like</span>
+<span class="sd">                     key_lengths, db_name, view_name, logger, and query execution</span>
+<span class="sd">                     functionalities.</span>
+<span class="sd">        :type self: object</span>
+<span class="sd">        :return: A dictionary where the keys are moduli sizes (adjusted from key_lengths)</span>
+<span class="sd">                 and the values are the respective record counts obtained from the</span>
+<span class="sd">                 database query.</span>
+<span class="sd">        :rtype: Dict[int, int]</span>
+<span class="sd">        :raises RuntimeError: If there is an error during the database query execution.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">moduli_query_sizes</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_lengths</span><span class="p">:</span>
@@ -666,24 +844,24 @@
             <span class="k">return</span> <span class="mi">0</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">moduli_query_sizes</span><span class="p">:</span>
-                    <span class="c1"># Count query to check available records</span>
-                    <span class="n">count_query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">moduli_query_sizes</span><span class="p">:</span>
+                <span class="c1"># Count query to check available records</span>
+                <span class="n">count_query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">                                  SELECT COUNT(*)</span>
 <span class="s2">                                  FROM </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">view_name</span><span class="si">}</span>
-<span class="s2">                                  WHERE size = </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">                                  WHERE size = ?</span>
 <span class="s2">                                  &quot;&quot;&quot;</span>
-                    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">count_query</span><span class="p">)</span>
-                    <span class="n">count</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-                    <span class="n">status</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">execute_select</span><span class="p">(</span><span class="n">count_query</span><span class="p">,</span> <span class="p">(</span><span class="n">size</span><span class="p">,))</span>
+                <span class="n">count</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;COUNT(*)&#39;</span><span class="p">]</span>
+                <span class="n">status</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
 
-        <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error retrieving moduli: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Database query failed: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># Output</span>
         <span class="n">results</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">moduli_query_sizes</span><span class="p">,</span> <span class="n">status</span><span class="p">))</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Moduli statistics:&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;size  count&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">size</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>

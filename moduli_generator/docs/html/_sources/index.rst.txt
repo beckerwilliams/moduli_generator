@@ -12,6 +12,7 @@ ssh-moduli-generator (moduli_generator)
     DOCUMENTATION
     PYTHON_PACKAGING
     LICENSE
+    CHANGELOG
 
 .. toctree::
     :maxdepth: 2

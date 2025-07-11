@@ -7,7 +7,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
-    # 'myst_parser',  # If you're using MyST markdown
+    'myst_parser',  # If you're using MyST markdown
     'sphinx_rtd_theme',  # If you're using the ReadTheDocs theme
 ]
 

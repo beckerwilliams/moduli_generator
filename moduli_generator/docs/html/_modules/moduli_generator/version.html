@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>moduli_generator.version &mdash; Moduli Generator 2.1.2 documentation</title>
+  <title>moduli_generator.version &mdash; Moduli Generator 2.1.6 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=b3e23499"></script>
+      <script src="../../_static/documentation_options.js?v=4f932e3e"></script>
       <script src="../../_static/doctools.js?v=9a2dae69"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
@@ -49,7 +49,6 @@
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../MODULI_GENERATOR.html">module moduli_generator</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../MODULI_CONFIG.html">module config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../MODULI_DB.html">module db</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Contributing:</span></p>
@@ -84,37 +83,27 @@
            <div itemprop="articleBody">
              
   <h1>Source code for moduli_generator.version</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">tomllib</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">PosixPath</span> <span class="k">as</span> <span class="n">Path</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">PackageNotFoundError</span><span class="p">,</span> <span class="n">version</span>
 
 
 <div class="viewcode-block" id="get_version">
-<a class="viewcode-back" href="../../MODULI_CONFIG.html#moduli_generator.config.get_version">[docs]</a>
+<a class="viewcode-back" href="../../MODULI_GENERATOR.html#moduli_generator.config.get_version">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_version</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Retrieves the version of the package from the pyproject.toml file.</span>
+<span class="sd">    Retrieves the version of the `moduli_generator` package.</span>
 
-<span class="sd">    The method locates the `pyproject.toml` file from the parent directory of</span>
-<span class="sd">    the current module and parses it to extract the version specified under</span>
-<span class="sd">    `tool.poetry.version`. If the file is not found or the version is not</span>
-<span class="sd">    specified correctly, an exception is raised.</span>
+<span class="sd">    This function fetches the installed version of the `moduli_generator` package</span>
+<span class="sd">    using the `version` function. If the package is not found, it raises a runtime</span>
+<span class="sd">    error indicating the inability to retrieve the version.</span>
 
-<span class="sd">    :return: The version of the package as specified in the pyproject.toml file</span>
+<span class="sd">    :raises RuntimeError: If the `moduli_generator` package version cannot be found.</span>
+<span class="sd">    :return: The version of the `moduli_generator` package.</span>
 <span class="sd">    :rtype: str</span>
-<span class="sd">    :raises RuntimeError: If the pyproject.toml file can&#39;t be found or the version</span>
-<span class="sd">        string is not specified.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">current_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span>
-    <span class="n">pyproject_path</span> <span class="o">=</span> <span class="n">current_dir</span> <span class="o">/</span> <span class="s1">&#39;pyproject.toml&#39;</span>
-
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">pyproject_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ppf</span><span class="p">:</span>
-            <span class="n">pyproject_data</span> <span class="o">=</span> <span class="n">tomllib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ppf</span><span class="p">)</span>
-
-    <span class="k">except</span> <span class="p">(</span><span class="ne">FileNotFoundError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unable to find moduli_generator/version.py string.&quot;</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">pyproject_data</span><span class="p">[</span><span class="s2">&quot;tool&quot;</span><span class="p">][</span><span class="s2">&quot;poetry&quot;</span><span class="p">][</span><span class="s2">&quot;version&quot;</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="n">version</span><span class="p">(</span><span class="s2">&quot;moduli_generator&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">PackageNotFoundError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unable to find moduli_generator package version.&quot;</span><span class="p">)</span></div>
 
 
 

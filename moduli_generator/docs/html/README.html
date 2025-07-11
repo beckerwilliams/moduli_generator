@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SSH2 Moduli File Generator &mdash; Moduli Generator 2.1.5 documentation</title>
+  <title>SSH2 Moduli File Generator &mdash; Moduli Generator 2.1.6 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=786ba454"></script>
+      <script src="_static/documentation_options.js?v=4f932e3e"></script>
       <script src="_static/doctools.js?v=9a2dae69"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -45,47 +45,14 @@
               <p class="caption" role="heading"><span class="caption-text">Documentation:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">SSH2 Moduli File Generator</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#table-of-contents">Table of Contents</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#capabilities">Capabilities</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#platform-dependencies">Platform Dependencies</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#install-wheel">Install Wheel</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#run">RUN</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#reference">Reference</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#ssh-audit">SSH Audit</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#ssh-hardening-guides">SSH Hardening Guides</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#hacktricks-ssh">HackTricks (SSH)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#on-the-sufficient-number-of-moduli-by-keysize">On the Sufficient Number of Moduli by Keysize</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#license">License</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#mit-license">MIT License</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#database-integration">Database Integration</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#database-setup">Database Setup</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#retrieving-moduli-from-database">Retrieving Moduli from Database</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#technical-details">Technical Details</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#timestamp-format">Timestamp Format</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#database-schema">Database Schema</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="#overview">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="DOCUMENTATION.html">Build Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="PYTHON_PACKAGING.html">Packaging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="LICENSE.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CHANGELOG.html">CHANGELOG</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
@@ -125,18 +92,15 @@
   <section id="ssh2-moduli-file-generator">
 <h1>SSH2 Moduli File Generator<a class="headerlink" href="#ssh2-moduli-file-generator" title="Link to this heading"></a></h1>
 <p>Generate Complete and Secure <cite>ssh moduli</cite> files</p>
-<blockquote>
-<div><p>/etc/ssh/moduli | /usr/local/etc/ssh/moduli | ‘ssh-moduli’ | …</p>
-</div></blockquote>
-<section id="table-of-contents">
-<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Link to this heading"></a></h2>
-<ul class="simple">
+<dl class="simple">
+<dt>Getting Started</dt><dd><ul class="simple">
 <li><p><a class="reference internal" href="#dependencies">Dependencies</a></p></li>
-<li><p><a class="reference internal" href="#installation">Installation</a></p></li>
-<li><p><a class="reference internal" href="#usage">Usage</a></p></li>
-<li><p><a class="reference internal" href="#license">License</a></p></li>
+<li><p><a href="#id1"><span class="problematic" id="id2">`Installation`_</span></a></p></li>
+<li><p><a href="#id3"><span class="problematic" id="id4">`Usage`_</span></a></p></li>
+<li><p><a href="#id5"><span class="problematic" id="id6">`License`_</span></a></p></li>
 </ul>
-</section>
+</dd>
+</dl>
 <section id="dependencies">
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading"></a></h2>
 <ul class="simple">
@@ -146,28 +110,18 @@
 <li><p>OpenSSL version &gt;=3.0.6</p></li>
 </ul>
 </section>
+</section>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<h1>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><em>Elapsed to complete run is about 7</em> <strong>days</strong> <em>on an Intel Quad Core i7</em></p>
 </div>
-<section id="capabilities">
-<h3>Capabilities<a class="headerlink" href="#capabilities" title="Link to this heading"></a></h3>
 <p>Builds Complete /etc/ssh/moduli file</p>
 <ul class="simple">
 <li><p>python: <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">moduli_generator.cli</span></code></p></li>
 </ul>
-</section>
-</section>
-<section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
-<section id="platform-dependencies">
-<h3>Platform Dependencies<a class="headerlink" href="#platform-dependencies" title="Link to this heading"></a></h3>
 <p>SSH2 Moduli Generator depends on the SSH being installed and ssh-keygen available for Moduli production.</p>
-</section>
-<section id="install-wheel">
-<h3>Install Wheel<a class="headerlink" href="#install-wheel" title="Link to this heading"></a></h3>
 <p>In a working directory, Create a python virtual environment, install ssh-moduli-builder wheel, run.</p>
 <ul class="simple">
 <li><dl class="simple">
@@ -185,43 +139,16 @@
 </dl>
 </li>
 </ul>
-</section>
-</section>
-<section id="usage">
-<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
-<section id="run">
-<h3>RUN<a class="headerlink" href="#run" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Start Virtual Environment
 - <code class="docutils literal notranslate"><span class="pre">.venv/bin/activate</span></code>
 - <code class="docutils literal notranslate"><span class="pre">.venv/bin/activate.sh</span></code>
 - or <code class="docutils literal notranslate"><span class="pre">.venv/bin{.csh,.sh}</span></code></p></li>
 </ul>
-</section>
-</section>
-<section id="reference">
-<h2>Reference<a class="headerlink" href="#reference" title="Link to this heading"></a></h2>
-<section id="ssh-audit">
-<h3>SSH Audit<a class="headerlink" href="#ssh-audit" title="Link to this heading"></a></h3>
 <p><a class="reference external" href="https://github.com/jtesta/ssh-audit">SSH Audit</a></p>
-</section>
-<section id="ssh-hardening-guides">
-<h3>SSH Hardening Guides<a class="headerlink" href="#ssh-hardening-guides" title="Link to this heading"></a></h3>
 <p><a class="reference external" href="https://www.ssh-audit.com/hardening_guides.html">SSH Hardening Guides</a></p>
-</section>
-<section id="hacktricks-ssh">
-<h3>HackTricks (SSH)<a class="headerlink" href="#hacktricks-ssh" title="Link to this heading"></a></h3>
 <p><a class="reference external" href="https://book.hacktricks.xyz/network-services-pentesting/pentesting-ssh">HackTricks</a></p>
-</section>
-<section id="on-the-sufficient-number-of-moduli-by-keysize">
-<h3>On the Sufficient Number of Moduli by Keysize<a class="headerlink" href="#on-the-sufficient-number-of-moduli-by-keysize" title="Link to this heading"></a></h3>
 <p><a class="reference external" href="https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl">On the Sufficient Number of Moduli by Keysize (grok):</a></p>
-</section>
-</section>
-<section id="license">
-<h2>License<a class="headerlink" href="#license" title="Link to this heading"></a></h2>
-<section id="mit-license">
-<h3>MIT License<a class="headerlink" href="#mit-license" title="Link to this heading"></a></h3>
 <p><a class="reference external" href="#LICENSE">MIT License</a></p>
 <p>Copyright (c) 2024, 2025 Ron Williams, General Partner, Becker Williams Trading General Partnership</p>
 <p>Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -239,43 +166,23 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.</p>
-</section>
-</section>
-<section id="database-integration">
-<h2>Database Integration<a class="headerlink" href="#database-integration" title="Link to this heading"></a></h2>
 <p>SSH2 Moduli Generator now includes MariaDB integration for storing and retrieving moduli values.
 This allows for persistent storage of generated moduli across sessions.</p>
-<section id="database-setup">
-<h3>Database Setup<a class="headerlink" href="#database-setup" title="Link to this heading"></a></h3>
 <ol class="arabic simple">
 <li><p>Configure the database connection in <code class="docutils literal notranslate"><span class="pre">moduli_generator.cnf</span></code></p></li>
 <li><p>The database automatically stores screened moduli values</p></li>
 <li><p>Timestamps are stored in compressed format (no punctuation or spaces)</p></li>
 </ol>
-</section>
-<section id="retrieving-moduli-from-database">
-<h3>Retrieving Moduli from Database<a class="headerlink" href="#retrieving-moduli-from-database" title="Link to this heading"></a></h3>
 <p>When using the <code class="docutils literal notranslate"><span class="pre">--write</span></code> option, the generator will:</p>
 <ul class="simple">
 <li><p>Verify sufficient records exist for each key size (minimum 80 per size)</p></li>
 <li><p>Only create the moduli file if all sizes have enough entries</p></li>
 <li><p>Randomly select entries from the database to create a balanced moduli file</p></li>
 </ul>
-</section>
-</section>
-<section id="technical-details">
-<h2>Technical Details<a class="headerlink" href="#technical-details" title="Link to this heading"></a></h2>
-<section id="timestamp-format">
-<h3>Timestamp Format<a class="headerlink" href="#timestamp-format" title="Link to this heading"></a></h3>
 <p>All timestamps in generated moduli files use a compressed format with no punctuation or spaces.
 This ensures compatibility with all SSH implementations while maintaining proper chronological ordering.</p>
-</section>
-<section id="database-schema">
-<h3>Database Schema<a class="headerlink" href="#database-schema" title="Link to this heading"></a></h3>
 <p>The generator uses a view-based database schema that joins moduli values with their configuration constants.
 This approach allows for efficient retrieval and consistent formatting of moduli entries.</p>
-</section>
-</section>
 </section>
 
 
