@@ -8,11 +8,11 @@ ssh-moduli-generator (moduli_generator)
     :maxdepth: 2
     :caption: Documentation:
 
-    README
-    DOCUMENTATION
-    PYTHON_PACKAGING
-    LICENSE
-    CHANGELOG
+        README
+        DOCUMENTATION
+        PYTHON_PACKAGING
+        LICENSE
+        CHANGELOG
 
 .. toctree::
     :maxdepth: 2
@@ -20,6 +20,7 @@ ssh-moduli-generator (moduli_generator)
 
     MODULI_GENERATOR
     MODULI_DB
+    CHANGELOG_GENERATOR
 
 .. toctree::
     :maxdepth: 2

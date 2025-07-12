@@ -15,8 +15,30 @@ import toml
 
 
 class ChangelogGenerator:
+    """
+    Generates and handles changelog files for a project, utilizing git commit
+    history and project metadata.
+
+    This class provides functionalities to parse and categorize git commits,
+    generate changelog content in reStructuredText (RST) format, and save it to a
+    file. It also incorporates basic project information such as version,
+    description, and authors from the project's configuration file.
+
+    :ivar project_root: The root directory of the project where the changelog is to
+        be generated.
+    :type project_root: Path
+    :ivar project_info: Parsed project metadata from pyproject.toml.
+    :type project_info: dict
+    """
     def __init__(self, project_root=None):
-        """Initialize the changelog generator."""
+        """
+        Initializes the class with a given project root directory and loads related
+        project information. If no project root is provided, it defaults to the
+        current working directory.
+
+        :param project_root: The root directory of the project
+        :type project_root: str or None
+        """
         self.project_root = Path(project_root) if project_root else Path.cwd()
         self.project_info = self._load_project_info()
 
@@ -244,7 +266,20 @@ class ChangelogGenerator:
         return section
 
     def generate_changelog(self, output_file="CHANGELOG.rst", max_commits=50):
-        """Generate the complete changelog."""
+        """
+        Generates a changelog file based on git commit history and saves it to the
+        specified output file. The changelog is formatted in reStructuredText (RST)
+        format and includes grouped commit entries by date in descending order.
+
+        :param output_file: The name of the output changelog file with default
+            value "CHANGELOG.rst".
+        :type output_file: str, optional
+        :param max_commits: The maximum number of recent commits to include in the
+            changelog, with a default value of 50.
+        :type max_commits: int, optional
+        :return: None
+        :rtype: None
+        """
         print("Generating changelog...")
 
         # Get git commits

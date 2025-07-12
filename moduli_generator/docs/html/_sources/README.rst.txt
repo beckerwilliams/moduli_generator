@@ -3,24 +3,25 @@ SSH2 Moduli File Generator
 
 Generate Complete and Secure `ssh moduli` files
 
-Getting Started
-    * `Dependencies`_
-    * `Installation`_
-    * `Usage`_
-    * `License`_
-
-Dependencies
-############
-
-- OpenSSH2 ssh-keygen, *supporting* ``-M generate`` *and* ``-M screen``
-- Python version >=3.9
-- OpenSSH version >=9.9p2
-- OpenSSL version >=3.0.6
 
 Overview
-========
+--------
 
-.. note:: *Elapsed to complete run is about 7* **days** *on an Intel Quad Core i7*
+SSH2 Installs typically include ``ssh-keygen.`` Why? The security of the SSH2 protocol relies on the
+security (and obscurity) of your moduli. The protocol assumes you'll build your *own* moduli.
+
+Chances are, you're using the moduli distributed with your O/S, and share
+it with millions of other recipients. You can generate and screen moduli with SSH2 yourself, as does this program.
+However, you have to gather and organize your screened moduli into a moduli file, with a sufficient distribution
+keysizes.
+
+This program does that for you.
+
+
+.. note:: *Elapsed time for complete run is about 3* **days** *on an Intel Quad Core i7*.
+          It will produce a moduli file with 20 moduli each across keysizes 3071, 4095, 6143, 7679, and 8191 bits.
+
+
 
 Capabilities
 ------------

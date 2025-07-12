@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; Moduli Generator 2.1.6 documentation</title>
+  <title>Index &mdash; Moduli Generator 2.1.9 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=4f932e3e"></script>
+      <script src="_static/documentation_options.js?v=a7898dfc"></script>
       <script src="_static/doctools.js?v=9a2dae69"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -39,19 +39,11 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Documentation:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="README.html">SSH2 Moduli File Generator</a></li>
-<li class="toctree-l1"><a class="reference internal" href="README.html#overview">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="DOCUMENTATION.html">Build Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="PYTHON_PACKAGING.html">Packaging</a></li>
-<li class="toctree-l1"><a class="reference internal" href="LICENSE.html">License</a></li>
-<li class="toctree-l1"><a class="reference internal" href="CHANGELOG.html">CHANGELOG</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="MODULI_GENERATOR.html">module moduli_generator</a></li>
 <li class="toctree-l1"><a class="reference internal" href="MODULI_DB.html">module db</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CHANGELOG_GENERATOR.html">module changelog_generator</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Contributing:</span></p>
 <ul>
@@ -88,6 +80,7 @@
 <div class="genindex-jumpbox">
  <a href="#_"><strong>_</strong></a>
  | <a href="#A"><strong>A</strong></a>
+ | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
@@ -105,10 +98,28 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector._add_without_transaction">_add_without_transaction() (db.moduli_db_utilities.MariaDBConnector method)</a>
 </li>
+      <li><a href="CHANGELOG_GENERATOR.html#moduli_generator.scripts.changelog_generator.ChangelogGenerator._categorize_commit">_categorize_commit() (moduli_generator.scripts.changelog_generator.ChangelogGenerator method)</a>
+</li>
+      <li><a href="CHANGELOG_GENERATOR.html#moduli_generator.scripts.changelog_generator.ChangelogGenerator._format_commit_message">_format_commit_message() (moduli_generator.scripts.changelog_generator.ChangelogGenerator method)</a>
+</li>
       <li><a href="MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._generate_candidates">_generate_candidates() (moduli_generator.ModuliGenerator method)</a>
+</li>
+      <li><a href="CHANGELOG_GENERATOR.html#moduli_generator.scripts.changelog_generator.ChangelogGenerator._generate_date_section">_generate_date_section() (moduli_generator.scripts.changelog_generator.ChangelogGenerator method)</a>
+</li>
+      <li><a href="CHANGELOG_GENERATOR.html#moduli_generator.scripts.changelog_generator.ChangelogGenerator._generate_project_info_section">_generate_project_info_section() (moduli_generator.scripts.changelog_generator.ChangelogGenerator method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="CHANGELOG_GENERATOR.html#moduli_generator.scripts.changelog_generator.ChangelogGenerator._generate_rst_header">_generate_rst_header() (moduli_generator.scripts.changelog_generator.ChangelogGenerator method)</a>
+</li>
+      <li><a href="CHANGELOG_GENERATOR.html#moduli_generator.scripts.changelog_generator.ChangelogGenerator._get_git_commits">_get_git_commits() (moduli_generator.scripts.changelog_generator.ChangelogGenerator method)</a>
+</li>
+      <li><a href="CHANGELOG_GENERATOR.html#moduli_generator.scripts.changelog_generator.ChangelogGenerator._group_commits_by_date">_group_commits_by_date() (moduli_generator.scripts.changelog_generator.ChangelogGenerator method)</a>
+</li>
+      <li><a href="CHANGELOG_GENERATOR.html#moduli_generator.scripts.changelog_generator.ChangelogGenerator._load_project_info">_load_project_info() (moduli_generator.scripts.changelog_generator.ChangelogGenerator method)</a>
+</li>
+      <li><a href="CHANGELOG_GENERATOR.html#moduli_generator.scripts.changelog_generator.ChangelogGenerator._parse_commit_line">_parse_commit_line() (moduli_generator.scripts.changelog_generator.ChangelogGenerator method)</a>
+</li>
       <li><a href="MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._parse_moduli_files">_parse_moduli_files() (moduli_generator.ModuliGenerator method)</a>
 </li>
       <li><a href="MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._screen_candidates">_screen_candidates() (moduli_generator.ModuliGenerator method)</a>
@@ -124,6 +135,14 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.add_batch">add_batch() (db.moduli_db_utilities.MariaDBConnector method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="C">C</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="CHANGELOG_GENERATOR.html#id0">ChangelogGenerator (class in moduli_generator.scripts.changelog_generator)</a>, <a href="CHANGELOG_GENERATOR.html#moduli_generator.scripts.changelog_generator.ChangelogGenerator">[1]</a>
 </li>
   </ul></td>
 </tr></table>
@@ -172,14 +191,16 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="CHANGELOG_GENERATOR.html#id1">generate_changelog() (moduli_generator.scripts.changelog_generator.ChangelogGenerator method)</a>, <a href="CHANGELOG_GENERATOR.html#moduli_generator.scripts.changelog_generator.ChangelogGenerator.generate_changelog">[1]</a>
+</li>
       <li><a href="MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.generate_moduli">generate_moduli() (moduli_generator.ModuliGenerator method)</a>
 </li>
       <li><a href="MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.get_connection">get_connection() (db.moduli_db_utilities.MariaDBConnector method)</a>
 </li>
-      <li><a href="MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig.get_log_file">get_log_file() (moduli_generator.config.ModuliConfig method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig.get_log_file">get_log_file() (moduli_generator.config.ModuliConfig method)</a>
+</li>
       <li><a href="MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig.get_logger">get_logger() (moduli_generator.config.ModuliConfig method)</a>
 </li>
       <li><a href="MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.get_moduli">get_moduli() (db.moduli_db_utilities.MariaDBConnector method)</a>
@@ -212,6 +233,8 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="CHANGELOG_GENERATOR.html#moduli_generator.scripts.changelog_generator.main">main() (in module moduli_generator.scripts.changelog_generator)</a>
+</li>
       <li><a href="MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector">MariaDBConnector (class in db.moduli_db_utilities)</a>
 </li>
       <li>
@@ -223,6 +246,8 @@
         <li><a href="MODULI_GENERATOR.html#module-moduli_generator">moduli_generator</a>
 </li>
         <li><a href="MODULI_GENERATOR.html#module-moduli_generator.config">moduli_generator.config</a>
+</li>
+        <li><a href="CHANGELOG_GENERATOR.html#module-moduli_generator.scripts.changelog_generator">moduli_generator.scripts.changelog_generator</a>
 </li>
       </ul></li>
   </ul></td>
@@ -239,6 +264,13 @@
 
       <ul>
         <li><a href="MODULI_GENERATOR.html#module-moduli_generator.config">module</a>
+</li>
+      </ul></li>
+      <li>
+    moduli_generator.scripts.changelog_generator
+
+      <ul>
+        <li><a href="CHANGELOG_GENERATOR.html#module-moduli_generator.scripts.changelog_generator">module</a>
 </li>
       </ul></li>
       <li><a href="MODULI_GENERATOR.html#moduli_generator.config.ModuliConfig">ModuliConfig (class in moduli_generator.config)</a>

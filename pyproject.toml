@@ -33,7 +33,7 @@ moduli_generator = "moduli_generator.cli:main"
 build_docs = "moduli_generator.scripts.build_docs:main"
 db_moduli_stats = "db.scripts.moduli_stats:main"
 write_moduli = "moduli_generator.scripts.write_moduli:write_moduli_file"
-generate_changelog = "moduli_generator.scripts.changelog_generator"
+generate_changelog = "moduli_generator.scripts.changelog_generator:main"
 
 [build-system]
 requires = ["poetry-core"]
