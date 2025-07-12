@@ -1,13 +1,15 @@
 SSH2 Moduli File Generator
 ==========================
 
-Generate Complete and Secure `ssh moduli` files
+**Generate Complete and Secure SSH2 Moduli files**
 
 
 Overview
 --------
 
-SSH2 Installs typically include ``ssh-keygen.`` Why? The security of the SSH2 protocol relies on the
+Automatically Generate and Screen SSH2 Moduli, combining into appropriately secure SSH2 Moduli file.
+
+The system utility SSH2 Installs typically include ``ssh-keygen.`` Why? The security of the SSH2 protocol relies on the
 security (and obscurity) of your moduli. The protocol assumes you'll build your *own* moduli.
 
 Chances are, you're using the moduli distributed with your O/S and sharing
@@ -25,103 +27,118 @@ This program does that for you.
 Quick Start
 -----------
 
-Clone Repository & Build Wheel
+Install
+~~~~~~~
 
-git clone
-    `
+    Clone Repository
+        Clone Repository
+            ``git clone git@github.com:beckerwilliams/moduli_generator.git``
 
-Capabilities
-------------
+        Set Current Working Directory @ project Root
+            ``cd moduli_generator``
 
-Builds Complete /etc/ssh/moduli file
+        Install Python Virtual Envrionment
+            ``python -m venv .venv``
 
-- python: ``python -m moduli_generator.cli``
+        Activate Virtual Environment
+            ``source .venv/bin/activate[.{csh,fish}]``
 
-Installation
-------------
+            - Use form appropriate to your O/S
 
-``mkdir modulil_generator``
+        Update Project Packages
+            ``poetry update``
 
-    *from python wheel*
+        Install Project Packages
+            ``poetry install``
 
+    Operation
+        Commmand Line
+            ``poetry run moduli_generator``
+
+                - default run of all base moduli
+
+            ``poetry run build_docs``
+
+                :Docroot:
+                    _build/html/index.html**
+
+            ``poetry run db_moduli_stats``
+
+                Prints count of qualified moduli by key-size
+
+            ``poetry run write_moduli``
+
+                Writes complete [*]/ssh/moduli file, and removes provided moduli from database
+
+            ``poerty run update_readme``
+
+                Updates requirements and versions from pyproject.toml
 
 Platform Dependencies
 ~~~~~~~~~~~~~~~~~~~~~
 
-SSH2 Moduli Generator depends on the SSH being installed and ssh-keygen available for Moduli production.
+System Requirements
+    SSH2 Moduli Generator depends on SSH being installed and ssh-keygen available for Moduli production.
 
-Install Wheel
-~~~~~~~~~~~~~
+Python Requirements
+    The following Python packages are required (automatically installed via Poetry):
 
-In a working directory, Create a python virtual environment, install ssh-moduli-builder wheel, run.
+    **Python Version:** ^3.12
 
-- Create Virtual Environment
-    - ``python -m venv .venv  # Create Virtual Environment``
+    Runtime Dependencies:
 
-- Install Wheel
-    - ``pip install ./moduli_generator-<version>-py3-none-any.whl``
+    - **poetry-core** ^2.1.3
+    - **mariadb** ^1.1.12
+    - **configparser** ^7.2.0
+    - **toml** ^0.10.2
 
-Usage
------
+    Development Dependencies:
 
-RUN
-~~~
+    - **sphinx** ^7.2.6
+    - **sphinxcontrib-jquery** ^4.1
+    - **sphinx-rtd-theme** ^3.0.2
 
-- Start Virtual Environment
-  - ``.venv/bin/activate``
-  - ``.venv/bin/activate.sh``
-  - or ``.venv/bin{.csh,.sh}``
+    All Python dependencies are managed through Poetry and will be installed automatically when you run ``poetry install``...
+
+
+
+Additional Capabilities
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Build Wheel
+    Create Distribution Directories
+        ``mkdir dist _build _static _template``
+    Build Source and Wheel Distributions
+        ``poetry build``
+
+    which should respond with
+
+        Building moduli_generator (x.x.x)
+
+        Building sdist
+
+        - Building sdist
+
+        - Built moduli_generator-x.x.x.tar.gz
+
+        Building wheel
+
+        - Building wheel
+
+        - Built moduli_generator-x.x.x-py3-none-any.whl
+
+    :Wheel Location: ``dist/moduli_generator-x.x.x-py3-none-any.whl``
 
 Reference
 ---------
 
-SSH Audit
-~~~~~~~~~
-
 `SSH Audit <https://github.com/jtesta/ssh-audit>`_
-
-SSH Hardening Guides
-~~~~~~~~~~~~~~~~~~~~
 
 `SSH Hardening Guides <https://www.ssh-audit.com/hardening_guides.html>`_
 
-HackTricks (SSH)
-~~~~~~~~~~~~~~~~
-
 `HackTricks <https://book.hacktricks.xyz/network-services-pentesting/pentesting-ssh>`_
 
-On the Sufficient Number of Moduli by Keysize
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-`On the Sufficient Number of Moduli by Keysize (grok): <https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl>`_
-
-License
--------
-
-MIT License
-~~~~~~~~~~~
-
-`MIT License <#LICENSE>`_
-
-Copyright (c) 2024, 2025 Ron Williams, General Partner, Becker Williams Trading General Partnership
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+`On the Sufficient Number of Moduli by Keysize (grok) <https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl>`_
 
 Database Integration
 --------------------

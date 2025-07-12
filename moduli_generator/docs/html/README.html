@@ -18,7 +18,9 @@
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="moduli_generator.cli:main -h" href="MODULI_GENERATOR_HELP.html" />
+    <link rel="prev" title="ssh2-moduli-generator (moduli_generator)" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -40,7 +42,33 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Documentation:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SSH2 Moduli File Generator</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick Start</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#install">Install</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#platform-dependencies">Platform Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#additional-capabilities">Additional Capabilities</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#reference">Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#database-integration">Database Integration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#database-setup">Database Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#retrieving-moduli-from-database">Retrieving Moduli from Database</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#technical-details">Technical Details</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#timestamp-format">Timestamp Format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database-schema">Database Schema</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="MODULI_GENERATOR_HELP.html">moduli_generator.cli:main -h</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CHANGELOG.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="MODULI_GENERATOR.html">module moduli_generator</a></li>
 <li class="toctree-l1"><a class="reference internal" href="MODULI_DB.html">module db</a></li>
@@ -78,12 +106,13 @@
              
   <section id="ssh2-moduli-file-generator">
 <h1>SSH2 Moduli File Generator<a class="headerlink" href="#ssh2-moduli-file-generator" title="Link to this heading"></a></h1>
-<p>Generate Complete and Secure <cite>ssh moduli</cite> files</p>
+<p><strong>Generate Complete and Secure SSH2 Moduli files</strong></p>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
-<p>SSH2 Installs typically include <code class="docutils literal notranslate"><span class="pre">ssh-keygen.</span></code> Why? The security of the SSH2 protocol relies on the
+<p>Automatically Generate and Screen SSH2 Moduli, combining into appropriately secure SSH2 Moduli file.</p>
+<p>The system utility SSH2 Installs typically include <code class="docutils literal notranslate"><span class="pre">ssh-keygen.</span></code> Why? The security of the SSH2 protocol relies on the
 security (and obscurity) of your moduli. The protocol assumes you’ll build your <em>own</em> moduli.</p>
-<p>Chances are, you’re using the moduli distributed with your O/S, and share
+<p>Chances are, you’re using the moduli distributed with your O/S and sharing
 it with millions of other recipients. You can generate and screen moduli with SSH2 yourself, as does this program.
 However, you have to gather and organize your screened moduli into a moduli file, with a sufficient distribution
 keysizes.</p>
@@ -94,93 +123,125 @@ keysizes.</p>
 It will produce a moduli file with 20 moduli each across keysizes 3071, 4095, 6143, 7679, and 8191 bits.</p>
 </div>
 </section>
-<section id="capabilities">
-<h2>Capabilities<a class="headerlink" href="#capabilities" title="Link to this heading"></a></h2>
-<p>Builds Complete /etc/ssh/moduli file</p>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
+<section id="install">
+<h3>Install<a class="headerlink" href="#install" title="Link to this heading"></a></h3>
+<blockquote>
+<div><dl>
+<dt>Clone Repository</dt><dd><dl class="simple">
+<dt>Clone Repository</dt><dd><p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">git&#64;github.com:beckerwilliams/moduli_generator.git</span></code></p>
+</dd>
+<dt>Set Current Working Directory &#64; project Root</dt><dd><p><code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">moduli_generator</span></code></p>
+</dd>
+<dt>Install Python Virtual Envrionment</dt><dd><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">venv</span> <span class="pre">.venv</span></code></p>
+</dd>
+<dt>Activate Virtual Environment</dt><dd><p><code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">.venv/bin/activate[.{csh,fish}]</span></code></p>
 <ul class="simple">
-<li><p>python: <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">moduli_generator.cli</span></code></p></li>
+<li><p>Use form appropriate to your O/S</p></li>
 </ul>
+</dd>
+<dt>Update Project Packages</dt><dd><p><code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">update</span></code></p>
+</dd>
+<dt>Install Project Packages</dt><dd><p><code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">install</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt>Operation</dt><dd><dl>
+<dt>Commmand Line</dt><dd><p><code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">run</span> <span class="pre">moduli_generator</span></code></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>default run of all base moduli</p></li>
+</ul>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">run</span> <span class="pre">build_docs</span></code></p>
+<blockquote>
+<div><dl class="field-list simple">
+<dt class="field-odd">Docroot<span class="colon">:</span></dt>
+<dd class="field-odd"><p>_build/html/index.html**</p>
+</dd>
+</dl>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">run</span> <span class="pre">db_moduli_stats</span></code></p>
+<blockquote>
+<div><p>Prints count of qualified moduli by key-size</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">run</span> <span class="pre">write_moduli</span></code></p>
+<blockquote>
+<div><p>Writes complete [*]/ssh/moduli file, and removes provided moduli from database</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">poerty</span> <span class="pre">run</span> <span class="pre">update_readme</span></code></p>
+<blockquote>
+<div><p>Updates requirements and versions from pyproject.toml</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd>
+</dl>
+</div></blockquote>
 </section>
-<section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
 <section id="platform-dependencies">
 <h3>Platform Dependencies<a class="headerlink" href="#platform-dependencies" title="Link to this heading"></a></h3>
-<p>SSH2 Moduli Generator depends on the SSH being installed and ssh-keygen available for Moduli production.</p>
-</section>
-<section id="install-wheel">
-<h3>Install Wheel<a class="headerlink" href="#install-wheel" title="Link to this heading"></a></h3>
-<p>In a working directory, Create a python virtual environment, install ssh-moduli-builder wheel, run.</p>
+<dl>
+<dt>System Requirements</dt><dd><p>SSH2 Moduli Generator depends on SSH being installed and ssh-keygen available for Moduli production.</p>
+</dd>
+<dt>Python Requirements</dt><dd><p>The following Python packages are required (automatically installed via Poetry):</p>
+<p><strong>Python Version:</strong> ^3.12</p>
+<p>Runtime Dependencies:</p>
 <ul class="simple">
-<li><dl class="simple">
-<dt>Create Virtual Environment</dt><dd><ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">venv</span> <span class="pre">.venv</span>&#160; <span class="pre">#</span> <span class="pre">Create</span> <span class="pre">Virtual</span> <span class="pre">Environment</span></code></p></li>
+<li><p><strong>poetry-core</strong> ^2.1.3</p></li>
+<li><p><strong>mariadb</strong> ^1.1.12</p></li>
+<li><p><strong>configparser</strong> ^7.2.0</p></li>
+<li><p><strong>toml</strong> ^0.10.2</p></li>
 </ul>
+<p>Development Dependencies:</p>
+<ul class="simple">
+<li><p><strong>sphinx</strong> ^7.2.6</p></li>
+<li><p><strong>sphinxcontrib-jquery</strong> ^4.1</p></li>
+<li><p><strong>sphinx-rtd-theme</strong> ^3.0.2</p></li>
+</ul>
+<p>All Python dependencies are managed through Poetry and will be installed automatically when you run <code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">install</span></code>…</p>
 </dd>
 </dl>
-</li>
-<li><dl class="simple">
-<dt>Install Wheel</dt><dd><ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">./moduli_generator-&lt;version&gt;-py3-none-any.whl</span></code></p></li>
-</ul>
+</section>
+<section id="additional-capabilities">
+<h3>Additional Capabilities<a class="headerlink" href="#additional-capabilities" title="Link to this heading"></a></h3>
+<dl>
+<dt>Build Wheel</dt><dd><dl class="simple">
+<dt>Create Distribution Directories</dt><dd><p><code class="docutils literal notranslate"><span class="pre">mkdir</span> <span class="pre">dist</span> <span class="pre">_build</span> <span class="pre">_static</span> <span class="pre">_template</span></code></p>
+</dd>
+<dt>Build Source and Wheel Distributions</dt><dd><p><code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">build</span></code></p>
 </dd>
 </dl>
-</li>
-</ul>
-</section>
-</section>
-<section id="usage">
-<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
-<section id="run">
-<h3>RUN<a class="headerlink" href="#run" title="Link to this heading"></a></h3>
+<p>which should respond with</p>
+<blockquote>
+<div><p>Building moduli_generator (x.x.x)</p>
+<p>Building sdist</p>
 <ul class="simple">
-<li><p>Start Virtual Environment
-- <code class="docutils literal notranslate"><span class="pre">.venv/bin/activate</span></code>
-- <code class="docutils literal notranslate"><span class="pre">.venv/bin/activate.sh</span></code>
-- or <code class="docutils literal notranslate"><span class="pre">.venv/bin{.csh,.sh}</span></code></p></li>
+<li><p>Building sdist</p></li>
+<li><p>Built moduli_generator-x.x.x.tar.gz</p></li>
 </ul>
+<p>Building wheel</p>
+<ul class="simple">
+<li><p>Building wheel</p></li>
+<li><p>Built moduli_generator-x.x.x-py3-none-any.whl</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Wheel Location<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">dist/moduli_generator-x.x.x-py3-none-any.whl</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
 </section>
 </section>
 <section id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Link to this heading"></a></h2>
-<section id="ssh-audit">
-<h3>SSH Audit<a class="headerlink" href="#ssh-audit" title="Link to this heading"></a></h3>
 <p><a class="reference external" href="https://github.com/jtesta/ssh-audit">SSH Audit</a></p>
-</section>
-<section id="ssh-hardening-guides">
-<h3>SSH Hardening Guides<a class="headerlink" href="#ssh-hardening-guides" title="Link to this heading"></a></h3>
 <p><a class="reference external" href="https://www.ssh-audit.com/hardening_guides.html">SSH Hardening Guides</a></p>
-</section>
-<section id="hacktricks-ssh">
-<h3>HackTricks (SSH)<a class="headerlink" href="#hacktricks-ssh" title="Link to this heading"></a></h3>
 <p><a class="reference external" href="https://book.hacktricks.xyz/network-services-pentesting/pentesting-ssh">HackTricks</a></p>
-</section>
-<section id="on-the-sufficient-number-of-moduli-by-keysize">
-<h3>On the Sufficient Number of Moduli by Keysize<a class="headerlink" href="#on-the-sufficient-number-of-moduli-by-keysize" title="Link to this heading"></a></h3>
-<p><a class="reference external" href="https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl">On the Sufficient Number of Moduli by Keysize (grok):</a></p>
-</section>
-</section>
-<section id="license">
-<h2>License<a class="headerlink" href="#license" title="Link to this heading"></a></h2>
-<section id="mit-license">
-<h3>MIT License<a class="headerlink" href="#mit-license" title="Link to this heading"></a></h3>
-<p><a class="reference external" href="#LICENSE">MIT License</a></p>
-<p>Copyright (c) 2024, 2025 Ron Williams, General Partner, Becker Williams Trading General Partnership</p>
-<p>Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the “Software”), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:</p>
-<p>The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.</p>
-<p>THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.</p>
-</section>
+<p><a class="reference external" href="https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl">On the Sufficient Number of Moduli by Keysize (grok)</a></p>
 </section>
 <section id="database-integration">
 <h2>Database Integration<a class="headerlink" href="#database-integration" title="Link to this heading"></a></h2>
@@ -222,7 +283,10 @@ This approach allows for efficient retrieval and consistent formatting of moduli
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="ssh2-moduli-generator (moduli_generator)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="MODULI_GENERATOR_HELP.html" class="btn btn-neutral float-right" title="moduli_generator.cli:main -h" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

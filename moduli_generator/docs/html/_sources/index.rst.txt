@@ -1,18 +1,23 @@
 .. ssh-moduli-builder documentation master file, created by sphinx-quickstart on Thu Nov 14 14:36:40 2024
 
 =======================================
-ssh-moduli-generator (moduli_generator)
+ssh2-moduli-generator (moduli_generator)
 =======================================
 
 .. toctree::
     :maxdepth: 2
     :caption: Documentation:
 
-        README
-        DOCUMENTATION
-        PYTHON_PACKAGING
-        LICENSE
-        CHANGELOG
+    README
+    MODULI_GENERATOR_HELP
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Legal
+
+    COPYRIGHT
+    MIT-LICENSE
+    CHANGELOG
 
 .. toctree::
     :maxdepth: 2
