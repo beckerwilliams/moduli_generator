@@ -10,14 +10,14 @@ ssh2-moduli-generator (moduli_generator)
 
     README
     MODULI_GENERATOR_HELP
+    CHANGELOG
+
 
 .. toctree::
     :maxdepth: 2
     :caption: Legal
 
-    COPYRIGHT
-    MIT-LICENSE
-    CHANGELOG
+    LICENSE
 
 .. toctree::
     :maxdepth: 2
@@ -25,7 +25,7 @@ ssh2-moduli-generator (moduli_generator)
 
     MODULI_GENERATOR
     MODULI_DB
-    CHANGELOG_GENERATOR
+
 
 .. toctree::
     :maxdepth: 2

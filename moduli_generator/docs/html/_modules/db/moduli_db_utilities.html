@@ -45,6 +45,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../MODULI_GENERATOR_HELP.html">moduli_generator.cli:main -h</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../CHANGELOG.html">Changelog</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Legal</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../LICENSE.html">License &amp; Copyright</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../MODULI_GENERATOR.html">module moduli_generator</a></li>
@@ -657,8 +661,6 @@
             <span class="k">return</span> <span class="mi">1</span></div>
 
 
-<div class="viewcode-block" id="MariaDBConnector._add_without_transaction">
-<a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector._add_without_transaction">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_add_without_transaction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">key_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">modulus</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Inserts a new record into the database table without wrapping the operation</span>
@@ -690,8 +692,7 @@
                 <span class="k">return</span> <span class="n">last_id</span>
         <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error inserting candidate: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">raise</span>  <span class="c1"># Re-raise to let transaction context manager handle rollback</span></div>
-
+            <span class="k">raise</span>  <span class="c1"># Re-raise to let transaction context manager handle rollback</span>
 
 <div class="viewcode-block" id="MariaDBConnector.get_moduli">
 <a class="viewcode-back" href="../../MODULI_DB.html#db.moduli_db_utilities.MariaDBConnector.get_moduli">[docs]</a>
