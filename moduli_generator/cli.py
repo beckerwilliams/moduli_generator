@@ -78,6 +78,10 @@ def parse_args():
                         default=default_config.records_per_keylength,
                         help="Number of moduli per key-length to capture in each produced moduli file"
                         )
+    parser.add_argument("--delete-records-on-moduli-write",
+                        type=bool,
+                        default=False,
+                        help="Delete records from DB written to moduli file")
 
     return parser.parse_args()
 
@@ -106,6 +110,7 @@ def main():
     config.log_dir = config.base_dir / args.log_dir
     config.moduli_generator_config = config.base_dir / args.mariadb_cnf
     config.records_per_keylength = args.records_per_keylength
+    config.delete_records_on_moduli_write = args.delete_records_on_moduli_write
 
     logger = config.get_logger()
     logger.name = __name__

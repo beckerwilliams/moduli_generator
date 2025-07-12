@@ -48,7 +48,7 @@ DEFAULT_MARIADB_TABLE: Final[str] = 'moduli'
 DEFAULT_MARIADB_VIEW: Final[str] = 'moduli_view'
 
 # Flag to Delete Records from Moduli DB after successfully extracting and writing a complete ssh / moduli file
-DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE: Final[bool] = True
+DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE: Final[bool] = False  # tbd - set to TRUE before Production Release
 
 # Screened Moduli File Pattern
 DEFAULT_MODULI_FILENAME_PATTERN: Final[str] = r'moduli_????_*'
