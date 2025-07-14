@@ -2,6 +2,7 @@ import configparser
 from configparser import (ConfigParser)
 from contextlib import contextmanager
 from pathlib import PosixPath as Path
+from re import sub
 from typing import (
     Dict,
     List,
@@ -10,8 +11,8 @@ from typing import (
 
 from mariadb import (ConnectionPool, Error)  # Add this import
 
-from moduli_generator.config import (ISO_UTC_TIMESTAMP, ModuliConfig, default_config, is_valid_identifier,
-                                     strip_punction_from_datetime_str)
+from moduli_generator import ISO_UTC_TIMESTAMP
+from moduli_generator.config import (ModuliConfig, default_config, is_valid_identifier)
 
 
 def parse_mysql_config(mysql_cnf: str) -> Dict[str, Dict[str, str]]:
@@ -110,7 +111,7 @@ class MariaDBConnector:
         It is invoked when the runtime enters the context of a `with` statement. This method should be
         used to establish any resource or setup actions required for the context.
 
-        :return: Returns the instance of the class, allowing to use it in a `with` statement.
+        :return: Returns an instance of the class, permitting use as a context manager.
         :rtype: object
         """
         return self
@@ -141,7 +142,7 @@ class MariaDBConnector:
     @contextmanager
     def get_connection(self):
         """
-        Provides a context manager for safely obtaining and managing a connection
+        Provides a context manager for safely getting and managing a connection
         from the connection pool. Ensures the connection is properly closed and
         returned to the pool after usage.
 
@@ -218,7 +219,7 @@ class MariaDBConnector:
         Initializes a class instance with provided configuration parameters and sets up a MariaDB
         connection pool, along with configured logging for module operations.
 
-        Detailed connection pool is established using connection parameters parsed from MariaDB
+        A Detailed connection pool is established using connection parameters parsed from the MariaDB
         configuration file, ensuring efficient database interaction. Logging is configured for the
         module using the provided logger in the configuration.
 
@@ -232,11 +233,14 @@ class MariaDBConnector:
         for key, value in config.__dict__.items():
             if key in ["mariadb_cnf",
                        "db_name",
+                       "base_dir",
+                       "moduli_file_pfx",
                        "table_name",
                        "view_name",
                        "config_id",
                        "key_lengths",
                        "records_per_keylength",
+                       "moduli_file",
                        "delete_records_on_moduli_write",
                        "delete_records_on_read",
                        'get_logger()'
@@ -371,7 +375,7 @@ class MariaDBConnector:
         using transactions to ensure atomicity of operations. The queries can
         have associated parameter tuples for execution.
 
-        :param queries: A list of SQL query strings to be executed in batch.
+        :param queries: A list of SQL query strings to be executed in a batch.
         :type queries: List[str]
         :param params_list: A list of tuples containing parameters to
             correspond with each query. If provided, its length should not
@@ -571,20 +575,27 @@ class MariaDBConnector:
             self.logger.error(f"Error inserting candidate: {err}")
             raise  # Re-raise to let transaction context manager handle rollback
 
-    def get_moduli(self, output_file: Path = None) -> Dict[int, list]:
+    def get_and_write_moduli_file(self, output_file: Path = None) -> Dict[int, list]:
         """
-        Retrieves cryptographic moduli for specified key sizes by querying the database.
-        This function ensures that there are sufficient records for each key size
-        before performing the database query. If the optional output_file parameter
-        is provided, the retrieved moduli are written to the specified file.
+        Retrieves cryptographic moduli data from a database, ensuring sufficient
+        records exist for predefined key sizes, optionally writing the moduli
+        to a specified output file. Raises an exception if the required number
+        of records for any key size is unavailable.
 
-        :param output_file: Optional file path to save the retrieved moduli.
+        :param output_file: Path to the file where moduli should be written. If None,
+            the function only returns the moduli dictionary without writing to a file.
         :type output_file: Path, optional
-        :return: A dictionary where each key represents a key size and its corresponding value
-            is a list of records containing moduli.
+        :return: A dictionary that maps each key size to a list of its associated
+            retrieved moduli records from the database.
         :rtype: Dict[int, list]
-        :raises RuntimeError: If there are insufficient records for any key size or if the database query fails.
+        :raises RuntimeError: If there are insufficient records for any key size or
+            if the database query fails.
         """
+        if not output_file:
+            output_file = self.base_dir / ''.join(((self.moduli_file_pfx, ISO_UTC_TIMESTAMP(compress=True))))
+
+        self.logger.info(f'ssh-moduli output file: {output_file}')
+
         # Verify that a sufficient number of moduli for each keysize exist in the db
         stats = self.stats()
         for stat in stats:
@@ -598,8 +609,8 @@ class MariaDBConnector:
                     f"{self.records_per_keylength} required"
                 )
 
+        # Collect Screened Moduli from Database
         moduli = {}
-
         try:
             with self.get_connection() as connection:
                 with connection.cursor(dictionary=True) as cursor:
@@ -610,78 +621,38 @@ class MariaDBConnector:
                                 WHERE size = {size - 1}
                                 LIMIT {self.records_per_keylength}
                                 """
-
                         cursor.execute(query)
                         records = list(cursor.fetchall())
                         moduli[size] = records
-
                         self.logger.info(f"Retrieved {len(records)} records for key size {size}")
 
         except Error as err:
             self.logger.error(f"Error retrieving moduli: {err}")
             raise RuntimeError(f"Database query failed: {err}")
 
-        if output_file:
-            self.write_record_to_file(moduli, output_file)
+        # Write moduli file
+        moduli_to_write: List[str] = []
+        for key, items in moduli.items():
+            for item in items:
+                # Access dictionary keys instead of object attributes
+                line = ' '.join([
+                    sub(r'[^0-9]', '', item['timestamp'].isoformat()),
+                    str(item['type']),
+                    str(item['tests']),
+                    str(item['trials']),
+                    str(item['size']),
+                    str(item['generator']),
+                    str(item['modulus']),
+                    '\n'
+                ])
+                moduli_to_write.append(line)
+
+            moduli_hdr = f'# [usr/local]/etc/ssh/moduli from MODULI_GENERATOR: {ISO_UTC_TIMESTAMP()}\n'
+
+            with self.file_writer(output_file.resolve()) as ssh_moduli_file:
+                ssh_moduli_file.writelines(moduli_hdr)
+                ssh_moduli_file.writelines(moduli_to_write)
             self.logger.info(f"Successfully created moduli file with {self.records_per_keylength} records per key size")
-
-        return moduli
-
-    def write_record_to_file(self, moduli_data: dict, output_file: Path) -> list:
-        """
-        Writes moduli data records to a specified output file in a structured format.
-        This method creates or overwrites the specified output file, writing a header
-        and formatted moduli records for various key sizes. The function also maintains
-        a list of moduli that need to be removed from the database based on the input data.
-
-        :param self: Instance of the class containing the method.
-        :type self: Any
-        :param moduli_data: Dictionary containing modulus records categorized by key sizes.
-            Each key is a key size, and the value is a list of records containing data such as
-            timestamp, type, tests, trials, size, generator, and modulus.
-        :type moduli_data: dict
-        :param output_file: Path object representing the file where moduli data will be written.
-        :type output_file: Path
-        :return: List of modulus values that need to be removed from the database.
-        :rtype: list
-        """
-        moduli_to_delete = []
-        try:
-            with self.file_writer(output_file) as ssh_moduli_file:
-
-                # Write File Header
-                ssh_moduli_file.write(
-                    # of.write(
-                    f'# /etc/ssh/modul: dcrunch.threatwonk.net: {ISO_UTC_TIMESTAMP()}\n'
-                )
-
-                # Write data for each key size
-                for size, records in moduli_data.items():
-                    for record in records:
-                        # Format: timestamp type tests trials size generator modulus
-                        # The timestamp should already be in compressed format
-                        ssh_moduli_file.write(' '.join((
-                            # of.write(' '.join((
-                            strip_punction_from_datetime_str(record['timestamp']),
-                            record['type'],
-                            record['tests'],
-                            str(record['trials']),
-                            str(record['size']),
-                            str(record['generator']),
-                            record['modulus'],
-                            '\n'
-                        )))
-                        if record['modulus']:
-                            moduli_to_delete.append(record['modulus'])
-
-            self.logger.info(f"Successfully wrote moduli to file: {output_file}")
-            self.logger.debug(f"Moduli to delete from DB: {moduli_to_delete}")
-
-        except IOError as err:
-            self.logger.error(f"Error writing to file {output_file}: {err}")
-            raise
-
-        return moduli_to_delete
 
     def stats(self) -> Dict[str, str]:
         """
@@ -716,10 +687,10 @@ class MariaDBConnector:
             for size in moduli_query_sizes:
                 # Count query to check available records
                 count_query = f"""
-                                  SELECT COUNT(*)
-                                  FROM {self.db_name}.{self.view_name}
-                                  WHERE size = ?
-                                  """
+                                      SELECT COUNT(*)
+                                      FROM {self.db_name}.{self.view_name}
+                                      WHERE size = ?
+                                      """
                 result = self.execute_select(count_query, (size,))
                 count = result[0]['COUNT(*)']
                 status.append(count)

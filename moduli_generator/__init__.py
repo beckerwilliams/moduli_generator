@@ -16,7 +16,7 @@ __all__ = ['ModuliGenerator']
 
 
 class ModuliGenerator:
-    def __init__(self, config=default_config):
+    def __init__(self, conf=default_config):
         """
         Initializes an instance of the class with the given configuration and sets up
         necessary logging mechanisms. Various important directories and configuration
@@ -24,15 +24,15 @@ class ModuliGenerator:
         ensures that all critical paths and the logger are properly set during
         initialization.
 
-        :param config: The configuration object containing paths and logging settings.
-        :type config: Optional, default is `default_config`
+        :param conf: The configuration object containing paths and logging settings.
+        :type conf: Optional, default is `default_config`
         """
-        self.config = config
-        self.version = config.version
+        self.config = conf
+        self.version = conf.version
         self.logger = self.config.get_logger()
         self.logger.name = __name__
 
-        # Log paths
+        # Log paths used
         if self.config:
             for path_name, path_obj in [
                 ('Base directory', self.config.moduli_dir),
@@ -42,6 +42,8 @@ class ModuliGenerator:
                 ('MariaDB config', self.config.mariadb_cnf)
             ]:
                 self.logger.info(f'Using {path_name}: {path_obj}')
+        # Placeholder - Gets filled on first use -> store_moduli
+        self.db = None
 
     def _generate_candidates(self, key_length: int) -> Path:
         """
@@ -132,7 +134,7 @@ class ModuliGenerator:
         :rtype: Dict[str, List[Dict[str, Any]]]
         """
 
-        screened_files = self.list_moduli_files()
+        screened_files = self._list_moduli_files()
         moduli_json = {}
 
         for file in screened_files:
@@ -206,23 +208,23 @@ class ModuliGenerator:
 
         return generated_moduli
 
-    def save_moduli(self, moduli_dir: Path = None):
+    def save_moduli(self, moduli_file_dir: Path = None):
         """
         Saves moduli schema to a JSON file for backup and reference purposes. The schema
         is parsed and written into a new JSON file which is named using the current UTC
         timestamp for uniqueness.
 
-        :param moduli_dir: Optional directory path to save the moduli schema. If not
+        :param moduli_file_dir: Optional directory path to save the moduli schema. If not
             provided, the default directory from configuration (`self.config.moduli_dir`)
             is used.
-        :type moduli_dir: Path
+        :type moduli_file_dir: Path
         :return: None
         :rtype: None
         """
-        if not moduli_dir:
-            moduli_dir = self.config.moduli_dir
+        if not moduli_file_dir:
+            moduli_file_dir = self.config.base_dir
 
-        moduli_json = moduli_dir / f'moduli_{ISO_UTC_TIMESTAMP(True)}.json'
+        moduli_json = moduli_file_dir / f'screened_moduli_{ISO_UTC_TIMESTAMP(True)}.json'
         with moduli_json.open('w') as f:
             # with open(moduli_json, 'w') as f:
             dump(self._parse_moduli_files(), f, indent=2)
@@ -232,15 +234,15 @@ class ModuliGenerator:
     def store_moduli(self, db):
         """
         Stores moduli data into a given database and removes source files after successful storage.
-        This function processes moduli files, parses them into a suitable format, stores them in the
-        database using the provided database object, and then deletes the source files only after
-        ensuring they have been stored in the database.
-
-        :param db: The database object used to store the parsed moduli data.
-        :type db: Object
-        :return: None
-        :rtype: None
         """
+        # Import here to avoid circular import
+        from db.moduli_db_utilities import MariaDBConnector
+    
+        # Capture the DB Handle
+        self.db = db
+    
+        # Rest of your method implementation...
+
         screened_moduli = self._parse_moduli_files()
 
         try:
@@ -251,13 +253,13 @@ class ModuliGenerator:
 
         # Now we get Transactional - When Moduli are Stored in the DB - DELETE Their Sources
         # tbd - We should check that the records are installed properly before hand
-        moduli_files = self.list_moduli_files()
+        moduli_files = self._list_moduli_files()
         for file in moduli_files:
             file.unlink()
 
         self.logger.info(f'Moduli Files Parsed & Stored in MariaDB database: {moduli_files}')
 
-    def list_moduli_files(self):
+    def _list_moduli_files(self):
         """
         Retrieves a list of files matching the specified pattern from the configured directory.
 
@@ -272,4 +274,26 @@ class ModuliGenerator:
 
     @property
     def __version__(self):
-        return self.config.version
+        """
+        Provides an accessor for the version of the object.
+
+        The **__version__** property allows retrieval of the current version or
+        state of an object. The value returned by this property is generally
+        used for keeping track of versioning or specific configurations.
+
+        :return: The version attribute of the object.
+        :rtype: str
+        """
+        return self.version
+
+    def write_moduli_file(self) -> None:
+        """
+        Writes the moduli file to the specified path defined in the configuration.
+
+        This method retrieves moduli data from the database and writes it to a file
+        using the path specified in the configuration.
+
+        :return: None
+        :rtype: None
+        """
+        self.db.get_and_write_moduli_file()

@@ -163,52 +163,57 @@ class InstallSchema(object):
             return False
 
 
-argparse = ArgumentParser(description='Install SSH Moduli Schema')
-
-argparse.add_argument(
-    '--moduli-db-name',
-    type=str,
-    default=DEFAULT_MARIADB,
-    help='Name of the database to create'
-)
-
-argparse.add_argument(
-    '--batch',
-    action='store_true',
-    help='Use batch execution mode for better performance'
-)
-
-
 def main():
     """
-    Parses command line arguments to configure and connect to a database and
-    installs a database schema using predefined configurations. The schema
-    installation process can be executed in batch mode or in a standard mode.
+    Main function to parse command-line arguments and handle the installation
+    of the SSH Moduli Schema into the specified MariaDB database.
 
-    :raises SystemExit: If invalid arguments are passed during parsing.
+    This function utilizes the `argparse` library to define and parse command-line
+    arguments and performs the schema installation based on the provided
+    parameters. It supports an optional batch execution mode for improved performance.
 
-    :return: Status of the database schema installation.
+    :raises SystemExit: If argument parsing fails or invalid arguments are provided.
+    :raises Exception: If the schema installation process encounters an error.
+
+    :param None: This function takes no direct parameters through function calls but
+                 relies on command-line arguments for configuration.
+
+    :return: None
     :rtype: None
     """
-    # Parse command line arguments
+    argparse = ArgumentParser(description='Install SSH Moduli Schema')
+    argparse.add_argument(
+        'mariadb_cnf',
+        type=str,
+        help='Path to MariaDB configuration file'
+    )
+    argparse.add_argument(
+        '--batch',
+        action='store_true',
+        help='Use batch execution mode for better performance'
+    )
+    argparse.add_argument(
+        '--moduli-db-name',
+        type=str,
+        default=DEFAULT_MARIADB,
+        help='Name of the database to create'
+    )
     args = argparse.parse_args()
-    db_name = args.moduli_db_name
-    use_batch = args.batch
 
     # Configure database connection
     config = default_config
-    config.db_name = db_name
-    config.mariadb_cnf = Path('rons_mariadb.cnf')
+    config.db_name = args.moduli_db_name
+    config.mariadb_cnf = Path(args.mariadb_cnf)
 
     print(
-        f"Installing schema for database: {db_name} "
+        f"Installing schema for database: {config.db_name} "
         f"with MariaDB config file: {config.mariadb_cnf}"
     )
 
     # Create an installer and run installation
-    installer = InstallSchema(MariaDBConnector(config), db_name)
+    installer = InstallSchema(MariaDBConnector(config), config.db_name)
 
-    if use_batch:
+    if args.batch:
         success = installer.install_schema_batch()
     else:
         success = installer.install_schema()

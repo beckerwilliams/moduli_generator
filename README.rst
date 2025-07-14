@@ -1,178 +1,276 @@
-SSH2 Moduli File Generator
-==========================
+===============================
+SSH2 Moduli Generator
+===============================
 
-**Generate Complete and Secure SSH2 Moduli files**
+.. image:: https://img.shields.io/badge/python-3.12+-blue.svg
+    :target: https://www.python.org/downloads/
 
+.. image:: https://img.shields.io/badge/license-MIT-green.svg
+    :target: LICENSE.rst
 
-Overview
+A command-line utility for generating SSH moduli files used in SSH key exchange processes. This tool builds moduli for ``/etc/ssh/moduli`` or ``/usr/local/etc/ssh/moduli`` files with database integration capabilities.
+
+Features
 --------
 
-Automatically Generate and Screen SSH2 Moduli, combining into appropriately secure SSH2 Moduli file.
+- Generate SSH moduli files with customizable parameters
+- Database integration for storing and managing moduli
+- Command-line interface for easy automation
+- Comprehensive documentation and changelog
+- Support for moduli_generator and mysql/(mariadb) configuration files
+- Statistics and analysis tools
 
-The system utility SSH2 Installs typically include ``ssh-keygen.`` Why? The security of the SSH2 protocol relies on the
-security (and obscurity) of your moduli. The protocol assumes you'll build your *own* moduli.
+Installation
+------------
 
-Chances are, you're using the moduli distributed with your O/S and sharing
-it with millions of other recipients. You can generate and screen moduli with SSH2 yourself, as does this program.
-However, you have to gather and organize your screened moduli into a moduli file, with a sufficient distribution
-keysizes.
+Tasks
+    - install Poetry application
+    - clone the Git repository
+    - create a Python Virtual Environment
+    - install moduli_generator
+    - Prepare and locate mysql.cnf (moduli_generator.cnf)
 
-This program does that for you.
+Install Poetry Application
+~~~~
+
+.. code-block:: bash
+
+    MacOSX: Homebrew: brew install poetry
+    Linux: apt -y install poetry, apk install poetry, dpkg install poetry
+    Freebsd: FreshPorts: portmaster -y --no-confirm devel/py-poetry
+
+Clone Repository
+~~~~
+
+.. code-block:: bash
+
+    git clone https://github.com/beckerwilliams/moduli_generator.git
+
+*Response*
+
+.. code-block:: bash
+
+        [freebsd-14.3.0] ron% git clone https://github.com/beckerwilliams/moduli_generator.git
+            Cloning into 'moduli_generator'...
+            remote: Enumerating objects: 707, done.
+            remote: Counting objects: 100% (113/113), done.
+            remote: Compressing objects: 100% (74/74), done.
+            remote: Total 707 (delta 54), reused 66 (delta 37), pack-reused 594 (from 1)
+            Receiving objects: 100% (707/707), 34.89 MiB | 63.46 MiB/s, done.
+            Resolving deltas: 100% (358/358), done.
 
 
-.. note:: *Elapsed time for complete run is about 3* **days** *on an Intel Quad Core i7*.
-          It will produce a moduli file with 20 moduli each across keysizes 3071, 4095, 6143, 7679, and 8191 bits.
+Create Python Virtual Envionrment
+~~~~
+.. code-block:: bash
 
+    cd moduli_generator
+    python -m venv .venv
+    pip install pip --upgrade
+    poetry install
+
+*Response*
+
+.. code-block:: bash
+
+        Installing dependencies from lock file
+
+        Package operations: 27 installs, 0 updates, 0 removals
+
+          - Installing certifi (2025.7.9)
+          - Installing charset-normalizer (3.4.2)
+          - Installing idna (3.10)
+          - Installing markupsafe (3.0.2)
+          - Installing urllib3 (2.5.0)
+          - Installing alabaster (0.7.16)
+          - Installing babel (2.17.0)
+          - Installing docutils (0.21.2)
+          - Installing imagesize (1.4.1)
+          - Installing jinja2 (3.1.6)
+          - Installing packaging (25.0)
+          - Installing pygments (2.19.2)
+          - Installing requests (2.32.4)
+          - Installing snowballstemmer (3.0.1)
+          - Installing sphinxcontrib-applehelp (2.0.0)
+          - Installing sphinxcontrib-devhelp (2.0.0)
+          - Installing sphinxcontrib-htmlhelp (2.1.0)
+          - Installing sphinxcontrib-jsmath (1.0.1)
+          - Installing sphinxcontrib-qthelp (2.0.0)
+          - Installing sphinxcontrib-serializinghtml (2.0.0)
+          - Installing sphinx (7.4.7)
+          - Installing sphinxcontrib-jquery (4.1)
+          - Installing configparser (7.2.0)
+          - Installing poetry-core (2.1.3)
+          - Installing toml (0.10.2)
+          - Installing sphinx-rtd-theme (3.0.2)
+          - Installing mariadb (1.1.13)
+
+        Installing the current project: moduli_generator (2.1.10)
+
+Test Core Access
+~~~~
+
+.. code-block:: bash
+
+    python -m moduli_generator.cli -h
+
+*Response*
+
+    .. code-block:: bash
+
+
+            usage: moduli_generator [-h] [--key-lengths KEY_LENGTHS [KEY_LENGTHS ...]] [--moduli-home MODULI_HOME] [--candidates-dir CANDIDATES_DIR] [--moduli-dir MODULI_DIR] [--log-dir LOG_DIR] [--mariadb-cnf MARIADB_CNF] [--nice-value NICE_VALUE]
+                                    [--records-per-keylength RECORDS_PER_KEYLENGTH] [--delete-records-on-moduli-write DELETE_RECORDS_ON_MODULI_WRITE]
+
+            Moduli Generator - Generate and manage secure moduli for cryptographic operations
+
+            options:
+              -h, --help            show this help message and exit
+              --key-lengths KEY_LENGTHS [KEY_LENGTHS ...]
+                                    Space-separated list of key lengths to generate moduli for (default: (3072, 4096, 6144, 7680, 8192))
+              --moduli-home MODULI_HOME
+                                    Base directory for moduli generation and storage (default: /Users/ron/.moduli_generator)
+              --candidates-dir CANDIDATES_DIR
+                                    Directory to store candidate moduli (relative to moduli-home) (default: .candidates)
+              --moduli-dir MODULI_DIR
+                                    Directory to store generated moduli (relative to moduli-home) (default: .moduli)
+              --log-dir LOG_DIR     Directory to store log files (relative to moduli-home) (default: .logs)
+              --mariadb-cnf MARIADB_CNF
+                                    Path to MariaDB configuration file (relative to moduli-home) (default: moduli_generator.conf)
+              --nice-value NICE_VALUE
+                                    Process nice value for CPU inensive operations (default: 15)
+              --records-per-keylength RECORDS_PER_KEYLENGTH
+                                    Number of moduli per key-length to capture in each produced moduli file (default: 20)
+              --delete-records-on-moduli-write DELETE_RECORDS_ON_MODULI_WRITE
+                                    Delete records from DB written to moduli file (default: False)
 
 Quick Start
------------
-
-Install
-~~~~~~~
-
-    Clone Repository
-        Clone Repository
-            ``git clone git@github.com:beckerwilliams/moduli_generator.git``
-
-        Set Current Working Directory @ project Root
-            ``cd moduli_generator``
-
-        Install Python Virtual Envrionment
-            ``python -m venv .venv``
-
-        Activate Virtual Environment
-            ``source .venv/bin/activate[.{csh,fish}]``
-
-            - Use form appropriate to your O/S
-
-        Update Project Packages
-            ``poetry update``
-
-        Install Project Packages
-            ``poetry install``
-
-    Operation
-        Commmand Line
-            ``poetry run moduli_generator``
-
-                - default run of all base moduli
-
-            ``poetry run build_docs``
-
-                :Docroot:
-                    _build/html/index.html**
-
-            ``poetry run db_moduli_stats``
-
-                Prints count of qualified moduli by key-size
-
-            ``poetry run write_moduli``
-
-                Writes complete [*]/ssh/moduli file, and removes provided moduli from database
-
-            ``poerty run update_readme``
-
-                Updates requirements and versions from pyproject.toml
-
-Platform Dependencies
-~~~~~~~~~~~~~~~~~~~~~
-
-System Requirements
-    SSH2 Moduli Generator depends on SSH being installed and ssh-keygen available for Moduli production.
-
-Python Requirements
-    The following Python packages are required (automatically installed via Poetry):
-
-    **Python Version:** ^3.12
-
-    Runtime Dependencies:
-
-    - **poetry-core** ^2.1.3
-    - **mariadb** ^1.1.12
-    - **configparser** ^7.2.0
-    - **toml** ^0.10.2
-
-    Development Dependencies:
-
-    - **sphinx** ^7.2.6
-    - **sphinxcontrib-jquery** ^4.1
-    - **sphinx-rtd-theme** ^3.0.2
-
-    All Python dependencies are managed through Poetry and will be installed automatically when you run ``poetry install``...
+----
 
 
 
-Additional Capabilities
-~~~~~~~~~~~~~~~~~~~~~~~
+Command Line Tools
+------------------
 
-Build Wheel
-    Create Distribution Directories
-        ``mkdir dist _build _static _template``
-    Build Source and Wheel Distributions
-        ``poetry build``
+The package provides several command-line utilities:
 
-    which should respond with
+- ``moduli_generator.cli`` - Main moduli generation tool
+- ``db_moduli_stats`` - Database statistics and analysis
+- ``write_moduli`` - Write moduli to file
+- ``install_schema`` - Install database schema
 
-        Building moduli_generator (x.x.x)
+Basic usage
+~~~~
 
-        Building sdist
+Default Run includes keysizes 3072, 4096,  6144, 7680, and 8192.
+Will produce enough moduli for ONE complete Moduli File (about 20 moduli/keysize)
+It will take 5-7 days on a 4-core i7.
 
-        - Building sdist
+.. code-block:: bash
 
-        - Built moduli_generator-x.x.x.tar.gz
+    # Default Invocation will produce 1 File of 20 moduli per key size
+    python -m moduli_generator.cli
 
-        Building wheel
+    # Is Equivalent to
+    python -m moduli_generator.cli --key-sizes 3072 4096  6144 7680 8192
 
-        - Building wheel
+**Specify database connection file (moduli_generator.cnf)**
 
-        - Built moduli_generator-x.x.x-py3-none-any.whl
+.. code-block:: bash
 
-    :Wheel Location: ``dist/moduli_generator-x.x.x-py3-none-any.whl``
+    python -m moduli_generator.cli --config <path to your mysql.cnf>
 
-Reference
----------
 
-`SSH Audit <https://github.com/jtesta/ssh-audit>`_
+**With configuration file:**
 
-`SSH Hardening Guides <https://www.ssh-audit.com/hardening_guides.html>`_
+.. code-block:: bash
 
-`HackTricks <https://book.hacktricks.xyz/network-services-pentesting/pentesting-ssh>`_
+    python -m moduli_generator --config /path/to/moduli_generator.cnf
 
-`On the Sufficient Number of Moduli by Keysize (grok) <https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl>`_
+**View statistics**
 
+.. code-block:: bash
+
+    python -m db.scripts.moduli_stats
+
+..
+
+    *Response*
+
+    .. code-block:: bash
+
+        {3071: 419, 4095: 191, 6143: 148, 7679: 58, 8191: 44}
+
+MariaDB Configuration
+-------------
+
+To install MariaDB for your site, see:
+    `Official MariaDB Installation Guide <https://mariadb.com/docs/server/mariadb-quickstart-guides/installing-mariadb-server-guide>`_
+
+**Install Schema**
+
+The *moduli_generator* installs a schema in a database named *moduli_db* having three tables, *moduli*, *moduli_view*, and *mod_fl_consts*
+user should have full access to 'moduli_db'.'moduli', 'moduli_db'.'moduli_view'
+
+The tool uses a configuration file (``moduli_generator.cnf``) to customize generation parameters.
+A sample configuration file is provided as ``SAMPLE_moduli_generator.cnf``.
+
+The default location for your moduli_generator.cnf is the configuration directory (default: ~/.moduli_generator)
+
+
+.. tbd - Need to output the Sample
 Database Integration
 --------------------
 
-SSH2 Moduli Generator now includes MariaDB integration for storing and retrieving moduli values. 
-This allows for persistent storage of generated moduli across sessions.
+The tool supports MariaDB for storing and managing moduli. Use the ``install_schema`` command to set up the database schema.
 
-Database Setup
-~~~~~~~~~~~~~~
+Documentation
+-------------
 
-1. Configure the database connection in ``moduli_generator.cnf``
-2. The database automatically stores screened moduli values
-3. Timestamps are stored in compressed format (no punctuation or spaces)
+Full documentation is available in the ``docs/`` directory and includes:
 
-Retrieving Moduli from Database
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- API Reference
+- Database Integration Guide
+- Changelog Generator Documentation
+- Contributing Guidelines
 
-When using the ``--write`` option, the generator will:
+Development
+-----------
 
-- Verify sufficient records exist for each key size (minimum 80 per size)
-- Only create the moduli file if all sizes have enough entries
-- Randomly select entries from the database to create a balanced moduli file
+This project uses Poetry for dependency management. To set up a development environment:
 
-Technical Details
------------------
+.. code-block:: bash
 
-Timestamp Format
-~~~~~~~~~~~~~~~~
+    git clone https://github.com/beckerwilliams/moduli_generator.git
+    cd moduli_generator
+    poetry install
 
-All timestamps in generated moduli files use a compressed format with no punctuation or spaces.
-This ensures compatibility with all SSH implementations while maintaining proper chronological ordering.
+Requirements
+------------
 
-Database Schema
-~~~~~~~~~~~~~~~
+- Python 3.12+
+- MariaDB (for database features)
+- Poetry (for development)
 
-The generator uses a view-based database schema that joins moduli values with their configuration constants.
-This approach allows for efficient retrieval and consistent formatting of moduli entries.
+License
+-------
+
+This project is licensed under the MIT License - see the ``LICENSE.rst`` file for details.
+
+Contributing
+------------
+
+Contributions are welcome! Please see the contributing guidelines in the documentation.
+
+Links
+-----
+
+- **Homepage**: https://github.com/beckerwilliams/moduli_generator
+- **Documentation**: https://github.com/beckerwilliams/moduli_generator/README.rst
+- **Repository**: https://github.com/beckerwilliams/moduli_generator.git
+- **Issues**: https://github.com/beckerwilliams/moduli_generator/issues
+
+Author
+------
+
+Ron Williams <becker.williams@gmail.com>

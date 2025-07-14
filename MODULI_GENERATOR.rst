@@ -6,11 +6,11 @@ module moduli_generator
 
 .. autoclass:: moduli_generator.ModuliGenerator
     :members:
-    :private-members:
 
 .. automodule:: moduli_generator.config
     :members:
 
-.. autoclass:: moduli_generator.config.ModuliConfig
+.. automodule:: moduli_generator.changelog_generator
     :members:
-    :private_members:
+
+

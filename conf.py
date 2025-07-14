@@ -7,7 +7,6 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
-    'myst_parser',  # If you're using MyST markdown
     'sphinx_rtd_theme',  # If you're using the ReadTheDocs theme
 ]
 
@@ -22,5 +21,7 @@ exclude_patterns = [
 ]
 
 html_theme = 'sphinx_rtd_theme'
+
+copyright = '2024,2025 Ron Williams'
 
 release = get_version()

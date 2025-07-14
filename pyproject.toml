@@ -1,9 +1,17 @@
 [tool.poetry]
 name = "moduli_generator"
 version = "2.1.10"
-description = "Command Line Utility to build moduli for [/usr/local]/etc/ssh/moduli_file]"
+description = "Command Line Utility to build moduli for /usr/local/etc/ssh/moduli_file"
 authors = ["Ron Williams <becker.williams@gmail.com>"]
+license = "MIT"  # Add your actual license
 readme = "README.rst"
+keywords = ["cryptography", "ssh", "moduli", "security"]
+classifiers = [
+	"Development Status :: 5 - Production/Stable",
+	"Intended Audience :: System Administrators",
+	"Topic :: Security :: Cryptography",
+	"Programming Language :: Python :: 3.12",
+]
 packages = [
 	{ include = "moduli_generator" },
 	{ include = "db" }
@@ -12,29 +20,28 @@ include = [
 	"docs/**/*"
 ]
 exclude = [
-	"*.cnf"
+	"*.cnf"  # No Mariadb Configuration Files (Usually Contain Passwords)
 ]
 
 [tool.poetry.dependencies]
 python = "^3.12"
-poetry-core = "^2.1.3"
 mariadb = "^1.1.12"
 configparser = "^7.2.0"
 toml = "^0.10.2"
+poetry-core = "^2.1.3"
 
 [tool.poetry.group.dev.dependencies]
 sphinx = "^7.2.6"
 sphinxcontrib-jquery = "^4.1"
 sphinx-rtd-theme = "^3.0.2"
 
-
 [tool.poetry.scripts]
 moduli_generator = "moduli_generator.cli:main"
 build_docs = "moduli_generator.scripts.build_docs:main"
 db_moduli_stats = "db.scripts.moduli_stats:main"
-write_moduli = "moduli_generator.scripts.write_moduli:write_moduli_file"
+write_moduli = "moduli_generator.scripts.write_moduli:main"
 generate_changelog = "moduli_generator.scripts.changelog_generator:main"
-update_readme = "moduli_generator.scripts.update_readme:main"
+install_schema = "db.scripts.install_schema:main"
 
 [build-system]
 requires = ["poetry-core"]
@@ -42,6 +49,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.urls]
 Homepage = "https://github.com/beckerwilliams/moduli_generator"
-Documentation = "https://github.com/beckerwilliams/moduli_generator/README.rst"
+Documentation = "https://github.com/beckerwilliams/moduli_generator/blob/main/README.rst"
 Repository = "https://github.com/beckerwilliams/moduli_generator.git"
 Issues = "https://github.com/beckerwilliams/moduli_generator/issues"

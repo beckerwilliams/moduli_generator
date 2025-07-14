@@ -9,15 +9,7 @@ ssh2-moduli-generator (moduli_generator)
     :caption: Documentation:
 
     README
-    MODULI_GENERATOR_HELP
     CHANGELOG
-
-
-.. toctree::
-    :maxdepth: 2
-    :caption: Legal
-
-    LICENSE
 
 .. toctree::
     :maxdepth: 2
@@ -26,13 +18,20 @@ ssh2-moduli-generator (moduli_generator)
     MODULI_GENERATOR
     MODULI_DB
 
-
 .. toctree::
     :maxdepth: 2
     :caption: Contributing:
 
     .github/ISSUE_TEMPLATE/bug_report
     .github/ISSUE_TEMPLATE/feature_request
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Legal
+
+    COPYRIGHT
+    LICENSE
+
 
 ==================
 Indices and tables

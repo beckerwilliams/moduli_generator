@@ -31,6 +31,8 @@ def write_moduli_file(
             config.moduli_file = args.output_file
         if args.records_per_keylength is not None:
             config.records_per_keylength = args.records_per_keylength
+        if args.delete_records_on_moduli_write is not None:
+            config.delete_records_on_moduli_write = args.delete_records_on_moduli_write
 
     # Configure logging
     basicConfig(
@@ -45,11 +47,12 @@ def write_moduli_file(
     logger.debug(f'MariaDB Connector Initialized: {config}')
 
     # Get the records and save to the specified file
-    fresh_moduli = db.get_moduli(config.moduli_file)
+    fresh_moduli = db.get_and_write_moduli_file(config.moduli_file)
     if fresh_moduli:
         # Write Out Moduli File, Capture Moduli to Delete from DB
-        moduli_to_delete = db.write_record_to_file(fresh_moduli, config.moduli_file)
-        logger.info(f'{len(fresh_moduli) * config.records_per_keylength} Moduli Records written to {config.moduli_file}')
+        moduli_to_delete = db.write_moduli_file(fresh_moduli, config.moduli_file)
+        logger.info(
+            f'{len(fresh_moduli) * config.records_per_keylength} Moduli Records written to {config.moduli_file}')
         print(f'{len(fresh_moduli)} Moduli Records written to {config.moduli_file}')
 
         # Delete all records from db written to moduli file (tbd - decide when to remove)
@@ -67,22 +70,30 @@ if __name__ == "__main__":
     Entrypoint for the script. This function parses command-line arguments and calls the write_moduli_file function
     """
     parser = argparse.ArgumentParser(description='Generate moduli file from database')
-    parser.add_argument('--base-dir',
-                        type=str,
-                        default=None,
-                        help='Base directory for moduli generation and storage'
-                        )
-    parser.add_argument('--output-file',
-                        default=None,
-                        type=str,
-                        help='Path to output file (default: Path.home() / FRESH_MODULI_<COMPRESSED_DATE>.ssh-moduli2)'
-                        )
-
-    parser.add_argument('--records-per-keylength',
-                        type=int,
-                        default=2,  # We need 80 moduli per keylength for a robust /etc/ssh/moduli file
-                        help='Number of moduli per key-length to capture in each produced moduli file'
-                        )
+    parser.add_argument(
+        '--base-dir',
+        type=str,
+        default=None,
+        help='Base directory for moduli generation and storage'
+    )
+    parser.add_argument(
+        '--output-file',
+        default=None,
+        type=str,
+        help='Path to output file (default: Path.home() / FRESH_MODULI_<COMPRESSED_DATE>.ssh-moduli2)'
+    )
+    parser.add_argument(
+        '--records-per-keylength',
+        type=int,
+        default=2,  # We need 80 moduli per keylength for a robust /etc/ssh/moduli file
+        help='Number of moduli per key-length to capture in each produced moduli file'
+    )
+    parser.add_argument(
+        "--delete-records-on-moduli-write",
+        type=bool,
+        default=False,
+        help="Delete records from DB written to moduli file"
+    )
     args = parser.parse_args()
 
     exit(write_moduli_file(args))

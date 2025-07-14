@@ -3,11 +3,14 @@ import argparse
 from datetime import UTC, datetime
 from sys import exit
 
+# Import MariaDBConnector
 from db.moduli_db_utilities import MariaDBConnector
+
+# Import ModuliGenerator
 from moduli_generator import ModuliGenerator
+
 # Import the default configuration
 from moduli_generator.config import (default_config)
-from moduli_generator.scripts.write_moduli_file import write_moduli_file
 
 __all__ = ['cli']
 
@@ -135,17 +138,17 @@ def main():
     generator = ModuliGenerator(config)
     generated_files = generator.generate_moduli()
     logger.debug(f'Generated Moduli: {generated_files}')
-
-    # Save screened moduli as JSON dict
+    #
+    # # Save screened moduli as JSON dict
     generator.save_moduli()  # to
-    logger.debug(f'Moduli saved to {config.moduli_dir}')
+    logger.debug(f'Moduli saved to {config.base_dir}')
 
     # Store Screened Moduli in MariaDB
     generator.store_moduli(MariaDBConnector(config))  # To DB
     logger.info(f'Moduli stored in DB')
 
     # Create New Moduli File
-    write_moduli_file(config=config)
+    generator.write_moduli_file()
 
     # Stats and Cleanup
     duration = (datetime.now(UTC).replace(tzinfo=None) - start_time).seconds

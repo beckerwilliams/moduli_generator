@@ -10,16 +10,14 @@ from pathlib import PosixPath as Path
 from re import (compile, sub)
 from typing import Final
 
-from moduli_generator.version import get_version
-
-__all__ = ['get_version',
-           'ModuliConfig',
-           'default_config',
-           'ISO_UTC_TIMESTAMP',
-           'strip_punction_from_datetime_str',
-           'is_valid_identifier',
-           'DEFAULT_MARIADB'
-           ]
+__all__ = [
+    'get_version',
+    'ModuliConfig',
+    'default_config',
+    'ISO_UTC_TIMESTAMP',
+    'strip_punction_from_datetime_str',
+    'is_valid_identifier', 'DEFAULT_MARIADB'
+]
 
 # Moduli Generator Module's directory structure
 DEFAULT_DIR: Final[Path] = Path.home() / '.moduli_generator'
@@ -52,6 +50,7 @@ DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE: Final[bool] = False  # tbd - set to TRUE
 
 # Screened Moduli File Pattern
 DEFAULT_MODULI_FILENAME_PATTERN: Final[str] = r'moduli_????_*'
+DEFAULT_MODULI_PREFIX: Final[str] = f'ssh-moduli_'
 
 # The number of moduli per key-length to capture in each produced moduli file
 DEFAULT_MODULI_RECORDS_PER_KEYLENGTH: Final[int] = 20
@@ -84,6 +83,50 @@ DEFAULT_MODULI_FILE: Final[str] = f'ssh-moduli_{ISO_UTC_TIMESTAMP(compress=True)
 
 
 ##################################################################################
+
+def get_version() -> str:
+    """
+    Retrieves the version information of the project specified in the `pyproject.toml` file.
+
+    This function locates the `pyproject.toml` file in the project root directory and parses it
+    to get the project version from the `[tool.poetry]` section. If the file is not found
+    or the version information is missing, an appropriate error is raised. It requires the `toml`
+    package to be installed for parsing the `pyproject.toml` file.
+
+    :raises RuntimeError: If the `pyproject.toml` file is not found, if the version cannot be
+        retrieved from the `[tool.poetry]` section, or if the `toml` package is not installed.
+    :raises RuntimeError: For all other unexpected issues accessing or parsing the file.
+    :return: Project version string as defined in the `pyproject.toml` file.
+    :rtype: str
+    """
+    try:
+        import toml
+        from pathlib import Path
+
+        # Get the project root directory (assuming config.py is in moduli_generator/)
+        project_root = Path(__file__).parent.parent
+        pyproject_path = project_root / "pyproject.toml"
+
+        if not pyproject_path.exists():
+            raise RuntimeError("pyproject.toml file not found in project root.")
+
+        # Parse the TOML file
+        with open(pyproject_path, 'r') as f:
+            pyproject_data = toml.load(f)
+
+        # Extract version from the [tool.poetry] section
+        version = pyproject_data.get('tool', {}).get('poetry', {}).get('version')
+
+        if not version:
+            raise RuntimeError("Version not found in pyproject.toml [tool.poetry] section.")
+
+        return version
+
+    except ImportError:
+        raise RuntimeError("toml package is required to read pyproject.toml. Please install it with: pip install toml")
+    except Exception as e:
+        raise RuntimeError(f"Unable to read version from pyproject.toml: {str(e)}")
+
 
 # For Date Formats Sans Punctuation
 def strip_punction_from_datetime_str(timestamp: datetime) -> str:
@@ -224,9 +267,6 @@ class ModuliConfig:
         # Default log files
         self.log_file = self.log_dir / DEFAULT_LOG_FILE
 
-        # Default moduli output files
-        self.moduli_file = self.moduli_dir / DEFAULT_MODULI_FILE
-
         # Other defaults (For Generation and Screening, And Linking to Moduli File Constants Table (config_id)
         self.key_lengths = DEFAULT_KEY_LENGTHS
         self.generator_type = DEFAULT_GENERATOR_TYPE
@@ -244,6 +284,9 @@ class ModuliConfig:
         # Default Mariadb Configuration
         self.mariadb_cnf = self.base_dir / DEFAULT_MARIADB_CNF
         self.moduli_file_pattern = DEFAULT_MODULI_FILENAME_PATTERN
+
+        # Default moduli output files
+        self.moduli_file_pfx = DEFAULT_MODULI_PREFIX
 
         # Delete on successful Write Flag
         self.delete_records_on_moduli_write = DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE

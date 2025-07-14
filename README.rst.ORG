@@ -27,8 +27,8 @@ This program does that for you.
 Quick Start
 -----------
 
-Install
-~~~~~~~
+Development Install
+~~~~~~~~~~~~~~~~~~~
 
     Clone Repository
         Clone Repository
@@ -53,6 +53,7 @@ Install
 
     Operation
         Commmand Line
+
             ``poetry run moduli_generator``
 
                 - default run of all base moduli
@@ -98,7 +99,7 @@ Python Requirements
     - **sphinxcontrib-jquery** ^4.1
     - **sphinx-rtd-theme** ^3.0.2
 
-    All Python dependencies are managed through Poetry and will be installed automatically when you run ``poetry install``...
+    All Python dependencies are managed through Poetry and will be installed automatically when you run ``poetry install``.....
 
 
 
@@ -146,21 +147,7 @@ Database Integration
 SSH2 Moduli Generator now includes MariaDB integration for storing and retrieving moduli values. 
 This allows for persistent storage of generated moduli across sessions.
 
-Database Setup
-~~~~~~~~~~~~~~
 
-1. Configure the database connection in ``moduli_generator.cnf``
-2. The database automatically stores screened moduli values
-3. Timestamps are stored in compressed format (no punctuation or spaces)
-
-Retrieving Moduli from Database
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-When using the ``--write`` option, the generator will:
-
-- Verify sufficient records exist for each key size (minimum 80 per size)
-- Only create the moduli file if all sizes have enough entries
-- Randomly select entries from the database to create a balanced moduli file
 
 Technical Details
 -----------------
