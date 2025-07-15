@@ -1,7 +1,7 @@
-.. _database_integration
-
+====================
 Database Integration
-----
+====================
+
 
 **MariaDB Official** Installation, Configuration, and Administration Documentation
     `Maria DB Documentation <https://mariadb.com/docs/server>`_
@@ -18,7 +18,7 @@ Install Moduli Generator DB Schema
 3. Timestamps are stored in compressed format (no punctuation or spaces)
 
 Retrieving Moduli from Database
-~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When using the ``--write`` option, the generator will:
 

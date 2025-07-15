@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Changelog Generator for moduli_generator project
+Changelog Generator for the moduli_generator project
 
 This script generates a CHANGELOG.rst file from git commit history,
 organizing commits by date in reStructuredText format.
@@ -11,24 +11,72 @@ import subprocess
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-
 import toml
+
+
+def _categorize_commit(message):
+    """Categorize commit based on message content."""
+    message_lower = message.lower()
+
+    # Define categories and their keywords
+    categories = {
+        'Database Improvements': [
+            'database', 'db', 'mariadb', 'connector', 'sql', 'schema',
+            'transactional', 'parameterized'
+        ],
+        'Bug Fixes': [
+            'fix', 'fixed', 'bug', 'error', 'issue', 'correct'
+        ],
+        'Features': [
+            'add', 'added', 'new', 'feature', 'implement', 'create', 'created'
+        ],
+        'Refactoring': [
+            'refactor', 'refactored', 'restructure', 'reorganize', 'cleanup'
+        ],
+        'Documentation': [
+            'doc', 'documentation', 'readme', 'comment', 'docstring'
+        ],
+        'Configuration': [
+            'config', 'configuration', 'settings', 'default', 'constants'
+        ],
+        'Testing': [
+            'test', 'testing', 'tests', 'successful', 'complete'
+        ],
+        'Performance': [
+            'performance', 'optimize', 'speed', 'efficiency'
+        ],
+        'Security': [
+            'security', 'secure', 'vulnerability', 'auth'
+        ]
+    }
+
+    # Check for category keywords
+    for category, keywords in categories.items():
+        if any(keyword in message_lower for keyword in keywords):
+            return category
+
+    # Check for specific patterns
+    if 'checkpoint' in message_lower or 'milestone' in message_lower:
+        return 'Milestones'
+
+    if 'production' in message_lower or 'release' in message_lower:
+        return 'Releases'
+
+    return 'General'
 
 
 class ChangelogGenerator:
     """
-    Generates and handles changelog files for a project, utilizing git commit
-    history and project metadata.
+    Generates a detailed changelog based on git commit history and project metadata.
 
-    This class provides functionalities to parse and categorize git commits,
-    generate changelog content in reStructuredText (RST) format, and save it to a
-    file. It also incorporates basic project information such as version,
-    description, and authors from the project's configuration file.
+    The ChangelogGenerator class is designed to parse git commit logs, extract meaningful
+    information, categorize commits by their content, organize commits by date, and
+    generate a formatted changelog in reStructuredText (RST). Additionally, it provides
+    project-specific information if available in the `pyproject.toml`.
 
-    :ivar project_root: The root directory of the project where the changelog is to
-        be generated.
-    :type project_root: Path
-    :ivar project_info: Parsed project metadata from pyproject.toml.
+    :ivar project_root: The root directory of the project to be analyzed.
+    :type project_root: pathlib.Path
+    :ivar project_info: Metadata about the project extracted from `pyproject.toml`.
     :type project_info: dict
     """
 
@@ -60,7 +108,7 @@ class ChangelogGenerator:
     def _get_git_commits(self, max_commits=50):
         """Get git commit history with dates and messages."""
         try:
-            # Get commit log with format: hash|date|author|message
+            # Get a commit log with format: hash|date|author|message
             cmd = [
                 'git', 'log',
                 f'--max-count={max_commits}',
@@ -80,7 +128,8 @@ class ChangelogGenerator:
             print(f"Error getting git commits: {e}")
             return []
 
-    def _parse_commit_line(self, line):
+    @staticmethod
+    def _parse_commit_line(line):
         """Parse a single commit line into components."""
         try:
             parts = line.split('|', 3)
@@ -102,62 +151,13 @@ class ChangelogGenerator:
             print(f"Error parsing commit line '{line}': {e}")
             return None
 
-    def _categorize_commit(self, message):
-        """Categorize commit based on message content."""
-        message_lower = message.lower()
-
-        # Define categories and their keywords
-        categories = {
-            'Database Improvements': [
-                'database', 'db', 'mariadb', 'connector', 'sql', 'schema',
-                'transactional', 'parameterized'
-            ],
-            'Bug Fixes': [
-                'fix', 'fixed', 'bug', 'error', 'issue', 'correct'
-            ],
-            'Features': [
-                'add', 'added', 'new', 'feature', 'implement', 'create', 'created'
-            ],
-            'Refactoring': [
-                'refactor', 'refactored', 'restructure', 'reorganize', 'cleanup'
-            ],
-            'Documentation': [
-                'doc', 'documentation', 'readme', 'comment', 'docstring'
-            ],
-            'Configuration': [
-                'config', 'configuration', 'settings', 'default', 'constants'
-            ],
-            'Testing': [
-                'test', 'testing', 'tests', 'successful', 'complete'
-            ],
-            'Performance': [
-                'performance', 'optimize', 'speed', 'efficiency'
-            ],
-            'Security': [
-                'security', 'secure', 'vulnerability', 'auth'
-            ]
-        }
-
-        # Check for category keywords
-        for category, keywords in categories.items():
-            if any(keyword in message_lower for keyword in keywords):
-                return category
-
-        # Check for specific patterns
-        if 'checkpoint' in message_lower or 'milestone' in message_lower:
-            return 'Milestones'
-
-        if 'production' in message_lower or 'release' in message_lower:
-            return 'Releases'
-
-        return 'General'
-
-    def _format_commit_message(self, message):
+    @staticmethod
+    def _format_commit_message(message):
         """Format commit message for changelog."""
         # Remove common prefixes and clean up
         message = re.sub(r'^(feat|fix|docs|style|refactor|test|chore):\s*', '', message)
 
-        # Capitalize first letter
+        # Capitalize the first letter
         if message:
             message = message[0].upper() + message[1:]
 
@@ -166,7 +166,8 @@ class ChangelogGenerator:
 
         return message
 
-    def _group_commits_by_date(self, commits):
+    @staticmethod
+    def _group_commits_by_date(commits):
         """Group commits by date."""
         grouped = defaultdict(list)
 
@@ -179,13 +180,8 @@ class ChangelogGenerator:
 
     def _generate_rst_header(self):
         """Generate the RST header section."""
-        header = []
-        header.append("=========")
-        header.append("CHANGELOG")
-        header.append("=========")
-        header.append("")
-        header.append("This document tracks the changes made to the moduli_generator project.")
-        header.append("")
+        header = ["=========", "Changelog", "=========", "",
+                  "This document tracks the changes made to the moduli_generator project.", ""]
 
         # Add version info if available
         if self.project_info.get('version'):
@@ -197,7 +193,7 @@ class ChangelogGenerator:
         return header
 
     def _generate_date_section(self, date_str, commits):
-        """Generate RST section for a specific date."""
+        """Generate an RST section for a specific date."""
         section = []
 
         # Convert date string to readable format
@@ -211,7 +207,7 @@ class ChangelogGenerator:
         # Group commits by category
         categorized = defaultdict(list)
         for commit in commits:
-            category = self._categorize_commit(commit['message'])
+            category = _categorize_commit(commit['message'])
             categorized[category].append(commit)
 
         # Add commits by category
@@ -219,12 +215,12 @@ class ChangelogGenerator:
             category_commits = categorized[category]
 
             if len(category_commits) == 1:
-                # Single commit - format as bullet point with category
+                # Single commit - format as a bullet point with category
                 commit = category_commits[0]
                 formatted_msg = self._format_commit_message(commit['message'])
                 section.append(f"* **{category}**: {formatted_msg}")
             else:
-                # Multiple commits - create subsection
+                # Multiple commits - create a subsection
                 section.append(f"**{category}**:")
                 section.append("")
                 for commit in category_commits:
@@ -237,10 +233,7 @@ class ChangelogGenerator:
 
     def _generate_project_info_section(self):
         """Generate project information section."""
-        section = []
-        section.append("Project Information")
-        section.append("==================")
-        section.append("")
+        section = ["Project Information", "==================", ""]
 
         info = self.project_info
         if info.get('name'):
@@ -274,8 +267,7 @@ class ChangelogGenerator:
         specified output file. The changelog is formatted in reStructuredText (RST)
         format and includes grouped commit entries by date in descending order.
 
-        :param output_file: The name of the output changelog file with default
-            value "CHANGELOG.rst".
+        :param output_file: The name of the output changelog file with the default value "CHANGELOG.rst".
         :type output_file: str, optional
         :param max_commits: The maximum number of recent commits to include in the
             changelog, with a default value of 50.
@@ -319,10 +311,10 @@ class ChangelogGenerator:
             date_commits = grouped_commits[date_str]
             changelog_lines.extend(self._generate_date_section(date_str, date_commits))
 
-        # Add project info section
+        # Add the project info section
         changelog_lines.extend(self._generate_project_info_section())
 
-        # Write to file
+        # Write to a file
         output_path = self.project_root / output_file
         try:
             with open(output_path, 'w', encoding='utf-8') as f:

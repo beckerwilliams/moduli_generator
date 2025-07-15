@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import PosixPath as Path
 
 
 extensions = [
@@ -21,8 +22,6 @@ exclude_patterns = [
 
 html_theme = 'sphinx_rtd_theme'
 
-copyright = '2024,2025 Ron Williams'
+copyright = '2024,2025 Ronald Williams General Partner, Becker Williams General Partnership'
 
-release = (Path('config') / '__version__.py').read_text().strip()
-
-version = release
+version = (Path('config') / '__version__.py').read_text().strip()

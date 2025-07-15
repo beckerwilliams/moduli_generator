@@ -1,3 +1,4 @@
+from sys import exit
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -225,4 +226,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    exit(main())

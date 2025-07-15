@@ -31,7 +31,7 @@ Tasks
     - Prepare and locate mysql.cnf (moduli_generator.cnf)
 
 Install Poetry Application
-~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
@@ -40,7 +40,7 @@ Install Poetry Application
     Freebsd: FreshPorts: portmaster -y --no-confirm devel/py-poetry
 
 Clone Repository
-~~~~
+~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
@@ -61,7 +61,7 @@ Clone Repository
 
 
 Create Python Virtual Envionrment
-~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. code-block:: bash
 
     cd moduli_generator
@@ -108,7 +108,7 @@ Create Python Virtual Envionrment
         Installing the current project: moduli_generator (2.1.10)
 
 Test Core Access
-~~~~
+~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
@@ -145,7 +145,7 @@ Test Core Access
                                     Delete records from DB written to moduli file (default: False)
 
 Quick Start
-----
+-----------
 
 
 
@@ -160,7 +160,7 @@ The package provides several command-line utilities:
 - ``install_schema`` - Install database schema
 
 Basic usage
-~~~~
+~~~~~~~~~~~
 
 Default Run includes keysizes 3072, 4096,  6144, 7680, and 8192.
 Will produce enough moduli for ONE complete Moduli File (about 20 moduli/keysize)
@@ -174,18 +174,11 @@ It will take 5-7 days on a 4-core i7.
     # Is Equivalent to
     python -m moduli_generator.cli --key-sizes 3072 4096  6144 7680 8192
 
-**Specify database connection file (moduli_generator.cnf)**
+**With database connection file (moduli_generator.cnf)**
 
 .. code-block:: bash
 
     python -m moduli_generator.cli --config <path to your mysql.cnf>
-
-
-**With configuration file:**
-
-.. code-block:: bash
-
-    python -m moduli_generator --config /path/to/moduli_generator.cnf
 
 **View statistics**
 
@@ -202,7 +195,7 @@ It will take 5-7 days on a 4-core i7.
         {3071: 419, 4095: 191, 6143: 148, 7679: 58, 8191: 44}
 
 MariaDB Configuration
--------------
+---------------------
 
 To install MariaDB for your site, see:
     `Official MariaDB Installation Guide <https://mariadb.com/docs/server/mariadb-quickstart-guides/installing-mariadb-server-guide>`_
@@ -212,27 +205,39 @@ To install MariaDB for your site, see:
 The *moduli_generator* installs a schema in a database named *moduli_db* having three tables, *moduli*, *moduli_view*, and *mod_fl_consts*
 user should have full access to 'moduli_db'.'moduli', 'moduli_db'.'moduli_view'
 
-The tool uses a configuration file (``moduli_generator.cnf``) to customize generation parameters.
-A sample configuration file is provided as ``SAMPLE_moduli_generator.cnf``.
+The tool uses a configuration file (``moduli_generator.cnf``) to customize mysql|mariadb connection parameters.
 
 The default location for your moduli_generator.cnf is the configuration directory (default: ~/.moduli_generator)
 
+**Sample Mysql CNF**
+
+- Replace <HOSTNAME> with your db's hostname
+- Replace <PASSWORD> with the password for `'moduli_generator'@'%'`
+
+.. code-block:: bash
+
+    # This group is read both by the client and the server
+    # use it for options that affect everything, see
+    # https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#option-groups
+    #
+    [client]
+    host     = <HOSTNAME>
+    port     = 3306
+    socket   = /var/run/mysql/mysql.sock
+    password = <PASSWORD>
+    user     = moduli_generator
+    database = moduli_db
+    ssl      = true
+
+
+
 
 .. tbd - Need to output the Sample
+
 Database Integration
 --------------------
 
 The tool supports MariaDB for storing and managing moduli. Use the ``install_schema`` command to set up the database schema.
-
-Documentation
--------------
-
-Full documentation is available in the ``docs/`` directory and includes:
-
-- API Reference
-- Database Integration Guide
-- Changelog Generator Documentation
-- Contributing Guidelines
 
 Development
 -----------

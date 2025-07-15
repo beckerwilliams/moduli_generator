@@ -75,43 +75,50 @@ def get_mysql_config_value(cnf: Dict[str, Dict[str, str]],
 
 class MariaDBConnector:
     """
-    Handles MariaDB connection pooling, SQL execution, and transaction management.
+    Provides a connection pool and management functions for interacting with a MariaDB database.
 
-    Provides functionality for managing database connections, executing SQL queries,
-    and working with transactions efficiently. This class supports a pool of database
-    connections for better performance and reliability. Safeguards database operations
-    by handling connection acquisition, query execution, and proper resource cleanup.
+    This class wraps around the MariaDB connection pooling mechanism to offer efficient,
+    manageable access to database connections. It includes context managers for safe and
+    atomic database operations, as well as utility methods for executing queries and managing
+    transactions.
 
     :ivar mariadb_cnf: Path to the MariaDB configuration file.
     :type mariadb_cnf: str
-    :ivar db_name: The name of the database to operate on.
+    :ivar db_name: Name of the target database for operations.
     :type db_name: str
-    :ivar table_name: The name of the database table for inserts or operations.
+    :ivar base_dir: The base directory for storing files or logs.
+    :type base_dir: str
+    :ivar moduli_file_pfx: Prefix for generated file names related to database moduli operations.
+    :type moduli_file_pfx: str
+    :ivar table_name: Name of the table used for database operations.
     :type table_name: str
-    :ivar view_name: The name of the view (if applicable) for operations.
+    :ivar view_name: Name of the view related to database queries.
     :type view_name: str
-    :ivar config_id: Identifier tied to configuration for stored records.
+    :ivar config_id: Identifier representing a specific configuration instance.
     :type config_id: str
-    :ivar key_lengths: List of key sizes to operate or validate against.
+    :ivar key_lengths: List of key lengths used for cryptographic or operational purposes.
     :type key_lengths: List[int]
-    :ivar records_per_keylength: Count of records per key size.
+    :ivar records_per_keylength: Number of records tied to each key length.
     :type records_per_keylength: int
-    :ivar delete_records_on_moduli_write: Whether to delete existing records
-        when writing new moduli.
+    :ivar moduli_file: Path to the file storing database moduli information.
+    :type moduli_file: Path
+    :ivar delete_records_on_moduli_write: Boolean flag to remove records after writing to the file.
     :type delete_records_on_moduli_write: bool
-    :ivar delete_records_on_read: Whether to delete records from the database
-        once they are read.
+    :ivar delete_records_on_read: Boolean flag to remove records after they are read from the database.
     :type delete_records_on_read: bool
+    :ivar logger: Logger instance for managing log output for the module.
+    :type logger: Logger
     """
 
     def __enter__(self):
         """
-        This method is a special dunder method that is part of Python's context management protocol.
-        It is invoked when the runtime enters the context of a `with` statement. This method should be
-        used to establish any resource or setup actions required for the context.
+        Context manager entry method. When the managed context is entered,
+        this method is called to return the resource or object to be used
+        within the context.
 
-        :return: Returns an instance of the class, permitting use as a context manager.
-        :rtype: object
+        :return: The object or resource that should be used within the managed
+            context.
+        :rtype: The same type as the class implementing this method.
         """
         return self
 
@@ -402,6 +409,39 @@ class MariaDBConnector:
             self.logger.error(f"Error executing batch queries: {err}")
             raise RuntimeError(f"Batch query execution failed: {err}")
 
+    def _add_without_transaction(self, connection, timestamp: int, key_size: int, modulus: str) -> int:
+        """
+        Inserts a new record into the database table without wrapping the operation
+        in a transaction. This method directly interacts with the database cursor
+        to execute an INSERT statement for storing the provided data.
+
+        :param timestamp: The timestamp for the record being inserted.
+        :type timestamp: int
+        :param key_size: The size of the cryptographic key in bits.
+        :type key_size: int
+        :param modulus: The cryptographic modulus as a string.
+        :type modulus: str
+        :return: The last inserted ID of the record.
+        :rtype: int
+        :raises Error: If there is an issue during the database operation.
+        """
+        # Validate identifiers
+        if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.table_name)):
+            self.logger.error("Invalid database or table name")
+            return 0
+
+        try:
+            with connection.cursor() as cursor:
+                query = f"""INSERT INTO {self.db_name}.{self.table_name} 
+                           (timestamp, config_id, size, modulus) VALUES (?, ?, ?, ?)"""
+                cursor.execute(query, (timestamp, self.config_id, key_size, modulus))
+                last_id = cursor.lastrowid
+                self.logger.info(f'Successfully added {key_size} bit modulus')
+                return last_id
+        except Error as err:
+            self.logger.error(f"Error inserting candidate: {err}")
+            raise  # Re-raise to let transaction context manager handle rollback
+
     def add(self, timestamp: int, key_size: int, modulus: str) -> int:
         """
         Inserts a record into a specified database table. The record includes details such
@@ -540,39 +580,6 @@ class MariaDBConnector:
         except Error as err:
             self.logger.error(f"Error storing moduli: {err}")
             return 1
-
-    def _add_without_transaction(self, connection, timestamp: int, key_size: int, modulus: str) -> int:
-        """
-        Inserts a new record into the database table without wrapping the operation
-        in a transaction. This method directly interacts with the database cursor
-        to execute an INSERT statement for storing the provided data.
-
-        :param timestamp: The timestamp for the record being inserted.
-        :type timestamp: int
-        :param key_size: The size of the cryptographic key in bits.
-        :type key_size: int
-        :param modulus: The cryptographic modulus as a string.
-        :type modulus: str
-        :return: The last inserted ID of the record.
-        :rtype: int
-        :raises Error: If there is an issue during the database operation.
-        """
-        # Validate identifiers
-        if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.table_name)):
-            self.logger.error("Invalid database or table name")
-            return 0
-
-        try:
-            with connection.cursor() as cursor:
-                query = f"""INSERT INTO {self.db_name}.{self.table_name} 
-                           (timestamp, config_id, size, modulus) VALUES (?, ?, ?, ?)"""
-                cursor.execute(query, (timestamp, self.config_id, key_size, modulus))
-                last_id = cursor.lastrowid
-                self.logger.info(f'Successfully added {key_size} bit modulus')
-                return last_id
-        except Error as err:
-            self.logger.error(f"Error inserting candidate: {err}")
-            raise  # Re-raise to let transaction context manager handle rollback
 
     def get_and_write_moduli_file(self, output_file: Path = None) -> Dict[int, list]:
         """

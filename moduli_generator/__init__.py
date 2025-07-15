@@ -5,7 +5,7 @@ from json import dump
 from pathlib import PosixPath as Path
 from typing import (Any, Dict, List)
 
-from mariadb import Error
+from mariadb import (Error, mariadb)
 
 from config import (ISO_UTC_TIMESTAMP, default_config)
 from db.moduli_db_utilities import MariaDBConnector
@@ -68,12 +68,20 @@ class ModuliGenerator:
             ]:
                 self.logger.info(f'Using {path_name}: {path_obj}')
 
-        # Store config for lazy DB initialization instead of creating connection here
+        # Store config for lazy DB initialization instead of creating a connection here
         self._db = None
 
     @property
     def db(self):
-        """Lazy initialization of database connection."""
+        """
+        Lazy initialization of the database connection property.
+
+        This property ensures that the database connection is initialized only once,
+        upon first access, and then reused for subsequent operations.
+
+        :return: Initialized database connection object.
+        :rtype: MariaDBConnector
+        """
         if self._db is None:
             self._db = MariaDBConnector(self.config)
         return self._db
@@ -81,13 +89,13 @@ class ModuliGenerator:
     @property
     def __version__(self):
         """
-        Provides an accessor for the version of the object.
+        Represents the version property of a class that retrieves
+        the version information of the instance.
 
-        The **__version__.py** property allows retrieval of the current version or
-        state of an object. The value returned by this property is generally
-        used for keeping track of versioning or specific configurations.
+        This property is read-only and provides access to the internal
+        `version` attribute of the class instance.
 
-        :return: The version attribute of the object.
+        :return: Current version of the instance.
         :rtype: str
         """
         return self.version
@@ -95,7 +103,17 @@ class ModuliGenerator:
     @staticmethod
     def _generate_candidates_static(config, key_length: int) -> Path:
         """
-        Static method for generating candidates - can be pickled for multiprocessing.
+        Generates candidate key files for the given key length and configuration using the
+        `ssh-keygen` tool. This method works as a utility function to create files with
+        potential cryptographic moduli that can be further processed.
+
+        :param config: Configuration object containing relevant directories and settings
+        :type config: Any
+        :param key_length: Key length (in bits) for generating candidate moduli
+        :type key_length: int
+        :return: Path to the generated candidate file
+        :rtype: Path
+        :raises subprocess.CalledProcessError: If the `ssh-keygen` subprocess fails
         """
         candidates_file = config.candidates_dir / f'candidates_{key_length}_{ISO_UTC_TIMESTAMP(compress=True)}'
 
@@ -117,7 +135,18 @@ class ModuliGenerator:
     @staticmethod
     def _screen_candidates_static(config, candidates_file: Path) -> Path:
         """
-        Static method for screening candidates - can be pickled for multiprocessing.
+        Screen candidate moduli files using provided configuration and the `ssh-keygen` tool. This method runs the
+        `ssh-keygen` command with the appropriate options and parameters for screening, cleans up the used candidate
+        files, and returns the path to the newly screened file. It uses the `nice` command to adjust process
+        priority and performs the screening process in place.
+
+        :param config: Configuration object containing the required attributes for file directories, generator type,
+                       and other parameters required in the screening process.
+        :type config: Any
+        :param candidates_file: Path to the moduli candidate file that will be screened.
+        :type candidates_file: Path
+        :return: Path to the screened moduli file created in the process.
+        :rtype: Path
         """
         screened_file = config.moduli_dir / f'{candidates_file.name.replace('candidates', 'moduli')}'
 
@@ -144,21 +173,17 @@ class ModuliGenerator:
 
     def _generate_candidates(self, key_length: int) -> Path:
         """
-        internally generates cryptographic key candidates of a specified bit length
-        and stores them in a designated file.
+        Generates candidate cryptographic keys of a specified length.
 
-        This function executes the `ssh-keygen` command with the required arguments
-        to generate modular exponentiation candidates for cryptographic usage. The
-        resulting candidates are saved to a file in the designated directory defined
-        in the configuration. Any exceptions raised during command execution are
-        logged and re-raised for handling by the caller.
+        This method internally uses a static method to generate candidate keys
+        based on the provided key length and configuration. Logs the result of
+        the operation and handles subprocess errors.
 
-        :param key_length: The bit length of the cryptographic key to be generated.
+        :param key_length: Length of the key in bits to be generated.
         :type key_length: int
-        :return: A path object pointing to the file containing key candidates.
+        :return: Path to the generated candidate keys.
         :rtype: Path
-        :raises subprocess.CalledProcessError: If the `ssh-keygen` command fails to
-            execute successfully.
+        :raises subprocess.CalledProcessError: If the candidate generation fails.
         """
         try:
             result = self._generate_candidates_static(self.config, key_length)
@@ -170,13 +195,15 @@ class ModuliGenerator:
 
     def _screen_candidates(self, candidates_file: Path) -> Path:
         """
-        Screens the given moduli candidate file by using the `ssh-keygen` command and processes it into a
-        screened moduli file. The method also performs cleanup by removing the original candidate file
-        after successful screening.
+        Screens the provided candidates file by applying a static screening process defined in the configuration.
 
-        :param candidates_file: The path to the file containing moduli candidates that need to be screened.
+        The method attempts to process the given candidates file using a static screening function.
+        If the process executes successfully, the screened result is logged and returned.
+        In case of failure, the error is logged and re-raised for further handling.
+
+        :param candidates_file: Path to the file containing the moduli candidates to be screened.
         :type candidates_file: Path
-        :return: The path to the screened moduli file generated after processing.
+        :return: Path to the screened candidates file.
         :rtype: Path
         """
         try:
@@ -189,15 +216,15 @@ class ModuliGenerator:
 
     def _parse_moduli_files(self) -> Dict[str, List[Dict[str, Any]]]:
         """
-        Parses moduli files to extract relevant data and structures it into a dictionary.
-        This method processes each line of a moduli file, skipping comments and blank
-        lines. It extracts specific fields and organizes them into dictionaries,
-        grouped under the 'screened_moduli' key.
+        Parses the moduli files to extract specific data entries and formats them
+        into a dictionary structure for further processing. This method iterates
+        over a set of screened files, reads their contents line by line, and
+        extracts information about timestamp, key size, and modulus if the line
+        meets specific criteria.
 
-        :raises FileNotFoundError: If a moduli file is not found during processing.
-
-        :return: A dictionary where the key is 'screened_moduli' and the value is a list
-            of dictionaries containing parsed moduli entries.
+        :return: A dictionary with parsed moduli data under the key
+                 'screened_moduli'. Each entry is a dictionary containing
+                 'timestamp', 'key-size', and 'modulus'.
         :rtype: Dict[str, List[Dict[str, Any]]]
         """
 
@@ -232,33 +259,28 @@ class ModuliGenerator:
 
     def _list_moduli_files(self):
         """
-        Retrieves a list of files matching the specified pattern from the configured directory.
+        Lists all moduli files based on the configured moduli directory and file
+        pattern.
 
-        This method searches within the directory defined in the `moduli_dir` configuration
-        attribute for files that match the pattern defined in the `moduli_file_pattern` attribute.
-        Returns them as a list of Path objects.
+        This function retrieves and returns a list of all files in the
+        configured moduli directory that match the specified file pattern.
 
-        :return: A list of Path objects representing the files matching the specified pattern.
-        :rtype: List[pathlib.Path]
+        :return: List of matching moduli files
+        :rtype: list[Path]
         """
         return list(self.config.moduli_dir.glob(self.config.moduli_file_pattern))
 
     def generate_moduli(self) -> Dict[int, List[Path]]:
         """
-        Generates moduli files grouped by key lengths specified in the configuration.
+        Generates and screens Diffie-Hellman moduli files for specified key lengths.
 
-        This method performs the generation of moduli through several key steps:
-        1. It first generates candidate files for each key length defined in the configuration
-           by utilizing parallel processing.
-        2. The candidate files are then screened and organized by key length using additional
-           parallel processing.
-        3. Generated moduli files for each key length are stored and returned as a dictionary.
+        The method first generates candidate files for Diffie-Hellman moduli in parallel
+        using a process pool. Next, it screens these candidates to produce final moduli
+        files. Generated moduli are organized by key lengths. The candidate and moduli
+        generations are logged for debugging purposes.
 
-        The method uses a `ProcessPoolExecutor` to ensure efficient parallel processing
-        of both candidate generation and candidate screening.
-
-        :return: Returns the current instance of the object for method chaining.
-        :rtype: Dict[int, List[Path]]
+        :return: self
+        :rtype: ModuliGenerator
         """
         generated_moduli = {}
 
@@ -305,8 +327,8 @@ class ModuliGenerator:
         :param moduli_file_dir: Directory where the moduli JSON file should be saved. If not specified,
                                 the default base directory from the configuration is used.
         :type moduli_file_dir: Path, optional
-        :return: Returns the current instance of the object for method chaining.
-        :rtype: self
+        :return: self
+        :rtype: ModuliGenerator
         """
         if not moduli_file_dir:
             moduli_file_dir = self.config.base_dir
@@ -322,12 +344,12 @@ class ModuliGenerator:
 
     def store_moduli(self):
         """
-        Parse, validate, and store screened moduli into the database, and manage their source
+        Parse, validate, and store screened moduli into the database and manage their source
         files once the operation is successful. This function ensures that the moduli records
         are stored transactionally. After successful storage, the source files are deleted.
 
-        :return: The instance of the object to facilitate method chaining
-        :rtype: object
+        :return: self
+        :rtype: ModuliGenerator
         """
         screened_moduli = self._parse_moduli_files()
 
@@ -354,8 +376,8 @@ class ModuliGenerator:
         database and then writes it to the appropriate location using
         the database interface.
 
-        :return: The instance of the class.
-        :rtype: self
+        :return: self
+        :rtype: ModuliGenerator
         """
         self.db.get_and_write_moduli_file()
 
