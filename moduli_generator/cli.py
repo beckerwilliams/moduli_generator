@@ -10,7 +10,7 @@ from db.moduli_db_utilities import MariaDBConnector
 from moduli_generator import ModuliGenerator
 
 # Import the default configuration
-from moduli_generator.config import (default_config)
+from config import (default_config)
 
 __all__ = ['cli']
 
@@ -66,7 +66,7 @@ def parse_args():
     parser.add_argument(
         "--mariadb-cnf",
         type=str,
-        default=str(default_config.moduli_generator_config.relative_to(default_config.base_dir)),
+        default=str(default_config.mariadb_cnf.relative_to(default_config.base_dir)),
         help="Path to MariaDB configuration file (relative to moduli-home)"
     )
     # Add a nice_value argument that might be missing
@@ -132,23 +132,10 @@ def main():
     config.nice_value = args.nice_value
     logger.debug(f'Nice Value: {config.nice_value}')
 
-    # Generate moduli
+    # Generate, Screen, Store, and Write Moduli File
     start_time = datetime.now(UTC).replace(tzinfo=None)
     logger.info(f'Starting Moduli Generation at {start_time}')
-    generator = ModuliGenerator(config)
-    generated_files = generator.generate_moduli()
-    logger.debug(f'Generated Moduli: {generated_files}')
-    #
-    # # Save screened moduli as JSON dict
-    generator.save_moduli()  # to
-    logger.debug(f'Moduli saved to {config.base_dir}')
-
-    # Store Screened Moduli in MariaDB
-    generator.store_moduli(MariaDBConnector(config))  # To DB
-    logger.info(f'Moduli stored in DB')
-
-    # Create New Moduli File
-    generator.write_moduli_file()
+    ModuliGenerator(config).generate_moduli().store_moduli().write_moduli_file()
 
     # Stats and Cleanup
     duration = (datetime.now(UTC).replace(tzinfo=None) - start_time).seconds

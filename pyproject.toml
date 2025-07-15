@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "moduli_generator"
-version = "2.1.10"
+version = "2.1.12"
 description = "Command Line Utility to build moduli for /usr/local/etc/ssh/moduli_file"
 authors = ["Ron Williams <becker.williams@gmail.com>"]
 license = "MIT"  # Add your actual license
@@ -13,8 +13,9 @@ classifiers = [
 	"Programming Language :: Python :: 3.12",
 ]
 packages = [
-	{ include = "moduli_generator" },
-	{ include = "db" }
+	{ include = "config" },
+	{ include = "db" },
+	{ include = "moduli_generator" }
 ]
 include = [
 	"docs/**/*"

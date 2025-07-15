@@ -1,7 +1,6 @@
 import os
 import sys
 
-from moduli_generator.version import get_version
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -24,4 +23,6 @@ html_theme = 'sphinx_rtd_theme'
 
 copyright = '2024,2025 Ron Williams'
 
-release = get_version()
+release = (Path('config') / '__version__.py').read_text().strip()
+
+version = release

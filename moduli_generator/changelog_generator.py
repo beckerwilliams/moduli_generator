@@ -6,11 +6,12 @@ This script generates a CHANGELOG.rst file from git commit history,
 organizing commits by date in reStructuredText format.
 """
 
-import subprocess
 import re
-from datetime import datetime
+import subprocess
 from collections import defaultdict
+from datetime import datetime
 from pathlib import Path
+
 import toml
 
 
@@ -30,6 +31,7 @@ class ChangelogGenerator:
     :ivar project_info: Parsed project metadata from pyproject.toml.
     :type project_info: dict
     """
+
     def __init__(self, project_root=None):
         """
         Initializes the class with a given project root directory and loads related
@@ -190,6 +192,7 @@ class ChangelogGenerator:
             header.append(f"Version {self.project_info['version']}")
             header.append("=" * (8 + len(self.project_info['version'])))
             header.append("")
+            (Path.cwd() / 'config' / '__version__.py').write_text(f"version = '{self.project_info['version']}'\n")
 
         return header
 

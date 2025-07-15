@@ -1,9 +1,9 @@
 from argparse import ArgumentParser
 from pathlib import Path
 
-from db.scripts.db_schema_for_named_db import get_moduli_generator_schema_statements
+from config import DEFAULT_MARIADB
 from db.moduli_db_utilities import (Error, MariaDBConnector, default_config)
-from moduli_generator.config import DEFAULT_MARIADB
+from db.scripts.db_schema_for_named_db import get_moduli_generator_schema_statements
 
 
 class InstallSchema(object):

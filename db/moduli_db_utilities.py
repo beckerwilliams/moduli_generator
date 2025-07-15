@@ -11,8 +11,7 @@ from typing import (
 
 from mariadb import (ConnectionPool, Error)  # Add this import
 
-from moduli_generator import ISO_UTC_TIMESTAMP
-from moduli_generator.config import (ModuliConfig, default_config, is_valid_identifier)
+from config import (DEFAULT_KEY_LENGTHS, ISO_UTC_TIMESTAMP, ModuliConfig, default_config, is_valid_identifier)
 
 
 def parse_mysql_config(mysql_cnf: str) -> Dict[str, Dict[str, str]]:
@@ -614,7 +613,7 @@ class MariaDBConnector:
         try:
             with self.get_connection() as connection:
                 with connection.cursor(dictionary=True) as cursor:
-                    for size in self.key_lengths:
+                    for size in DEFAULT_KEY_LENGTHS:  # We want UNIQUE Key Lengths, Not all the ones used to invoke cli
                         query = f"""
                                 SELECT timestamp, type, tests, trials, size, generator, modulus
                                 FROM {self.db_name}.{self.view_name}
@@ -652,7 +651,7 @@ class MariaDBConnector:
             with self.file_writer(output_file.resolve()) as ssh_moduli_file:
                 ssh_moduli_file.writelines(moduli_hdr)
                 ssh_moduli_file.writelines(moduli_to_write)
-            self.logger.info(f"Successfully created moduli file with {self.records_per_keylength} records per key size")
+        self.logger.info(f"Successfully wrote moduli to file: {output_file}")
 
     def stats(self) -> Dict[str, str]:
         """
