@@ -5,7 +5,7 @@ from json import dump
 from pathlib import PosixPath as Path
 from typing import (Any, Dict, List)
 
-from mariadb import (Error, mariadb)
+from mariadb import (Error)
 
 from config import (ISO_UTC_TIMESTAMP, default_config)
 from db.moduli_db_utilities import MariaDBConnector
@@ -116,20 +116,40 @@ class ModuliGenerator:
         :raises subprocess.CalledProcessError: If the `ssh-keygen` subprocess fails
         """
         candidates_file = config.candidates_dir / f'candidates_{key_length}_{ISO_UTC_TIMESTAMP(compress=True)}'
+        logger = config.get_logger()
 
         try:
             # Generate moduli candidates with new ssh-keygen syntax
-            subprocess.run([
+            result = subprocess.run([
                 'nice', '-n', str(config.nice_value),
                 'ssh-keygen',
                 '-M', 'generate',
                 '-O', f'bits={key_length}',  # Specify the bit length
                 str(candidates_file)  # Output a file specification
-            ], check=True)
+            ], check=True, capture_output=True, text=True)
+
+            # Log the output line by line
+            if result.stdout:
+                for line in result.stdout.strip().splitlines():
+                    if line.strip():  # Only log non-empty lines
+                        logger.info(f'ssh-keygen:generate:stdout: {line.strip()}')
+            if result.stderr:
+                for line in result.stderr.strip().splitlines():
+                    if line.strip():  # Only log non-empty lines
+                        logger.debug(f'ssh-keygen:generate:stderr: {line.strip()}')
 
             return candidates_file
 
         except subprocess.CalledProcessError as err:
+            # Log the error output line by line
+            if err.stdout:
+                for line in err.stdout.strip().splitlines():
+                    if line.strip():  # Only log non-empty lines
+                        logger.error(f'ssh-keygen:generate:failed:stdout: {line.strip()}')
+            if err.stderr:
+                for line in err.stderr.strip().splitlines():
+                    if line.strip():  # Only log non-empty lines
+                        logger.error(f'ssh-keygen:generate:failed:stderr: {line.strip()}')
             raise err
 
     @staticmethod
@@ -149,11 +169,12 @@ class ModuliGenerator:
         :rtype: Path
         """
         screened_file = config.moduli_dir / f'{candidates_file.name.replace('candidates', 'moduli')}'
+        logger = config.get_logger()
 
         try:
             # Screen candidates with new ssh-keygen syntax
             checkpoint_file = config.candidates_dir / f".{candidates_file.name}"
-            subprocess.run([
+            result = subprocess.run([
                 'nice', '-n', str(config.nice_value),
                 'ssh-keygen',
                 '-M', 'screen',
@@ -161,15 +182,34 @@ class ModuliGenerator:
                 '-O', f'checkpoint={str(checkpoint_file)}',
                 '-f', str(candidates_file),
                 str(screened_file)
-            ], check=True)
+            ], check=True, capture_output=True, text=True)
+
+            # Log the output line by line
+            if result.stdout:
+                for line in result.stdout.strip().splitlines():
+                    if line.strip():  # Only log non-empty lines
+                        logger.info(f'ssh-keygen:screen:stdout: {line.strip()}')
+            if result.stderr:
+                for line in result.stderr.strip().splitlines():
+                    if line.strip():  # Only log non-empty lines
+                        logger.debug(f'ssh-keygen:screen:stderr: {line.strip()}')
 
             # Cleanup used Moduli Candidates
             candidates_file.unlink()  # Cleanup Used Candidate File
 
             return screened_file
 
-        except subprocess.CalledProcessError as e:
-            raise e
+        except subprocess.CalledProcessError as err:
+            # Log the error output line by line
+            if err.stdout:
+                for line in err.stdout.strip().splitlines():
+                    if line.strip():  # Only log non-empty lines
+                        logger.error(f'ssh-keygen:screen:failed:stdout: {line.strip()}')
+            if err.stderr:
+                for line in err.stderr.strip().splitlines():
+                    if line.strip():  # Only log non-empty lines
+                        logger.error(f'ssh-keygen:screen:failed:stderr: {line.strip()}')
+            raise err
 
     def _generate_candidates(self, key_length: int) -> Path:
         """
@@ -229,7 +269,7 @@ class ModuliGenerator:
         """
 
         screened_files = self._list_moduli_files()
-        moduli_json = {}
+        screened_moduli = {}
 
         for file in screened_files:
             try:
@@ -250,12 +290,12 @@ class ModuliGenerator:
                                 'modulus': parts[6]  # MODULUS
                             }
 
-                            moduli_json.setdefault('screened_moduli', []).append(moduli_entry)
+                            screened_moduli.setdefault('screened_moduli', []).append(moduli_entry)
 
             except FileNotFoundError:
                 self.logger.warning(f'Moduli file not found: {file}')
 
-        return moduli_json
+        return screened_moduli
 
     def _list_moduli_files(self):
         """
@@ -298,8 +338,8 @@ class ModuliGenerator:
                 if length not in candidates_by_length:
                     candidates_by_length[length] = []
                 candidates_by_length[length].append(candidate_file)
-            self.logger.debug(f'Generated {len(candidates_by_length)} candidate files. " + '
-                              f'"key-lengths: {self.config.key_lengths}')
+            self.logger.debug(
+                f'Generated {len(candidates_by_length)} candidate files for key-lengths: {self.config.key_lengths}')
 
             # Then screen candidates
             screening_futures = []

@@ -17,8 +17,14 @@ __all__ = [
     'default_config',
     'ISO_UTC_TIMESTAMP',
     'strip_punction_from_datetime_str',
-    'is_valid_identifier', 'DEFAULT_MARIADB'
+    'is_valid_identifier',
+    'DEFAULT_MARIADB',
+    'DEFAULT_MARIADB_CNF',
+    'TEST_MARIADB'
 ]
+
+# TEST PARAMETERS
+TEST_MARIADB: Final[str] = 'test_moduli_db'
 
 # Moduli Generator Module's directory structure
 DEFAULT_DIR: Final[Path] = Path.home() / '.moduli_generator'
@@ -275,9 +281,9 @@ class ModuliConfig:
             Path(self.base_dir).mkdir(parents=True, exist_ok=True)
         if not (self.base_dir / DEFAULT_LOG_DIR).exists():
             Path(self.base_dir / DEFAULT_LOG_DIR).mkdir(parents=True, exist_ok=True)
-        if not self.mariadb_cnf.exists():
-            mysql_cnf = Path(self.mariadb_cnf).read_text()
-            Path(self.mariadb_cnf).write_text(mysql_cnf)
+        # if not self.mariadb_cnf.exists():
+        #     mysql_cnf = Path(self.mariadb_cnf).read_text()
+        #     Path(self.mariadb_cnf).write_text(mysql_cnf)
 
         basicConfig(
             level=DEBUG,

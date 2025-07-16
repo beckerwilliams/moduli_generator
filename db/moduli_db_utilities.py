@@ -436,7 +436,7 @@ class MariaDBConnector:
                            (timestamp, config_id, size, modulus) VALUES (?, ?, ?, ?)"""
                 cursor.execute(query, (timestamp, self.config_id, key_size, modulus))
                 last_id = cursor.lastrowid
-                self.logger.info(f'Successfully added {key_size} bit modulus')
+                self.logger.debug(f'Successfully added {key_size} bit modulus')
                 return last_id
         except Error as err:
             self.logger.error(f"Error inserting candidate: {err}")
@@ -471,7 +471,7 @@ class MariaDBConnector:
                                (timestamp, config_id, size, modulus) VALUES (?, ?, ?, ?)"""
                         cursor.execute(query, (timestamp, self.config_id, key_size, modulus))
                         last_id = cursor.lastrowid
-                        self.logger.info(f'Successfully added {key_size} bit modulus')
+                        self.logger.debug(f'Successfully added {key_size} bit modulus')
                         return last_id
         except Error as err:
             self.logger.error(f"Error inserting candidate: {err}")
