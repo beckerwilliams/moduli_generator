@@ -8,16 +8,42 @@ SSH2 Moduli Generator
 .. image:: https://img.shields.io/badge/license-MIT-green.svg
     :target: LICENSE.rst
 
-A command-line utility for generating SSH moduli files used in SSH key exchange processes. This tool builds moduli for ``/etc/ssh/moduli`` or ``/usr/local/etc/ssh/moduli`` files with database integration capabilities.
+A command-line utility for generating SSH moduli files used in SSH key exchange processes.
+
+Does *it all* with python file:
+
+.. code-block:: bash
+
+    #!/usr/bin/env python
+    from moduli_generator import ModuliGenerator
+
+    def doItAll():
+        """
+        The simplest invocation with which to create a moduli file
+        """
+        ModuliGenerator()
+            .generate_moduli()
+            .store_moduli()
+            .write_moduli()
+
+    if __name__ == "__main__":
+        doItAll()
+
+
+
+Or from an installation of moduli_generator's python wheel, executed from the command line:
+
+    ``python -m moduli_generator.cli:main``
+
 
 Features
 --------
 
-- Generate SSH moduli files with customizable parameters
-- Database integration for storing and managing moduli
+- Generate *Unique and Secure*, SSH2 Compliant moduli files
+- Mysql/MariaDB integration for storing and managing screened moduli
 - Command-line interface for easy automation
 - Comprehensive documentation and changelog
-- Support for moduli_generator and mysql/(mariadb) configuration files
+- Support standard mysql.cnf connection files
 - Statistics and analysis tools
 
 Installation
@@ -180,7 +206,7 @@ It will take 5-7 days on a 4-core i7.
 
     python -m moduli_generator.cli --config <path to your mysql.cnf>
 
-**View statistics**
+**View current db moduli counts by key-size**
 
 .. code-block:: bash
 
@@ -188,11 +214,16 @@ It will take 5-7 days on a 4-core i7.
 
 ..
 
-    *Response*
+*Response*
 
-    .. code-block:: bash
+.. code-block:: bash
 
-        {3071: 419, 4095: 191, 6143: 148, 7679: 58, 8191: 44}
+    Size: #Records
+    3071: 1084
+    4095: 213
+    6143: 148
+    7679: 58
+    8191: 44
 
 MariaDB Configuration
 ---------------------
@@ -202,12 +233,13 @@ To install MariaDB for your site, see:
 
 **Install Schema**
 
-The *moduli_generator* installs a schema in a database named *moduli_db* having three tables, *moduli*, *moduli_view*, and *mod_fl_consts*
-user should have full access to 'moduli_db'.'moduli', 'moduli_db'.'moduli_view'
+The ``moduli_generator`` module can installs schema in a database named ``moduli_db``, and having three tables, ``moduli``, ``moduli_view``, and ``mod_fl_consts``.
 
-The tool uses a configuration file (``moduli_generator.cnf``) to customize mysql|mariadb connection parameters.
+The user, ``moduli_generator``, should have full access to ``moduli_db.moduli``, ``moduli_db.moduli_view``
 
-The default location for your moduli_generator.cnf is the configuration directory (default: ~/.moduli_generator)
+The tool uses a configuration file (``moduli_generator.cnf``) to customize mysql or mariadb connection parameters.
+
+The default location for your ``moduli_generator.cnf`` is in the root configuration directory (default: ${HOME}/.moduli_generator)
 
 **Sample Mysql CNF**
 

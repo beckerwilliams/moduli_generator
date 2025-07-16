@@ -1,8 +1,8 @@
 from argparse import ArgumentParser
-from sys import exit
 from pathlib import PosixPath as Path
+from sys import exit
 
-from db.moduli_db_utilities import MariaDBConnector, default_config
+from db.moduli_db_utilities import MariaDBConnector
 
 
 def argparse():
@@ -21,14 +21,15 @@ def argparse():
 
 
 def create_moduli_generator_user(mg_password: str = "<PASSWORD>"):
-    return ' '.join(("CREATE USER IF NOT EXISTS 'moduli_generator'@'%'",
-                     f"IDENTIFIED BY {mg_password}",
-                     "WITH MAX_QUERIES_PER_HOUR 500",
-                     "MAX_CONNECTIONS_PER_HOUR 100",
-                     "MAX_UPDATES_PER_HOUR 200",
-                     "MAX_USER_CONNECTIONS 50;",
-                     "GRANT ALL PRIVILEGES ON moduli_db.* TO 'moduli_generator'@'%' WITH GRANT OPTION;",
-                     "FLUSH PRIVILEGES;"))
+    return [
+        "CREATE USER IF NOT EXISTS 'moduli_generator'@'%' " +
+        f"IDENTIFIED BY '{mg_password}' " +
+        "MAX_CONNECTIONS_PER_HOUR 100 " +
+        "MAX_UPDATES_PER_HOUR 200 " +
+        "MAX_USER_CONNECTIONS 50; ",
+        "GRANT ALL PRIVILEGES ON moduli_db.* TO 'moduli_generator'@'%' WITH GRANT OPTION; ",
+        "FLUSH PRIVILEGES; "
+    ]
 
 
 def main():
@@ -37,7 +38,7 @@ def main():
     db = MariaDBConnector()
     db.mariadb_cnf = Path(args.mariadb_cnf)
     print(create_moduli_generator_user('faux_password'))
-    db.sql(create_moduli_generator_user('faux_password'), fetch=True)
+    db.execute_batch(create_moduli_generator_user('faux_password'))
 
 
 if __name__ == "__main__":

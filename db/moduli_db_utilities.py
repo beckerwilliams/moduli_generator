@@ -636,7 +636,7 @@ class MariaDBConnector:
             self.logger.error(f"Error retrieving moduli: {err}")
             raise RuntimeError(f"Database query failed: {err}")
 
-        # Write moduli file
+        # Write the moduli file
         moduli_to_write: List[str] = []
         for key, items in moduli.items():
             for item in items:

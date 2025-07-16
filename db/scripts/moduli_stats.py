@@ -1,5 +1,5 @@
 import argparse
-from json import dump
+from json import (dump, dumps)
 from logging import (DEBUG, basicConfig, getLogger)
 from pathlib import PosixPath as Path
 from sys import exit
@@ -50,17 +50,19 @@ def main(
     logger.debug(f'MariaDB Connector Initialized: {config}')
 
     if output_file is None:
-        moduli_file = Path.home() / f'FRESH_MODULI_{ISO_UTC_TIMESTAMP(compress=True)}.ssh2-moduli'
+        status_file = Path.home() / f'MG_STATUS_{ISO_UTC_TIMESTAMP(compress=True)}.txt'
     else:
-        moduli_file = Path(args.output_file)
+        status_file = Path(args.output_file)
 
     # Get the records and save to the specified file
     status = db.stats()
-    with moduli_file.open('w') as of:
+    with status_file.open('w') as of:
         dump(status, of, indent=4)
 
-    logger.info(f'{status}')
-    print(f'{status}')
+    logger.info(f'Key-Length: #Records')
+    # Print a header and then the data
+    print(f'Size: #Records')
+    [print(f'{keysize}: {status[keysize]}') for keysize in status if status[keysize] > 0]
 
 
 if __name__ == "__main__":
