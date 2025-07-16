@@ -10,7 +10,7 @@ SSH2 Moduli Generator
 
 A command-line utility for generating SSH moduli files used in SSH key exchange processes.
 
-Does *it all* with python file:
+Does *it all* with this python file:
 
 .. code-block:: bash
 
@@ -23,6 +23,7 @@ Does *it all* with python file:
         """
         ModuliGenerator()
             .generate_moduli()
+            .save_moduli()
             .store_moduli()
             .write_moduli()
 
@@ -33,7 +34,12 @@ Does *it all* with python file:
 
 Or from an installation of moduli_generator's python wheel, executed from the command line:
 
-    ``python -m moduli_generator.cli:main``
+.. code-block::
+
+    python -m moduli_generator.cli
+
+At completion, you will find
+    ${HOME}/.moduli_generator/
 
 
 Features

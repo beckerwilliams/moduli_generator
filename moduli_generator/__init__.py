@@ -187,7 +187,7 @@ class ModuliGenerator:
         """
         try:
             result = self._generate_candidates_static(self.config, key_length)
-            self.logger.info(f'Generated candidates for {key_length} bits')
+            self.logger.info(f'Generated candidate file for {key_length} bits')
             return result
         except subprocess.CalledProcessError as err:
             self.logger.error(f'Candidate generation failed for {key_length}: {err}')
@@ -208,7 +208,7 @@ class ModuliGenerator:
         """
         try:
             result = self._screen_candidates_static(self.config, candidates_file)
-            self.logger.debug(f'Screened candidates: {result}')
+            self.logger.debug(f'Screened candidate files: {result}')
             return result
         except subprocess.CalledProcessError as e:
             self.logger.error(f'Screening failed for {candidates_file}: {e}')
@@ -298,7 +298,8 @@ class ModuliGenerator:
                 if length not in candidates_by_length:
                     candidates_by_length[length] = []
                 candidates_by_length[length].append(candidate_file)
-            self.logger.debug(f'Generated {len(candidates_by_length)} candidates for {self.config.key_lengths}')
+            self.logger.debug(f'Generated {len(candidates_by_length)} candidate files. " + '
+                              f'"key-lengths: {self.config.key_lengths}')
 
             # Then screen candidates
             screening_futures = []
@@ -312,7 +313,8 @@ class ModuliGenerator:
                 if length not in generated_moduli:
                     generated_moduli[length] = []
                 generated_moduli[length].append(moduli_file)
-            self.logger.debug(f'Screened {len(screening_futures)} candidates for {self.config.key_lengths}')
+            self.logger.debug(f'Screened {len(screening_futures)} candidatefiles. ' +
+                              f'key-lengths: {self.config.key_lengths}')
 
         return self
 

@@ -1,7 +1,11 @@
-=======================
+======================================
 module moduli_generator
-=======================
+======================================
 
 .. automodule:: moduli_generator
     :members:
-    :private-members:
+
+.. autocalss:: moduli_generator.ModuliGenerator
+    :members:
+
+

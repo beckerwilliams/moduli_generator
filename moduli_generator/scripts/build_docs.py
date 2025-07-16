@@ -48,7 +48,7 @@ def main() -> int:
         return 1
 
     # Create a docs directory in the package
-    package_docs_dir = project_root / 'moduli_generator' / 'docs'
+    package_docs_dir = project_root / 'doc'
     package_docs_dir.mkdir(exist_ok=True)
 
     # Copy the built docs into the package

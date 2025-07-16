@@ -3,16 +3,13 @@ import argparse
 from datetime import UTC, datetime
 from sys import exit
 
-# Import MariaDBConnector
-from db.moduli_db_utilities import MariaDBConnector
-
+# Import the default configuration
+from config import (default_config)
 # Import ModuliGenerator
 from moduli_generator import ModuliGenerator
 
-# Import the default configuration
-from config import (default_config)
 
-__all__ = ['cli']
+# Import MariaDBConnector
 
 
 def parse_args():

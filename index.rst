@@ -17,7 +17,6 @@ ssh2-moduli-generator (moduli_generator)
     MODULI_GENERATOR
     DB
     CONFIG
-    CHANGELOG_GENERATOR
 
 .. toctree::
     :maxdepth: 2
@@ -40,6 +39,7 @@ ssh2-moduli-generator (moduli_generator)
     DATABASE_INTEGRATION
     MARIADB
     CHANGELOG
+    CHANGELOG_GENERATOR
 
 
 
