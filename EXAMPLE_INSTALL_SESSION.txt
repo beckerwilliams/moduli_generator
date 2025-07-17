@@ -1,0 +1,43 @@
+aragorn:mod_gen_virtual ron$ ./moduli_generator_github_install.sh
+[Saving Current Directory /Users/ron/mod_gen_virtual, entering .moduli_generator_temp]
+[Cloning moduli_generator from Github]
+[Entering Moduli Dev Directory: moduli_generator
+[Creating and Activating Python Virtual Enviroment in /Users/ron/mod_gen_virtual/.moduli_generator_temp/moduli_generator]
+[Building moduli_generator wheel]
+[Copy Moduli Generator Wheel to starting directory: /Users/ron/moduli_generator-2.1.12-py3-none-any.whl]
+[Creating runtime virtual environment]
+[Upgrading Virtual Environment and Installing Moduli Generator wheel: moduli_generator-2.1.12-py3-none-any.whl]
+[Remove .moduli_generator_temp]
+
+        [Moduli Generator Successfully Installed in python virtual environment /Users/ron/mod_gen_virtual/.venv]
+
+
+usage: cli.py [-h] [--key-lengths KEY_LENGTHS [KEY_LENGTHS ...]] [--moduli-home MODULI_HOME] [--candidates-dir CANDIDATES_DIR] [--moduli-dir MODULI_DIR] [--log-dir LOG_DIR] [--mariadb-cnf MARIADB_CNF] [--nice-value NICE_VALUE] [--records-per-keylength RECORDS_PER_KEYLENGTH]
+              [--delete-records-on-moduli-write DELETE_RECORDS_ON_MODULI_WRITE]
+
+Moduli Generator - Generate and manage secure moduli for cryptographic operations
+
+options:
+  -h, --help            show this help message and exit
+  --key-lengths KEY_LENGTHS [KEY_LENGTHS ...]
+                        Space-separated list of key lengths to generate moduli for (default: (3072, 4096, 6144, 7680, 8192))
+  --moduli-home MODULI_HOME
+                        Base directory for moduli generation and storage (default: /Users/ron/.moduli_generator)
+  --candidates-dir CANDIDATES_DIR
+                        Directory to store candidate moduli (relative to moduli-home) (default: .candidates)
+  --moduli-dir MODULI_DIR
+                        Directory to store generated moduli (relative to moduli-home) (default: .moduli)
+  --log-dir LOG_DIR     Directory to store log files (relative to moduli-home) (default: .logs)
+  --mariadb-cnf MARIADB_CNF
+                        Path to MariaDB configuration file (relative to moduli-home) (default: moduli_generator.cnf)
+  --nice-value NICE_VALUE
+                        Process nice value for CPU inensive operations (default: 15)
+  --records-per-keylength RECORDS_PER_KEYLENGTH
+                        Number of moduli per key-length to capture in each produced moduli file (default: 20)
+  --delete-records-on-moduli-write DELETE_RECORDS_ON_MODULI_WRITE
+                        Delete records from DB written to moduli file (default: False)
+
+
+        [Moduli Generator Successfully Installed in /Users/ron/mod_gen_virtual ]
+
+aragorn:mod_gen_virtual ron$ source .venv/bin/activate
