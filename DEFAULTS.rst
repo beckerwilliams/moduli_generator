@@ -68,6 +68,7 @@ The following script will
 
     #!/usr/bin/env bash
     mkdir mwork
+    cwd=`pwd`
     cd mwork
 
     git clone https://github.com/beckerwilliams/moduli_generator.git
@@ -78,10 +79,61 @@ The following script will
     poetry install
     poetry build
 
+    wheel_file=$(ls dist/*.whl | cut -d/ -f2)
+    echo "Moduli Generator Wheel located @ ~/${wheel_file}"
     cp dist/*.whl ~/
 
-    cd - # To starting directory
+    cd $cwd
     rm -rf mwork  # Cleanup transients
+
+resp
+
+.. code-block::
+
+    sh -xvvv ./build_wheel.sh
+    #!/usr/bin/env bash
+    mkdir mwork
+    + mkdir mwork
+    mkdir: mwork: File exists
+    cd mwork
+    + cd mwork
+
+    git clone https://github.com/beckerwilliams/moduli_generator.git
+    + git clone https://github.com/beckerwilliams/moduli_generator.git
+    fatal: destination path 'moduli_generator' already exists and is not an empty directory.
+    cd moduli_generator
+    + cd moduli_generator
+    python -m venv .venv
+    + python -m venv .venv
+    .venv/bin/activate.sh
+    + .venv/bin/activate.sh
+    ./build_wheel.sh: line 8: .venv/bin/activate.sh: No such file or directory
+
+    poetry install
+    + poetry install
+    Installing dependencies from lock file
+
+    No dependencies to install or update
+
+    Installing the current project: moduli_generator (2.1.12)
+    poetry build
+    + poetry build
+    Building moduli_generator (2.1.12)
+    Building sdist
+      - Building sdist
+      - Built moduli_generator-2.1.12.tar.gz
+    Building wheel
+      - Building wheel
+      - Built moduli_generator-2.1.12-py3-none-any.whl
+
+    cp dist/*.whl ~/
+    + cp dist/moduli_generator-2.1.12-py3-none-any.whl dist/moduli_generator-2.1.9-py3-none-any.whl /Users/ron/
+
+    cd - # To starting directory
+    + cd -
+    /Users/ron/mwork
+    rm -rf mwork  # Cleanup transients
+    + rm -rf mwork
 
 
 

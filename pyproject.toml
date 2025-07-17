@@ -39,7 +39,7 @@ sphinx-rtd-theme = "^3.0.2"
 [tool.poetry.scripts]
 moduli_generator = "moduli_generator.cli:main"
 build_docs = "moduli_generator.scripts.build_docs:main"
-moduli_stats = "db.scripts.moduli_stats"
+moduli_stats = "db.scripts.moduli_stats:main"
 write_moduli = "moduli_generator.scripts.write_moduli:main"
 generate_changelog = "moduli_generator.scripts.changelog_generator:main"
 install_schema = "db.scripts.install_schema:main"
