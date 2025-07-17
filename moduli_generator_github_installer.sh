@@ -3,16 +3,11 @@
 #
 # Creates a virtual environment in user's HOME directory
 #
-
-
 # Text colors
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 NC='\033[0m' # No Color (reset)
-
-START_BOLD='\033[1m'
-STOP_BOLD='\033[22m'      # Resets all formatting (bold, colors, etc.)
 
 WORK_DIR=.moduli_generator_temp
 GITHUB_PROJECT=https://github.com/beckerwilliams/moduli_generator.git
@@ -64,23 +59,13 @@ pip install pip --upgrade  > "${LOG_FILE}"  2>&1
 pip install "${CWD}"/"${wheel_file}"  > "${LOG_FILE}"  2>&1
 rm "${CWD}"/"${wheel_file}"  > "${LOG_FILE}"  2>&1
 rm -rf ${WORK_DIR}  > "${LOG_FILE}"  2>&1  # Cleanup transients
-pip list  > "${LOG_FILE}"  2>&1
 
-deactivate > "${LOG_FILE}"  2>&1
+echo
+echo -e ${GREEN}Moduli Generator Installed Successfully to ${CWD}${NC}
+pip list
 
-echo -e ${BLUE}[Remove ${WORK_DIR}] ${NC}
+# CLEANUP
+deactivate
+
 if [ "${CWD}" != "/" ]; then rm -rf "${CWD}"/"${wheel_file}" > "${LOG_FILE}" 2>&1 ; fi
-
-${ACTIVATE} > "${LOG_FILE}" 2>&1
-echo
-echo -e "\t${PURPLE}[Moduli Generator Successfully Installed in python virtual environment ${CWD}/${VENV_DIR}]"
-echo
-echo -e ""
-
-sleep 6  # Avoid abupdt dump of moduli_generator.cli's help page
-
-python -m moduli_generator.cli -h
-deactivate > "${LOG_FILE}" 2>&1
-
-echo -e "${GREEN}"'\007' '\n' '\n' "\t[Moduli Generator Successfully Installed in ${BLUE}${CWD} ${GREEN}]${NC}"
-echo
+echo -e ${BLUE}[Removed working directory: ${WORK_DIR}] ${NC}
