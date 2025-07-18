@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 from pathlib import PosixPath as Path
 from sys import exit
 
-from db.moduli_db_utilities import MariaDBConnector
+from db import MariaDBConnector
 
 
 def argparse():

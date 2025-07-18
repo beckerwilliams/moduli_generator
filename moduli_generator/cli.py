@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from sys import exit
 
 # Import the default configuration
-from config import (default_config)
+from config import (ModuliConfig, default_config)
 # Import ModuliGenerator
 from moduli_generator import ModuliGenerator
 
@@ -12,7 +12,7 @@ from moduli_generator import ModuliGenerator
 # Import MariaDBConnector
 
 
-def parse_args():
+def parse_args_local_config():
     """
     Parse command-line arguments for the Moduli Generator and return the parsed arguments.
 
@@ -83,23 +83,7 @@ def parse_args():
                         default=False,
                         help="Delete records from DB written to moduli file")
 
-    return parser.parse_args()
-
-
-def main():
-    """
-    CLI utility for the generation, saving, and storage of moduli. This function
-    handles the entire workflow, including configuring paths, processing command-line arguments,
-    ensuring the required directories exist, and carrying out moduli generation, storage,
-    and cleanup. The workflow includes integration with MariaDB for storing resulting data.
-
-    Detail logs are generated throughout the process to facilitate debugging and tracking.
-
-    :return: The return code of the CLI function where 0 indicates successful execution.
-    :rtype: Int
-    """
-
-    args = parse_args()
+    args = parser.parse_args()
 
     # Create a custom configuration based on the command line arguments
     config = default_config.with_base_dir(args.moduli_home)
@@ -112,22 +96,30 @@ def main():
     config.records_per_keylength = args.records_per_keylength
     config.delete_records_on_moduli_write = args.delete_records_on_moduli_write
 
+    config.ensure_directories()
+    config.key_lengths = tuple(args.key_lengths)
+    config.nice_value = args.nice_value
+
+    return config
+
+
+def main(config: ModuliConfig):
+    """
+    CLI utility for the generation, saving, and storage of moduli. This function
+    handles the entire workflow, including configuring paths, processing command-line arguments,
+    ensuring the required directories exist, and carrying out moduli generation, storage,
+    and cleanup. The workflow includes integration with MariaDB for storing resulting data.
+
+    Detail logs are generated throughout the process to facilitate debugging and tracking.
+
+    :return: The return code of the CLI function where 0 indicates successful execution.
+    :rtype: Int
+    """
+
     logger = config.get_logger()
     logger.name = __name__
 
     logger.debug(f'Using default config: {config}')
-    logger.debug(f'Overriding config with command line args: {args}')
-
-    # Ensure all directories exist
-    config.ensure_directories()
-    logger.debug(f'Directories created or validated: {config.base_dir}')
-
-    # Set variables from args
-    config.key_lengths = tuple(args.key_lengths)
-    logger.debug(f'Key Lengths: {config.key_lengths}')
-
-    config.nice_value = args.nice_value
-    logger.debug(f'Nice Value: {config.nice_value}')
 
     # Generate, Screen, Store, and Write Moduli File
     start_time = datetime.now(UTC).replace(tzinfo=None)
@@ -138,11 +130,11 @@ def main():
 
     # Stats and Cleanup
     duration = (datetime.now(UTC).replace(tzinfo=None) - start_time).seconds
-    logger.info(f'Moduli Generation Complete. Time taken: {duration} seconds')
-    print(f'Moduli Generation Complete. Time taken: {duration} seconds')
+    logger.info(f'Moduli Generation Complete. Time taken: {duration/3600} hours')
+    print(f'Moduli Generation Complete. Time taken: {duration/3600} hours')
 
     return 0
 
 
 if __name__ == "__main__":
-    exit(main())
+    exit(main(parse_args_local_config()))

@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 # Import the module to test
 # from db.mariadb_cnf_parser import parse_mysql_config, get_mysql_config_value
-from db.moduli_db_utilities import (get_mysql_config_value, parse_mysql_config)
+from db import (get_mysql_config_value, parse_mysql_config)
 
 """1. Tests `parse_mysql_config()` for:
     - Valid configuration files

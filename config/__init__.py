@@ -20,6 +20,7 @@ __all__ = [
     'is_valid_identifier',
     'DEFAULT_MARIADB',
     'DEFAULT_MARIADB_CNF',
+    'DEFAULT_KEY_LENGTHS',
     'TEST_MARIADB'
 ]
 
@@ -289,7 +290,7 @@ class ModuliConfig:
             def formatTime(self, record, datefmt=None):
                 return datetime.now(UTC).replace(tzinfo=None).isoformat()
 
-        # Configure basicConfig with custom formatter
+        # Configure basicConfig with custom ISO UTC formatter
         handler = logging.FileHandler(Path(self.log_file), mode='a')
         handler.setFormatter(ISOUTCFormatter('%(asctime)s: %(levelname)s: %(message)s'))
         

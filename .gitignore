@@ -1,3 +1,9 @@
+doc/
+dist/
+_build/
+_static/
+_template/
+_templates/
 *.cnf
 __pycache__/
 *.py[cod]
@@ -6,7 +12,6 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/

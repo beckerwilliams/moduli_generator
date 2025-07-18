@@ -8,7 +8,7 @@ from typing import (Any, Dict, List)
 from mariadb import (Error)
 
 from config import (ISO_UTC_TIMESTAMP, default_config)
-from db.moduli_db_utilities import MariaDBConnector
+from db import MariaDBConnector
 
 __all__ = ['ModuliGenerator']
 
@@ -396,7 +396,7 @@ class ModuliGenerator:
         screened_moduli = self._parse_moduli_files()
 
         try:
-            self.db.store_screened_moduli(screened_moduli)
+            self.db.export_screened_moduli(screened_moduli)
 
         except Error as err:
             self.logger.error(f'Error storing moduli: {err}')
@@ -421,6 +421,6 @@ class ModuliGenerator:
         :return: self
         :rtype: ModuliGenerator
         """
-        self.db.get_and_write_moduli_file()
+        self.db.write_moduli_file()
 
         return self

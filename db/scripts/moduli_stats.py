@@ -5,7 +5,7 @@ from pathlib import PosixPath as Path
 from sys import exit
 
 from config import (ISO_UTC_TIMESTAMP, ModuliConfig, default_config)
-from db.moduli_db_utilities import MariaDBConnector
+from db import MariaDBConnector
 
 
 def main(

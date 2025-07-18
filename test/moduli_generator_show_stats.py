@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, call
 
 from mariadb import Error
 
-from db.moduli_db_utilities import MariaDBConnector
+from db import MariaDBConnector
 
 
 class TestModuliGeneratorShowStats(unittest.TestCase):
