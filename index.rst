@@ -9,6 +9,7 @@ ssh2-moduli-generator (moduli_generator)
     :caption: Documentation:
 
     README
+    EXAMPLE_INSTALL_SESSION
 
 .. toctree::
     :maxdepth: 2

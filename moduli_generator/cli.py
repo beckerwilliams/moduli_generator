@@ -132,6 +132,8 @@ def main():
     # Generate, Screen, Store, and Write Moduli File
     start_time = datetime.now(UTC).replace(tzinfo=None)
     logger.info(f'Starting Moduli Generation at {start_time}')
+
+    # The Invocation
     ModuliGenerator(config).generate_moduli().store_moduli().write_moduli_file()
 
     # Stats and Cleanup

@@ -1,0 +1,6 @@
+(.venv) [aragorn:~/TEST_moduli_generator] ron% ps ax|grep ssh-k
+34230 s002  RN     0:34.14 ssh-keygen -M generate -O bits=3072 /Users/ron/.moduli_generator/.candidates/candidates_3072_20250717201039984914
+34231 s002  RN     0:34.14 ssh-keygen -M generate -O bits=4096 /Users/ron/.moduli_generator/.candidates/candidates_4096_20250717201039984988
+34232 s002  RN     0:34.14 ssh-keygen -M generate -O bits=6144 /Users/ron/.moduli_generator/.candidates/candidates_6144_20250717201039990295
+34233 s002  RN     0:34.14 ssh-keygen -M generate -O bits=7680 /Users/ron/.moduli_generator/.candidates/candidates_7680_20250717201039991697
+34234 s002  RN     0:34.14 ssh-keygen -M generate -O bits=8192 /Users/ron/.moduli_generator/.candidates/candidates_8192_20250717201039991885

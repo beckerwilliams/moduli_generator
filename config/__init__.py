@@ -281,15 +281,21 @@ class ModuliConfig:
             Path(self.base_dir).mkdir(parents=True, exist_ok=True)
         if not (self.base_dir / DEFAULT_LOG_DIR).exists():
             Path(self.base_dir / DEFAULT_LOG_DIR).mkdir(parents=True, exist_ok=True)
-        # if not self.mariadb_cnf.exists():
-        #     mysql_cnf = Path(self.mariadb_cnf).read_text()
-        #     Path(self.mariadb_cnf).write_text(mysql_cnf)
 
+        # Create a custom formatter that uses ISO UTC format
+        import logging
+        
+        class ISOUTCFormatter(logging.Formatter):
+            def formatTime(self, record, datefmt=None):
+                return datetime.now(UTC).replace(tzinfo=None).isoformat()
+
+        # Configure basicConfig with custom formatter
+        handler = logging.FileHandler(Path(self.log_file), mode='a')
+        handler.setFormatter(ISOUTCFormatter('%(asctime)s: %(levelname)s: %(message)s'))
+        
         basicConfig(
             level=DEBUG,
-            format='%(asctime)s - %(levelname)s: %(message)s',
-            filename=Path(self.log_file),
-            filemode='a'
+            handlers=[handler]
         )
         return getLogger()
 
