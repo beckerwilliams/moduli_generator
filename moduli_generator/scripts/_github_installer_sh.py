@@ -1,4 +1,9 @@
-#!/usr/bin/env bash
+__all__ = ['installer_script']
+
+def installer_script():
+
+    return """#!/usr/bin/env bash
+
 # moduli_generator installer
 #
 # Creates a virtual environment in user's HOME directory
@@ -8,6 +13,8 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 NC='\033[0m' # No Color (reset)
+
+BELL='\007'
 
 # Moduli_Generator Constants
 WORK_DIR=.moduli_generator_temp
@@ -20,7 +27,7 @@ ACTIVATE="source .venv/bin/activate"
 MODULI_GENERATOR_DIR=moduli_generator
 CWD=$(pwd)
 WHEEL_TARGET_DIR=$(pwd)
-LOG_FILE=${CWD}/install.log
+LOG_FILE="> ${CWD}/install.log 2>&1"
 
 # Notify of our state
 echo -e ${GREEN}"Run Constants"
@@ -36,49 +43,54 @@ echo -e "\tWHEEL_TARGET_DIR: ${WHEEL_TARGET_DIR}"
 echo -e	'\t#########################################################'${NC}
 
 echo -e "${BLUE}[ Saving Current Directory ${CWD}, entering ${WORK_DIR} ]"
-mkdir ${WORK_DIR} > "${LOG_FILE}"  2>&1
-cd ${WORK_DIR} > "${LOG_FILE}"  2>&1 || exit > "${LOG_FILE}"  2>&1
+mkdir ${WORK_DIR} "${LOG_FILE}"
+cd ${WORK_DIR} "${LOG_FILE}" || exit "${LOG_FILE}"
 
 echo -e [ Cloning moduli_generator from Github ]
-git clone ${GITHUB_PROJECT} > "${LOG_FILE}"  2>&1
+git clone ${GITHUB_PROJECT} "${LOG_FILE}"
 
 echo -e [ Entering Moduli Dev Directory: ${MODULI_GENERATOR_DIR} ]
-cd ${MODULI_GENERATOR_DIR} > "${LOG_FILE}"  2>&1 || exit
+cd ${MODULI_GENERATOR_DIR} "${LOG_FILE}" || exit "${LOG_FILE}"
 
-# shellcheck disable=SC2046
 echo -e [ Creating and Activating Python Virtual Enviroment in $(pwd) ]
-${MK_VENV} ${VENV_DIR} > "${LOG_FILE}"  2>&1
-${ACTIVATE} > "${LOG_FILE}"  2>&1
+${MK_VENV} ${VENV_DIR} "${LOG_FILE}"
+${ACTIVATE} > "${LOG_FILE}"
 
 echo -e [ Building moduli_generator wheel ]
-${POETRY} update > "${LOG_FILE}"  2>&1
-${POETRY} build > "${LOG_FILE}"  2>&1
-deactivate > "${LOG_FILE}"  2>&1
+${POETRY} update > "${LOG_FILE}"
+${POETRY} build > "${LOG_FILE}"
+deactivate > "${LOG_FILE}"
 
-wheel_file=$(ls dist/*.whl | cut -d/ -f2)   > "${LOG_FILE}"  2>&1
+wheel_file=$(ls dist/*.whl | cut -d/ -f2) > "${LOG_FILE}"
+echo -e [ Successfully built fresh wheel ] \n ${NC}
+echo -e ${GREEN}[ Building Local Virtual Enironment ] ${BELL}
+
 
 echo -e [ Copy Moduli Generator Wheel to starting directory: "${WHEEL_TARGET_DIR}"/"${wheel_file}" ]
-mv dist/"${wheel_file}" "${CWD}"/"${wheel_file}"   > "${LOG_FILE}"  2>&1
-cd "${CWD}" > "${LOG_FILE}"  2>&1 || exit   > "${LOG_FILE}"  2>&1
+mv dist/"${wheel_file}" "${CWD}"/"${wheel_file}"   > "${LOG_FILE}"
+cd "${CWD}" > "${LOG_FILE}" || exit  "${LOG_FILE}"
+
+#####################################################################################################
 
 echo -e [ Creating runtime virtual environment ]
-${MK_VENV} ${VENV_DIR}  > "${LOG_FILE}"  2>&1
+${MK_VENV} ${VENV_DIR} "${LOG_FILE}"
 
-${ACTIVATE} > "${LOG_FILE}"  2>&1
+${ACTIVATE} > "${LOG_FILE}"
 
-echo -e [ Upgrading Virtual Environment and Installing Moduli Generator wheel: "${wheel_file}" ]${NC}
-pip install pip --upgrade  > "${LOG_FILE}"  2>&1
+echo -e [ Upgrading Virtual Environment and Installing Moduli Generator wheel: "${wheel_file}" ] ${NC}
+pip install pip --upgrade  > "${LOG_FILE}"
 
-pip install "${CWD}"/"${wheel_file}"  > "${LOG_FILE}"  2>&1
-rm "${CWD}"/"${wheel_file}"  > "${LOG_FILE}"  2>&1
-rm -rf ${WORK_DIR}  > "${LOG_FILE}"  2>&1  # Cleanup transients
+pip install "${CWD}"/"${wheel_file}"  > "${LOG_FILE}"
+rm "${CWD}"/"${wheel_file}"  > "${LOG_FILE}"
+rm -rf ${WORK_DIR} "${LOG_FILE}"  # Cleanup transients
 
 echo
-echo -e ${GREEN}Moduli Generator Installed Successfully to ${CWD}${NC}
+echo -e ${BLUE}Moduli Generator Installed Successfully to ${CWD}
 pip list
 
 # CLEANUP
 deactivate
 
-if [ "${CWD}" != "/" ]; then rm -rf "${CWD}"/"${wheel_file}" > "${LOG_FILE}" 2>&1 ; fi
-echo -e ${BLUE}[ Removed working directory: ${WORK_DIR} ] ${NC}
+if [ "${CWD}" != "/" ]; then rm -rf "${CWD}"/"${wheel_file}" "${LOG_FILE}" ; fi
+echo -e [ Removed working directory: ${WORK_DIR} ] ${NC}
+"""

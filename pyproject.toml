@@ -49,6 +49,7 @@ sphinx = "^7.2.6"
 sphinxcontrib-jquery = "^4.1"
 sphinx-rtd-theme = "^3.0.2"
 toml = "^0.10.2"
+poetry = "^2.1.3"
 
 # BUILD SYSTEM DEPENDENCIES - Only needed for building the wheel
 [build-system]

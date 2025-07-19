@@ -122,7 +122,12 @@ class ChangelogGenerator:
             if result.returncode != 0:
                 raise RuntimeError(f"Git command failed: {result.stderr}")
 
-            return result.stdout.strip().split('\n')
+            # The following cleans up 'asterisk' cruft I've created in my Changelog Records
+            # cleanup = re.sub(r'\*\*\*', '**', result.stdout.strip().split('\n'))
+            #
+            # r2 = result.stdout.strip().split('\n')
+            return re.sub(r'\*\*\*', '**', result.stdout).strip().split('\n')
+
 
         except Exception as e:
             print(f"Error getting git commits: {e}")
