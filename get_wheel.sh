@@ -24,53 +24,56 @@ POETRY="/usr/bin/env poetry"
 PIP="pip"
 ACTIVATE="source .venv/bin/activate"
 MODULI_GENERATOR_DIR=moduli_generator
-WHEEL_TARGET_DIR=${HOME}
 
 ###############################################
 # BUILD WORKING Virtual Environment
 # Create, Update, BUILD WHEEL, Store in ${HOME}
 ###############################################
-CWD=$(pwd)
+CWD="$(pwd)"
+
+LOG_FILE="${CWD}/get_wheel.log"
+
+# Clear the log file at the start
+> ${LOG_FILE}
 
 ${ECHO} "${BLUE}[ Saving Current Directory ${CWD}, entering ${WORK_DIR} ] ${NC}"
-${MKDIR} ${WORK_DIR}
-cd ${WORK_DIR} || exit
+${MKDIR} ${WORK_DIR} >> ${LOG_FILE} 2>&1
+cd ${WORK_DIR} >> ${LOG_FILE} 2>&1  || exit
 
 ${ECHO} "${BLUE}"[ Cloning moduli_generator from Github ] "${NC}"
-${GIT} clone "${GITHUB_PROJECT}" || exit
+${GIT} clone "${GITHUB_PROJECT}" >> ${LOG_FILE} 2>&1  || exit
 
 ${ECHO} "${BLUE}"[ Entering Moduli Dev Directory ] "${NC}"
 # ${WORKDIR} -> ${MODULI_GENERATOR_DIR}
-cd ${MODULI_GENERATOR_DIR} || exit
+cd ${MODULI_GENERATOR_DIR} >> ${LOG_FILE} 2>&1  || exit
 
 ############################################
 # CREATE and Activate Wheel Build Environment
 ############################################
-${ECHO} "${BLUE}"[ Creating and Activating Python Virtual Enviroment ] "${NC}"
-${MK_VENV} ${VENV_DIR}
-${ACTIVATE}
+${ECHO} "${BLUE}"[ Creating and Activating Python BUILD Enviroment ] "${NC}"
+${MK_VENV} ${VENV_DIR} >> ${LOG_FILE} 2>&1
+${ACTIVATE} >> ${LOG_FILE} 2>&1
 
  #################
  # Install POETRY
  #################
-${PIP} intall pip --upgrade
-${PIP} install poetry --upgrade
-${POETRY} update
+${PIP} install pip --upgrade >> ${LOG_FILE} 2>&1  # Fixed typo: intall -> install
+${PIP} install poetry --upgrade >> ${LOG_FILE} 2>&1
+${POETRY} update >> ${LOG_FILE} 2>&1
 ${ECHO} "${BLUE}"[ Building moduli_generator wheel ] "${NC}"
-${POETRY} build
+${POETRY} build >> ${LOG_FILE} 2>&1
 
 # The Product
 wheel_file=$(ls dist/*.whl | cut -d/ -f2)
 
-${ECHO} "${BLUE}"[ Copy Moduli Generator Wheel to current directory: "${WHEEL_TARGET_DIR}"/"${wheel_file}" ] "${NC}"
-${MV} dist/"${wheel_file}" "${CWD}"/"${wheel_file}"
+${ECHO} "${BLUE}"[ Moduli Generator Wheel: "${CWD}"/"${wheel_file}" ] "${NC}"
+${MV} dist/"${wheel_file}" "${CWD}"/"${wheel_file}" >> ${LOG_FILE} 2>&1
 
 ##################
 # CLOSE BUILD Venv
 ##################
 deactivate
 
-cd "${CWD}" || exit
+cd "${CWD}" >> ${LOG_FILE} 2>&1|| exit
 if [ "${WORK_DIR}" != "/" ]; then rm -rf "${WORK_DIR}"; fi
-
-exit
+${ECHO} "${PURPLE}" Deleted Temporary Work Dir: "${WORK_DIR}"  >> ${LOG_FILE} 2>&1 ${NC}
