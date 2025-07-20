@@ -5,13 +5,16 @@ Changelog Generator for the moduli_generator project
 This script generates a CHANGELOG.rst file from git commit history,
 organizing commits by date in reStructuredText format.
 """
-
+from sys import exit
 import re
 import subprocess
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
+
 import toml
+
+__all__ = ['ChangelogGenerator', 'main']
 
 
 def _categorize_commit(message):
@@ -127,7 +130,6 @@ class ChangelogGenerator:
             #
             # r2 = result.stdout.strip().split('\n')
             return re.sub(r'\*\*\*', '**', result.stdout).strip().split('\n')
-
 
         except Exception as e:
             print(f"Error getting git commits: {e}")
@@ -346,10 +348,10 @@ def main():
 
     args = parser.parse_args()
 
-    # Create generator and generate changelog
+    # Create generator and generate changel
     generator = ChangelogGenerator(args.project_root)
     generator.generate_changelog(args.output, args.max_commits)
 
 
 if __name__ == "__main__":
-    main()
+    exit(main())

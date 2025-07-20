@@ -36,7 +36,6 @@ include = [
 exclude = [
 	"*.cnf"  # No Mariadb Configuration Files (Usually Contain Passwords)
 ]
-
 # RUNTIME DEPENDENCIES ONLY - These will be included in the wheel
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -61,7 +60,7 @@ moduli_generator = "moduli_generator.cli:main"
 build_docs = "moduli_generator.scripts.build_docs:main"
 moduli_stats = "db.scripts.moduli_stats:main"
 write_moduli = "moduli_generator.scripts.write_moduli:main"
-generate_changelog = "moduli_generator.scripts.changelog_generator:main"
+changelog = "changelog_generator.scripts.__init__:main"
 install_schema = "db.scripts.install_schema:main"
 
 [tool.poetry.urls]

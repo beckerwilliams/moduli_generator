@@ -61,8 +61,7 @@ def main(
 
     logger.info(f'Key-Length: #Records')
     # Print a header and then the data
-    print(f'Size: #Records')
-    [print(f'{keysize}: {status[keysize]}') for keysize in status if status[keysize] > 0]
+    [logger.info(f'{keysize}: {status[keysize]}') for keysize in status if status[keysize] > 0]
 
 
 if __name__ == "__main__":
