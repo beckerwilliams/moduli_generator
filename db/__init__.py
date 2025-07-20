@@ -662,20 +662,18 @@ class MariaDBConnector:
 
     def stats(self) -> Dict[str, str]:
         """
-        Generates and retrieves record counts from a set of key moduli sizes. Performs
-        database queries to calculate and validate the count of available records for
-        specific key sizes based on predefined moduli sizes. Results are logged and
-        formatted as a dictionary mapping each modulus size to its corresponding count.
+        Generates statistics about moduli files by querying the database for each key size.
+        It calculates the number of available records per key size and potential SSH moduli
+        files based on the configured records per key length.
 
-        :param self: Represents the instance that holds required attributes like
-                     key_lengths, db_name, view_name, logger, and query execution
-                     functionalities.
-        :type self: object
-        :return: A dictionary where the keys are moduli sizes (adjusted from key_lengths)
-                 and the values are the respective record counts obtained from the
-                 database query.
-        :rtype: Dict[int, int]
-        :raises RuntimeError: If there is an error during the database query execution.
+        :param self: An instance of the class containing the method.
+
+        :raises RuntimeError: If the database query fails during execution.
+        :return: A dictionary containing sizes as keys and their respective counts or calculated
+            values as values. The keys represent moduli query sizes, while the values indicate
+            counts or moduli file statistics.
+        :rtype: Dict[str, str]
+
         """
         moduli_query_sizes = []
         for item in self.key_lengths:
@@ -700,6 +698,10 @@ class MariaDBConnector:
                 result = self.execute_select(count_query, (size,))
                 count = result[0]['COUNT(*)']
                 status.append(count)
+            # Calculate Number of Moduli Files Available
+            status.append(
+                {'potential_ssh_moduli_files': f'{int(min(status) / self.config.records_per_keylength)}'}
+            )
 
         except Exception as err:
             self.logger.error(f"Error retrieving moduli: {err}")

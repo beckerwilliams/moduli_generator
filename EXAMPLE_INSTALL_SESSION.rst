@@ -1,35 +1,24 @@
-====================================
-Install Moduli Generator Application
-====================================
-
-- *Moduli Generator virtual environment*
+Moduli Generator Application Installer
+======================================
 
 The Installer
 -------------
-* clones the current project in a working directory
+* clones current github repo,
+* creates new virtual environment and installs freshly built wheel
 * builds an installable python wheel from the project source
-* installs that wheel in a fresh virtual environment, ``.venv``
-* eliminates install working directory and moduli_generator wheel
+* installs that wheel in a fresh virtual environment
 
 Requirements
 ============
 
-You will need to verify the following applications are installed on your machine:
+*Verify* the following applications are installed on your machine:
     - **python v 3.12** *or higher*
     - **git v 2.5**
-    - A **MariaDB MYSQL Database 11.4.7**
-        not tested on un-supported MySql DB
 
-You will need an active account on `Github <https://github.com/beckerwilliams/moduli_generator>`_, and properly configured
+Verify that you have cli (`git`) access to `Github <https://github.com/beckerwilliams/moduli_generator>`_.
 
-    ``~/.git-config``
-
-    ``~/.git-credentials``
-
-
-You will need to configure your MariaDB instance with the Moduli Generator Schema and user profile, prior to full operation. See `MARIADB`_
-
-----
+Note:
+    Moduli Generator can be installed and configured without Maria DB installed and available. You will need to Install Maria DB and the Moduli Generator Schema prior to operation. See `MARIADB`_
 
 Configure Installer
 ===================

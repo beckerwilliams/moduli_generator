@@ -8,16 +8,16 @@ ssh2-moduli-generator (moduli_generator)
     :maxdepth: 2
     :caption: Documentation:
 
-    README
     EXAMPLE_INSTALL_SESSION
+    MARIADB
 
 .. toctree::
     :maxdepth: 2
     :caption: API Reference:
 
-    MODULI_GENERATOR
-    DB
     CONFIG
+    DB
+    MODULI_GENERATOR
 
 .. toctree::
     :maxdepth: 2
@@ -41,7 +41,7 @@ ssh2-moduli-generator (moduli_generator)
     MARIADB
     CHANGELOG
     CHANGELOG_GENERATOR
-
+    README
 
 
 ==================

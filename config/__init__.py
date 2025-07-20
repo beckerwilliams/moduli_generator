@@ -4,7 +4,7 @@ Configuration module for the moduli generator project.
 Centralizes all default configuration values.
 """
 from datetime import (UTC, datetime)
-from logging import (DEBUG, basicConfig, getLogger)
+from logging import (DEBUG, INFO, WARN, WARNING, ERROR, FATAL, CRITICAL, NOTSET, LogRecord, basicConfig, getLogger)
 from os import environ as osenv
 from pathlib import PosixPath as Path
 from re import (compile, sub)

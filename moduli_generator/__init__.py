@@ -1,16 +1,75 @@
 #!/usr/bin/env python
 import concurrent.futures
+import io
+import logging
 import subprocess
 from json import dump
 from pathlib import PosixPath as Path
 from typing import (Any, Dict, List)
 
 from mariadb import (Error)
-
+from logging import (INFO, DEBUG, WARNING, ERROR, CRITICAL)
 from config import (ISO_UTC_TIMESTAMP, default_config)
 from db import MariaDBConnector
 
-__all__ = ['ModuliGenerator']
+__all__ = ['ModuliGenerator','LoggerWriter']
+
+
+class LoggerWriter:
+    """
+    A class that bridges a logger and writable interface.
+
+    LoggerWriter acts as a writable stream that funnels written input to the
+    specified logger, making it compatible with interfaces that expect a writable
+    object (e.g., sys.stdout or sys.stderr redirection). This allows messages to
+    be logged through standard Python logging instead of directly to the console.
+
+    :ivar logger: The logging.Logger instance is used for logging messages.
+    :type logger: logging.Logger
+    :ivar level: The log level used when logging messages.
+    :type level: int
+    """
+
+    def __init__(self, logger, level):
+        """
+        Initializes an instance of a logging class with a specified logger and logging level.
+
+        :param logger: The logging instance to be used for log outputs.
+        :param level: The logging level to determine what messages to log.
+        """
+        self.logger = logger
+        self.level = level
+
+    def write(self, message):
+        """
+        Writes a log message using the configured logging level.
+
+        This method logs the given message using the specified logging level
+        and returns the number of characters in the message. Empty or
+        whitespace-only messages are excluded from logging.
+
+        :param message: The message string to be logged.
+        :type message: str
+
+        :return: The length of the provided message.
+        :rtype: int
+        """
+        if message.strip():  # Only log non-empty lines
+            self.logger.log(self.level, message.strip())
+        return len(message)
+
+    def flush(self):
+        """
+        Flush the current state, performing any necessary cleanup or finalization.
+        
+        For this implementation, no actual flushing is needed since we're logging
+        each message immediately, but this method is required to satisfy the 
+        file-like interface that subprocess expects.
+
+        :return: None
+        :rtype: None
+        """
+        pass
 
 
 class ModuliGenerator:
@@ -106,109 +165,96 @@ class ModuliGenerator:
         Generates candidate key files for the given key length and configuration using the
         `ssh-keygen` tool. This method works as a utility function to create files with
         potential cryptographic moduli that can be further processed.
-
-        :param config: Configuration object containing relevant directories and settings
-        :type config: Any
-        :param key_length: Key length (in bits) for generating candidate moduli
-        :type key_length: int
-        :return: Path to the generated candidate file
-        :rtype: Path
-        :raises subprocess.CalledProcessError: If the `ssh-keygen` subprocess fails
         """
         candidates_file = config.candidates_dir / f'candidates_{key_length}_{ISO_UTC_TIMESTAMP(compress=True)}'
         logger = config.get_logger()
 
         try:
-            # Generate moduli candidates with new ssh-keygen syntax
+            # Generate moduli candidates with text capture
             result = subprocess.run([
                 'nice', '-n', str(config.nice_value),
                 'ssh-keygen',
                 '-M', 'generate',
-                '-O', f'bits={key_length}',  # Specify the bit length
-                str(candidates_file)  # Output a file specification
+                '-O', f'bits={key_length}',
+                str(candidates_file)
             ], check=True, capture_output=True, text=True)
 
-            # Log the output line by line
+            # Log the output after successful completion
             if result.stdout:
-                for line in result.stdout.strip().splitlines():
-                    if line.strip():  # Only log non-empty lines
-                        logger.info(f'ssh-keygen:generate:stdout: {line.strip()}')
+                for line in result.stdout.strip().split('\n'):
+                    if line.strip():
+                        logger.info(line.strip())
+
             if result.stderr:
-                for line in result.stderr.strip().splitlines():
-                    if line.strip():  # Only log non-empty lines
-                        logger.debug(f'ssh-keygen:generate:stderr: {line.strip()}')
+                for line in result.stderr.strip().split('\n'):
+                    if line.strip():
+                        logger.debug(line.strip())
 
             return candidates_file
 
         except subprocess.CalledProcessError as err:
-            # Log the error output line by line
+            # Log any captured output from the failed process
             if err.stdout:
-                for line in err.stdout.strip().splitlines():
-                    if line.strip():  # Only log non-empty lines
-                        logger.error(f'ssh-keygen:generate:failed:stdout: {line.strip()}')
+                for line in err.stdout.strip().split('\n'):
+                    if line.strip():
+                        logger.error(f"stdout: {line.strip()}")
+
             if err.stderr:
-                for line in err.stderr.strip().splitlines():
-                    if line.strip():  # Only log non-empty lines
-                        logger.error(f'ssh-keygen:generate:failed:stderr: {line.strip()}')
+                for line in err.stderr.strip().split('\n'):
+                    if line.strip():
+                        logger.error(f"stderr: {line.strip()}")
+
+            logger.error(f'ssh-keygen generate failed for {key_length} bits: {err}')
             raise err
 
     @staticmethod
     def _screen_candidates_static(config, candidates_file: Path) -> Path:
         """
-        Screen candidate moduli files using provided configuration and the `ssh-keygen` tool. This method runs the
-        `ssh-keygen` command with the appropriate options and parameters for screening, cleans up the used candidate
-        files, and returns the path to the newly screened file. It uses the `nice` command to adjust process
-        priority and performs the screening process in place.
-
-        :param config: Configuration object containing the required attributes for file directories, generator type,
-                       and other parameters required in the screening process.
-        :type config: Any
-        :param candidates_file: Path to the moduli candidate file that will be screened.
-        :type candidates_file: Path
-        :return: Path to the screened moduli file created in the process.
-        :rtype: Path
+        Screen candidate moduli files using provided configuration and the `ssh-keygen` tool.
         """
         screened_file = config.moduli_dir / f'{candidates_file.name.replace('candidates', 'moduli')}'
         logger = config.get_logger()
 
         try:
-            # Screen candidates with new ssh-keygen syntax
             checkpoint_file = config.candidates_dir / f".{candidates_file.name}"
             result = subprocess.run([
                 'nice', '-n', str(config.nice_value),
                 'ssh-keygen',
                 '-M', 'screen',
-                '-O', f'generator={config.generator_type}',  # Specify screening type
+                '-O', f'generator={config.generator_type}',
                 '-O', f'checkpoint={str(checkpoint_file)}',
                 '-f', str(candidates_file),
                 str(screened_file)
             ], check=True, capture_output=True, text=True)
 
-            # Log the output line by line
+            # Log the output after successful completion
             if result.stdout:
-                for line in result.stdout.strip().splitlines():
-                    if line.strip():  # Only log non-empty lines
-                        logger.info(f'ssh-keygen:screen:stdout: {line.strip()}')
+                for line in result.stdout.strip().split('\n'):
+                    if line.strip():
+                        logger.info(line.strip())
+
             if result.stderr:
-                for line in result.stderr.strip().splitlines():
-                    if line.strip():  # Only log non-empty lines
-                        logger.debug(f'ssh-keygen:screen:stderr: {line.strip()}')
+                for line in result.stderr.strip().split('\n'):
+                    if line.strip():
+                        logger.debug(line.strip())
 
             # Cleanup used Moduli Candidates
-            candidates_file.unlink()  # Cleanup Used Candidate File
-
+            candidates_file.unlink()
             return screened_file
 
         except subprocess.CalledProcessError as err:
-            # Log the error output line by line
+            # Log any captured output from the failed process
             if err.stdout:
-                for line in err.stdout.strip().splitlines():
-                    if line.strip():  # Only log non-empty lines
-                        logger.error(f'ssh-keygen:screen:failed:stdout: {line.strip()}')
+                for line in err.stdout.strip().split('\n'):
+                    if line.strip():
+                        logger.error(f"stdout: {line.strip()}")
+
             if err.stderr:
-                for line in err.stderr.strip().splitlines():
-                    if line.strip():  # Only log non-empty lines
-                        logger.error(f'ssh-keygen:screen:failed:stderr: {line.strip()}')
+                for line in err.stderr.strip().split('\n'):
+                    if line.strip():
+                        logger.error(f"stderr: {line.strip()}")
+
+            logger.error(f'ssh-keygen screen failed for {candidates_file}: {err}')
             raise err
 
     def _generate_candidates(self, key_length: int) -> Path:
