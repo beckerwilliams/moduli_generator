@@ -12,7 +12,7 @@ from logging import (INFO, DEBUG, WARNING, ERROR, CRITICAL)
 from config import (ISO_UTC_TIMESTAMP, default_config)
 from db import MariaDBConnector
 
-__all__ = ['ModuliGenerator','LoggerWriter']
+__all__ = ['ModuliGenerator', 'LoggerWriter']
 
 
 class LoggerWriter:
@@ -64,7 +64,7 @@ class LoggerWriter:
         
         For this implementation, no actual flushing is needed since we're logging
         each message immediately, but this method is required to satisfy the 
-        file-like interface that subprocess expects.
+        file-like interface that the subprocess expects.
 
         :return: None
         :rtype: None

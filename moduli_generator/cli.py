@@ -126,7 +126,10 @@ def main(config: ModuliConfig):
     logger.info(f'Starting Moduli Generation at {start_time}')
 
     # The Invocation
-    ModuliGenerator(config).generate_moduli().store_moduli().write_moduli_file()
+    (ModuliGenerator(config)
+     .generate_moduli()
+     .store_moduli()
+     .write_moduli_file())
 
     # Stats and Cleanup
     duration = (datetime.now(UTC).replace(tzinfo=None) - start_time).seconds

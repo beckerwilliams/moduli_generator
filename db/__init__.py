@@ -256,8 +256,8 @@ class MariaDBConnector:
         # COnfigure Logger for Module
         self.logger = config.get_logger()
         self.logger.name = __name__
-
         self.logger.debug(f"Using MariaDB config: {config.mariadb_cnf}")
+        self.records_per_keylength = config.records_per_keylength
 
         mysql_cnf = parse_mysql_config(config.mariadb_cnf)["client"]
 
@@ -274,6 +274,7 @@ class MariaDBConnector:
                 database=mysql_cnf["database"]
             )
             self.logger.info(f"Connection pool created with size: 10")
+
         except Error as err:
             self.logger.error(f"Error creating connection pool: {err}")
             raise RuntimeError(f"Connection pool creation failed: {err}")
@@ -699,9 +700,8 @@ class MariaDBConnector:
                 count = result[0]['COUNT(*)']
                 status.append(count)
             # Calculate Number of Moduli Files Available
-            status.append(
-                {'potential_ssh_moduli_files': f'{int(min(status) / self.config.records_per_keylength)}'}
-            )
+            status.append(int(min(status) / self.records_per_keylength))
+            moduli_query_sizes.append('Available Moduli Files')
 
         except Exception as err:
             self.logger.error(f"Error retrieving moduli: {err}")

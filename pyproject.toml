@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "moduli_generator"
-version = "2.1.15"
+version = "2.1.16"
 description = "Command Line Utility to build moduli for /usr/local/etc/ssh/moduli_file"
 authors = ["Ron Williams <becker.williams@gmail.com>"]
 license = "MIT"
@@ -29,6 +29,9 @@ packages = [
 	{ include = "config" },
 	{ include = "db" },
 	{ include = "moduli_generator" }
+]
+include = [
+	"doc/**/*"
 ]
 exclude = [
 	"*.cnf"  # No Mariadb Configuration Files (Usually Contain Passwords)

@@ -4,7 +4,7 @@ Configuration module for the moduli generator project.
 Centralizes all default configuration values.
 """
 from datetime import (UTC, datetime)
-from logging import (DEBUG, INFO, WARN, WARNING, ERROR, FATAL, CRITICAL, NOTSET, LogRecord, basicConfig, getLogger)
+from logging import (DEBUG, basicConfig, getLogger)
 from os import environ as osenv
 from pathlib import PosixPath as Path
 from re import (compile, sub)
@@ -283,20 +283,15 @@ class ModuliConfig:
         if not (self.base_dir / DEFAULT_LOG_DIR).exists():
             Path(self.base_dir / DEFAULT_LOG_DIR).mkdir(parents=True, exist_ok=True)
 
-        # Create a custom formatter that uses ISO UTC format
+        # Set logging to use UTC time globally
         import logging
-        
-        class ISOUTCFormatter(logging.Formatter):
-            def formatTime(self, record, datefmt=None):
-                return datetime.now(UTC).replace(tzinfo=None).isoformat()
+        logging.Formatter.converter = lambda *args: datetime.now(UTC).timetuple()
 
-        # Configure basicConfig with custom ISO UTC formatter
-        handler = logging.FileHandler(Path(self.log_file), mode='a')
-        handler.setFormatter(ISOUTCFormatter('%(asctime)s: %(levelname)s: %(message)s'))
-        
         basicConfig(
             level=DEBUG,
-            handlers=[handler]
+            format='%(asctime)s - %(levelname)s: %(message)s',
+            filename=Path(self.log_file),
+            filemode='a'
         )
         return getLogger()
 
