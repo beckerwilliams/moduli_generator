@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import concurrent.futures
-import io
 import logging
 import subprocess
 from json import dump
@@ -8,7 +7,7 @@ from pathlib import PosixPath as Path
 from typing import (Any, Dict, List)
 
 from mariadb import (Error)
-from logging import (INFO, DEBUG, WARNING, ERROR, CRITICAL)
+
 from config import (ISO_UTC_TIMESTAMP, default_config)
 from db import MariaDBConnector
 
@@ -385,7 +384,7 @@ class ModuliGenerator:
                     candidates_by_length[length] = []
                 candidates_by_length[length].append(candidate_file)
             self.logger.debug(
-                f'Generated {len(candidates_by_length)} candidate files for key-lengths: {self.config.key_lengths}')
+                f'Generated {len(candidates_by_length)} candidate files for each of the following key-lengths: {self.config.key_lengths}')
 
             # Then screen candidates
             screening_futures = []
@@ -399,7 +398,7 @@ class ModuliGenerator:
                 if length not in generated_moduli:
                     generated_moduli[length] = []
                 generated_moduli[length].append(moduli_file)
-            self.logger.debug(f'Screened {len(screening_futures)} candidatefiles. ' +
+            self.logger.debug(f'Screened {len(screening_futures)} candidate files ' +
                               f'key-lengths: {self.config.key_lengths}')
 
         return self
@@ -447,7 +446,6 @@ class ModuliGenerator:
         except Error as err:
             self.logger.error(f'Error storing moduli: {err}')
 
-        # tbd - We should check that the records are installed properly before hand
         moduli_files = self._list_moduli_files()
         for file in moduli_files:
             file.unlink()
@@ -467,6 +465,10 @@ class ModuliGenerator:
         :return: self
         :rtype: ModuliGenerator
         """
-        self.db.write_moduli_file()
+        try:
+            self.db.write_moduli_file()
+
+        except RuntimeError as err:
+            self.logger.info(err)
 
         return self

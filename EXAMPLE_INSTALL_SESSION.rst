@@ -1,8 +1,5 @@
-Moduli Generator Application Installer
-======================================
-
-The Installer
--------------
+Boostrap Dev Installer
+======================
 * clones current github repo,
 * creates new virtual environment and installs freshly built wheel
 * builds an installable python wheel from the project source
@@ -17,43 +14,49 @@ Requirements
 
 Verify that you have cli (`git`) access to `Github <https://github.com/beckerwilliams/moduli_generator>`_.
 
-Note:
-    Moduli Generator can be installed and configured without Maria DB installed and available. You will need to Install Maria DB and the Moduli Generator Schema prior to operation. See `MARIADB`_
+Configure
+=========
 
-Configure Installer
-===================
+Copy the installer script *(below)*, into a file named ``install_gm.sh``.
+Place the file in the desired ``./WorkDir``
 
-
-Copy the installer script into a file named ``install_gm.sh``, and make executable
-
-.. code-block::
-
-    chmod +x install_gm.sh
-
-Place (`move`) the copied file in a directory into which you want to install Moduli Generator virtual environment.
+Set the file's `execute` bit.
 
 .. code-block:: bash
 
-    cp <obtained_installer> <selected dir>/install_gm.sh
+    chmod +x ${WorkDir}/install_gm.sh
 
-Start the Install
+And build the runtime
 
-.. code-block::
+.. code-block:: bash
 
+    cd ${WorkDir}
     ./install_gm.sh
 
-*response*
+At completion, you will have a python virtual environment located at ${WorkDir}/.venv. To activate, type:
+
+.. code-block:: bash
+
+    source .venv/bin/activate
+
+There will also be two log files.
+
+The first is the output of the ``build wheel`` session, where the installer builds the moduli_generator wheel file.
+
+*build wheel response:*
 
 .. literalinclude:: EXAMPLE_INSTALL_RESPONSE.txt
     :language: bash
 
+The second is the output of the ``create runtime`` section, that displays the creation results of the runtime python environment for modui generator.
 
-*install.log*
+*create runtime response:*
 
 .. literalinclude:: EXAMPLE_INSTALL_LOG.txt
     :language: bash
 
-**moduli_generator_github_installer.sh**
+*install_gm.sh*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. literalinclude:: moduli_generator_github_installer.sh
-   :language: bash
+.. literalinclude:: install_gm.sh
+    :language: bash

@@ -1,5 +1,5 @@
 import argparse
-from json import (dump, dumps)
+from json import (dump)
 from logging import (DEBUG, basicConfig, getLogger)
 from pathlib import PosixPath as Path
 from sys import exit
@@ -56,13 +56,15 @@ def main(
 
     # Get the records and save to the specified file
     status = db.stats()
+    # tbd - remove line below
     with status_file.open('w') as of:
         dump(status, of, indent=4)
 
-    logger.info(f'Key-Length: #Records')
     # Print a header and then the data
+    logger.info(f'Key-Length: #Records')
+    print(f'Key-Length: #Records')
     [logger.info(f'{keysize}: {status[keysize]}') for keysize in status if status[keysize] > 0]
+    [print(f'{keysize}: {status[keysize]}' for keysize in status if status[keysize] > 0)]
 
-
-if __name__ == "__main__":
-    exit(main())
+    if __name__ == "__main__":
+        exit(main())

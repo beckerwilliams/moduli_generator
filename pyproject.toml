@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "moduli_generator"
-version = "2.1.16"
+version = "2.1.17"
 description = "Command Line Utility to build moduli for /usr/local/etc/ssh/moduli_file"
 authors = ["Ron Williams <becker.williams@gmail.com>"]
 license = "MIT"
@@ -34,18 +34,20 @@ include = [
 	"doc/**/*"
 ]
 exclude = [
-	"*.cnf"  # No Mariadb Configuration Files (Usually Contain Passwords)
+	"*.cnf",  # No Mariadb Configuration Files (Usually Contain Passwords)
+	"changelog_generator"
 ]
 # RUNTIME DEPENDENCIES ONLY - These will be included in the wheel
 [tool.poetry.dependencies]
 python = "^3.12"
 mariadb = "^1.1.12"
 configparser = "^7.2.0"
+toml = "^0.10.2"
 
 # BUILD-TIME DEPENDENCIES - These are NOT included in the wheel
+poetry = "^2.1.3"
 [tool.poetry.group.dev.dependencies]
 poetry = "^2.1.3"
-toml = "^0.10.2"
 sphinx = "^7.2.6"
 sphinxcontrib-jquery = "^4.1"
 sphinx-rtd-theme = "^3.0.2"
