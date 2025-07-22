@@ -17,7 +17,7 @@ __all__ = [
     'default_config',
     'ISO_UTC_TIMESTAMP',
     'strip_punction_from_datetime_str',
-    'is_valid_identifier',
+    'is_valid_identifier_sql',
     'DEFAULT_MARIADB',
     'DEFAULT_MARIADB_CNF',
     'DEFAULT_KEY_LENGTHS',
@@ -98,7 +98,7 @@ def strip_punction_from_datetime_str(timestamp: datetime) -> str:
     return sub(r'[^0-9]', '', timestamp.isoformat())
 
 
-def is_valid_identifier(identifier: str) -> bool:
+def is_valid_identifier_sql(identifier: str) -> bool:
     """
     Determines if the given string is a valid identifier following specific
     rules. Valid identifiers must either be unquoted strings containing only

@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import mariadb
 from mariadb import Error, PoolError
 
-from config import is_valid_identifier
+from config import is_valid_identifier_sql
 
 
 def parse_mysql_config(config_file: Path) -> dict:
@@ -443,7 +443,7 @@ class MariaDBConnector:
         """
         try:
             # Validate identifiers
-            if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.table_name)):
+            if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.table_name)):
                 raise RuntimeError("Invalid database or table name")
 
             connection = self.get_connection()
@@ -512,7 +512,7 @@ class MariaDBConnector:
                 cursor = connection.cursor()
 
                 # Validate identifiers
-                if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.table_name)):
+                if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.table_name)):
                     raise RuntimeError("Invalid database or table name")
 
                 insert_query = f"""
@@ -548,7 +548,7 @@ class MariaDBConnector:
         """
         try:
             # Validate identifiers
-            if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.table_name)):
+            if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.table_name)):
                 raise RuntimeError("Invalid database or table name")
 
             with self.transaction() as connection:
@@ -585,7 +585,7 @@ class MariaDBConnector:
         """
         try:
             # Validate identifiers
-            if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.view_name)):
+            if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.view_name)):
                 raise RuntimeError("Invalid database or view name")
 
             query = f"""
@@ -624,7 +624,7 @@ class MariaDBConnector:
             stats = {}
 
             # Validate identifiers
-            if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.view_name)):
+            if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.view_name)):
                 raise RuntimeError("Invalid database or view name")
 
             with open(output_file, 'w') as f:
@@ -691,7 +691,7 @@ class MariaDBConnector:
         status: List[int] = list()
 
         # Validate identifiers
-        if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.view_name)):
+        if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.view_name)):
             self.logger.error("Invalid database or table name")
             return {}
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "moduli_generator"
-version = "2.1.17"
+version = "2.1.18"
 description = "Command Line Utility to build moduli for /usr/local/etc/ssh/moduli_file"
 authors = ["Ron Williams <becker.williams@gmail.com>"]
 license = "MIT"
@@ -16,6 +16,9 @@ classifiers = [
 	"Topic :: Security",
 	"Programming Language :: Python :: 3",
 	"Programming Language :: Python :: 3.12",
+	"Programming Language :: Python :: 3.13",
+	"Programming Language :: Python :: 3.14",
+	"Programming Language :: Python :: 3.15",
 	"Programming Language :: Python :: 3 :: Only",
 	"License :: OSI Approved :: MIT License",
 	"Operating System :: POSIX :: Linux",

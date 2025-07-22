@@ -11,7 +11,7 @@ from typing import (
 
 from mariadb import (ConnectionPool, Error)  # Add this import
 
-from config import (DEFAULT_KEY_LENGTHS, ISO_UTC_TIMESTAMP, ModuliConfig, default_config, is_valid_identifier)
+from config import (DEFAULT_KEY_LENGTHS, ISO_UTC_TIMESTAMP, ModuliConfig, default_config, is_valid_identifier_sql)
 
 
 def parse_mysql_config(mysql_cnf: str) -> Dict[str, Dict[str, str]]:
@@ -427,15 +427,22 @@ class MariaDBConnector:
         :raises Error: If there is an issue during the database operation.
         """
         # Validate identifiers
-        if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.table_name)):
+        if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.table_name)):
             self.logger.error("Invalid database or table name")
             return 0
 
         try:
             with connection.cursor() as cursor:
-                query = f"""INSERT INTO {self.db_name}.{self.table_name} 
-                           (timestamp, config_id, size, modulus) VALUES (?, ?, ?, ?)"""
-                cursor.execute(query, (timestamp, self.config_id, key_size, modulus))
+                query = "INSERT INTO %s (timestamp, config_id, size, modulus) VALUES (%s, %s, %s, %s)"
+                db_table_names = '.'.join((self.db_name, self.table_name))
+                params_list = (
+                    db_table_names,
+                    timestamp,
+                    self.config_id,
+                    key_size,
+                    modulus
+                )
+                cursor.execute(query, params_list)
                 last_id = cursor.lastrowid
                 self.logger.debug(f'Successfully added {key_size} bit modulus')
                 return last_id
@@ -460,7 +467,7 @@ class MariaDBConnector:
         :rtype: int
         """
         # Validate identifiers
-        if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.table_name)):
+        if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.table_name)):
             self.logger.error("Invalid database or table name")
             return 0
 
@@ -468,9 +475,18 @@ class MariaDBConnector:
             with self.get_connection() as connection:
                 with self.transaction(connection):
                     with connection.cursor() as cursor:
-                        query = f"""INSERT INTO {self.db_name}.{self.table_name} 
-                               (timestamp, config_id, size, modulus) VALUES (?, ?, ?, ?)"""
-                        cursor.execute(query, (timestamp, self.config_id, key_size, modulus))
+                        query = "INSERT INTO %s (timestamp, config_id, size, modulus) VALUES (%s, %s, %s, %s)"
+
+                        db_table_names = '.'.join((self.db_name, self.table_name))
+                        params_list = (
+                            db_table_names,
+                            timestamp,
+                            self.config_id,
+                            key_size,
+                            modulus
+                        )
+
+                        cursor.execute(query, params_list)
                         last_id = cursor.lastrowid
                         self.logger.debug(f'Successfully added {key_size} bit modulus')
                         return last_id
@@ -496,17 +512,17 @@ class MariaDBConnector:
             Returns True if successful, False otherwise.
         :rtype: bool
         """
-        if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.table_name)):
+        if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.table_name)):
             self.logger.error("Invalid database or table name")
             return False
 
-        query = f"""
-                INSERT INTO {self.db_name}.{self.table_name} (timestamp, config_id, size, modulus)
-                VALUES (?, ?, ?, ?)
+        query = """
+                INSERT INTO %s (timestamp, config_id, size, modulus)
+                VALUES (%s, %s, %s, %s)
                 """
-
         # Prepare parameters for batch execution
-        params_list = [(timestamp, self.config_id, key_size, modulus)
+        db_table_names = '.'.join((self.db_name, self.table_name))
+        params_list = [(db_table_names, timestamp, self.config_id, key_size, modulus)
                        for timestamp, key_size, modulus in records]
 
         try:
@@ -538,11 +554,14 @@ class MariaDBConnector:
                 with self.transaction(connection):
                     with connection.cursor() as cursor:
                         if where_clause:
-                            query = f"DELETE FROM {table_name} WHERE {where_clause}"
+                            query = f"DELETE FROM %s WHERE %s"
                         else:
-                            query = f"DELETE FROM {table_name}"
+                            query = f"DELETE FROM %s"
 
-                    cursor.execute(query)
+                    parameter_list = (
+                        table_name,
+                        where_clause)
+                    cursor.execute(query, parameter_list)
                     rows_affected = cursor.rowcount
 
                     self.logger.debug(f"Moduli Consumed from DB: {rows_affected}")
@@ -684,7 +703,7 @@ class MariaDBConnector:
         status: List[int, int] = list()
 
         # Validate identifiers
-        if not (is_valid_identifier(self.db_name) and is_valid_identifier(self.view_name)):
+        if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.view_name)):
             self.logger.error("Invalid database or table name")
             return 0
 

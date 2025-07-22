@@ -11,64 +11,159 @@ from mariadb import (Error)
 from config import (ISO_UTC_TIMESTAMP, default_config)
 from db import MariaDBConnector
 
-__all__ = ['ModuliGenerator', 'LoggerWriter']
+__all__ = ['ModuliGenerator', 'LoggerWriter', 'validate_subprocess_args']
 
 
-class LoggerWriter:
+def validate_integer_parameters(key_length=None, nice_value=None):
     """
-    A class that bridges a logger and writable interface.
+    Validates that key_length and nice_value are proper integers.
 
-    LoggerWriter acts as a writable stream that funnels written input to the
-    specified logger, making it compatible with interfaces that expect a writable
-    object (e.g., sys.stdout or sys.stderr redirection). This allows messages to
-    be logged through standard Python logging instead of directly to the console.
+    This function addresses the security concerns identified in the code analysis,
+    particularly the command injection risks from unvalidated inputs to subprocess calls.
 
-    :ivar logger: The logging.Logger instance is used for logging messages.
-    :type logger: logging.Logger
-    :ivar level: The log level used when logging messages.
-    :type level: int
+    :param key_length: The cryptographic key length in bits (e.g., 1024, 2048, 4096)
+    :type key_length: Any
+    :param nice_value: The process priority value for 'nice' command (-20 to 19)
+    :type nice_value: Any
+    :raises ValueError: If parameters are not valid integers or are out of expected ranges
+    :raises TypeError: If parameters are not of expected types
+    :return: Tuple of validated integers (key_length, nice_value) or None values
+    :rtype: tuple[int | None, int | None]
     """
+    validated_key_length = None
+    validated_nice_value = None
 
-    def __init__(self, logger, level):
-        """
-        Initializes an instance of a logging class with a specified logger and logging level.
+    # Validate key_length
+    if key_length is not None:
+        if not isinstance(key_length, (int, str)):
+            raise TypeError(f"key_length must be an integer or string, got {type(key_length).__name__}")
 
-        :param logger: The logging instance to be used for log outputs.
-        :param level: The logging level to determine what messages to log.
-        """
-        self.logger = logger
-        self.level = level
+        try:
+            validated_key_length = int(key_length)
+        except (ValueError, OverflowError) as err:
+            raise ValueError(f"key_length must be convertible to integer: {err}")
 
-    def write(self, message):
-        """
-        Writes a log message using the configured logging level.
+        # Additional validation for reasonable key lengths
+        if validated_key_length < 3072:
+            raise ValueError(f"key_length {validated_key_length} is too small (minimum 3072 bits)")
+        if validated_key_length > 8192:
+            raise ValueError(f"key_length {validated_key_length} is too large (maximum 8192 bits)")
+        if validated_key_length % 8 != 0:
+            raise ValueError(f"key_length {validated_key_length} must be divisible by 8")
 
-        This method logs the given message using the specified logging level
-        and returns the number of characters in the message. Empty or
-        whitespace-only messages are excluded from logging.
+    # Validate nice_value
+    if nice_value is not None:
+        if not isinstance(nice_value, (int, str)):
+            raise TypeError(f"nice_value must be an integer or string, got {type(nice_value).__name__}")
 
-        :param message: The message string to be logged.
-        :type message: str
+        try:
+            validated_nice_value = int(nice_value)
+        except (ValueError, OverflowError) as e:
+            raise ValueError(f"nice_value must be convertible to integer: {e}")
 
-        :return: The length of the provided message.
-        :rtype: int
-        """
-        if message.strip():  # Only log non-empty lines
-            self.logger.log(self.level, message.strip())
-        return len(message)
+        # Validate nice_value range (standard Unix nice values)
+        if not -20 <= validated_nice_value <= 19:
+            raise ValueError(f"nice_value {validated_nice_value} must be between -20 and 19")
 
-    def flush(self):
-        """
-        Flush the current state, performing any necessary cleanup or finalization.
-        
-        For this implementation, no actual flushing is needed since we're logging
-        each message immediately, but this method is required to satisfy the 
-        file-like interface that the subprocess expects.
+    return validated_key_length, validated_nice_value
 
-        :return: None
-        :rtype: None
-        """
-        pass
+
+def validate_subprocess_args(key_length, nice_value):
+    """
+    Specialized validation for subprocess arguments to prevent command injection.
+
+    This function ensures that parameters passed to subprocess calls are safe
+    and cannot be exploited for command injection attacks.
+
+    :param key_length: The cryptographic key length in bits
+    :type key_length: Any
+    :param nice_value: The process priority value
+    :type nice_value: Any
+    :raises ValueError: If parameters fail validation
+    :raises TypeError: If parameters are not of expected types
+    :return: Tuple of validated string representations safe for subprocess
+    :rtype: tuple[str, str]
+    """
+    # Use the main validation function first
+    validated_key_length, validated_nice_value = validate_integer_parameters(
+        key_length=key_length,
+        nice_value=nice_value
+    )
+
+    if validated_key_length is None:
+        raise ValueError("key_length is required for subprocess validation")
+    if validated_nice_value is None:
+        raise ValueError("nice_value is required for subprocess validation")
+
+    # Convert to strings safe for subprocess
+    safe_key_length = str(validated_key_length)
+    safe_nice_value = str(validated_nice_value)
+
+    # Additional security check - ensure no special characters
+    import re
+    if not re.match(r'^\d+$', safe_key_length):
+        raise ValueError(f"key_length contains invalid characters: {safe_key_length}")
+    if not re.match(r'^-?\d+$', safe_nice_value):
+        raise ValueError(f"nice_value contains invalid characters: {safe_nice_value}")
+
+    return safe_key_length, safe_nice_value
+
+
+# class LoggerWriter:
+#     """
+#     A class that bridges a logger and writable interface.
+#
+#     LoggerWriter acts as a writable stream that funnels written input to the
+#     specified logger, making it compatible with interfaces that expect a writable
+#     object (e.g., sys.stdout or sys.stderr redirection). This allows messages to
+#     be logged through standard Python logging instead of directly to the console.
+#
+#     :ivar logger: The logging.Logger instance is used for logging messages.
+#     :type logger: logging.Logger
+#     :ivar level: The log level used when logging messages.
+#     :type level: int
+#     """
+#
+#     def __init__(self, logger, level):
+#         """
+#         Initializes an instance of a logging class with a specified logger and logging level.
+#
+#         :param logger: The logging instance to be used for log outputs.
+#         :param level: The logging level to determine what messages to log.
+#         """
+#         self.logger = logger
+#         self.level = level
+#
+#     def write(self, message):
+#         """
+#         Writes a log message using the configured logging level.
+#
+#         This method logs the given message using the specified logging level
+#         and returns the number of characters in the message. Empty or
+#         whitespace-only messages are excluded from logging.
+#
+#         :param message: The message string to be logged.
+#         :type message: str
+#
+#         :return: The length of the provided message.
+#         :rtype: int
+#         """
+#         if message.strip():  # Only log non-empty lines
+#             self.logger.log(self.level, message.strip())
+#         return len(message)
+#
+#     def flush(self):
+#         """
+#         Flush the current state, performing any necessary cleanup or finalization.
+#
+#         For this implementation, no actual flushing is needed since we're logging
+#         each message immediately, but this method is required to satisfy the
+#         file-like interface that the subprocess expects.
+#
+#         :return: None
+#         :rtype: None
+#         """
+#         pass
 
 
 class ModuliGenerator:
@@ -161,20 +256,34 @@ class ModuliGenerator:
     @staticmethod
     def _generate_candidates_static(config, key_length: int) -> Path:
         """
-        Generates candidate key files for the given key length and configuration using the
-        `ssh-keygen` tool. This method works as a utility function to create files with
-        potential cryptographic moduli that can be further processed.
+        Generate a moduli candidate file using the SSH key generation utility.
+
+        This method runs the `ssh-keygen` command-line tool to generate moduli candidates for
+        Diffie-Hellman group exchange, leveraging subprocess handling for system command execution.
+        The output and errors are captured, logged, and appropriately handled. The generated file
+        is returned as a `Path` object pointing to its location.
+
+        :param config: The configuration object contains the necessary parameters for the process,
+                       including paths and logging setup.
+        :type config: Any
+        :param key_length: The desired key length in bits for the moduli candidate generation.
+        :type key_length: int
+        :return: Path to the generated moduli candidate file.
+        :rtype: Path
         """
         candidates_file = config.candidates_dir / f'candidates_{key_length}_{ISO_UTC_TIMESTAMP(compress=True)}'
         logger = config.get_logger()
 
+        # nice_value and key_length(s) CAN Be User provided Variables. We need to make sure they're safe.
+        safe_key_length, safe_nice_value = validate_subprocess_args(key_length, config.nice_value)
+
         try:
             # Generate moduli candidates with text capture
             result = subprocess.run([
-                'nice', '-n', str(config.nice_value),
+                'nice', '-n', f'{safe_nice_value}',
                 'ssh-keygen',
                 '-M', 'generate',
-                '-O', f'bits={key_length}',
+                '-O', f'bits={safe_key_length}',
                 str(candidates_file)
             ], check=True, capture_output=True, text=True)
 
@@ -209,15 +318,35 @@ class ModuliGenerator:
     @staticmethod
     def _screen_candidates_static(config, candidates_file: Path) -> Path:
         """
-        Screen candidate moduli files using provided configuration and the `ssh-keygen` tool.
+        Screen candidate moduli files using the provided configuration and the `ssh-keygen` tool.
+        This method takes a configuration object and a path to a candidate moduli file and processes
+        the file to generate a screened moduli file. The `ssh-keygen` tool is used with the `-M screen`
+        option to evaluate and filter candidate moduli using various configuration parameters. During
+        the process, output from stdout and stderr is logged for both successful and failed invocations.
+
+        If the operation is successful, the processed moduli file is returned. The candidate file is
+        removed from the filesystem after processing. In case of errors during execution, log and re-raises
+        exceptions.
+
+        :param config: Configuration object providing required details for processing such as moduli
+                       directory, logger, generator type, candidates directory, and nice value.
+        :type config: Any
+        :param candidates_file: Path to the candidate moduli file to be screened.
+        :type candidates_file: Path
+        :return: Path to the generated screened moduli file.
+        :rtype: Path
+        :raises CalledProcessError: If the `ssh-keygen` tool fails during execution.
         """
         screened_file = config.moduli_dir / f'{candidates_file.name.replace('candidates', 'moduli')}'
         logger = config.get_logger()
 
+        # We only need to validate a nice value, Using valid key_length(int(3072)) to pass argument validator
+        _, safe_nice_value = validate_subprocess_args(int(3072), config.nice_value)
+
         try:
             checkpoint_file = config.candidates_dir / f".{candidates_file.name}"
             result = subprocess.run([
-                'nice', '-n', str(config.nice_value),
+                'nice', '-n', f'{safe_nice_value}',
                 'ssh-keygen',
                 '-M', 'screen',
                 '-O', f'generator={config.generator_type}',
@@ -384,7 +513,7 @@ class ModuliGenerator:
                     candidates_by_length[length] = []
                 candidates_by_length[length].append(candidate_file)
             self.logger.debug(
-                f'Generated {len(candidates_by_length)} candidate files for each of the following key-lengths: {self.config.key_lengths}')
+                f'Generated {len(candidates_by_length)} candidate files for key-lengths: {self.config.key_lengths}')
 
             # Then screen candidates
             screening_futures = []
@@ -440,6 +569,7 @@ class ModuliGenerator:
         """
         screened_moduli = self._parse_moduli_files()
 
+        # tbd - Verify Successful DB Load prior to Deletion
         try:
             self.db.export_screened_moduli(screened_moduli)
 

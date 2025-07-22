@@ -28,9 +28,9 @@ def validate_integer_parameters(key_length=None, nice_value=None):
             raise ValueError(f"key_length must be convertible to integer: {e}")
 
         # Additional validation for reasonable key lengths
-        if validated_key_length < 512:
+        if validated_key_length < 3072:
             raise ValueError(f"key_length {validated_key_length} is too small (minimum 512 bits)")
-        if validated_key_length > 16384:
+        if validated_key_length > 8192:
             raise ValueError(f"key_length {validated_key_length} is too large (maximum 16384 bits)")
         if validated_key_length % 8 != 0:
             raise ValueError(f"key_length {validated_key_length} must be divisible by 8")
