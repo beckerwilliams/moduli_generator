@@ -1,6 +1,7 @@
-from subprocess import run
+import importlib.resources
 
-from _github_installer_sh import installer_script
+
+__all__ = ['installer']
 
 
 def installer():
@@ -13,9 +14,19 @@ def installer():
     :return: None
     :rtype: None
     """
-    print(f'Installer Script: {installer_script()}\n')
-    script = installer_script()
-    run(['bash', '-c', script])
+    try:
+        # Access the module from the data directory
+        files = importlib.resources.files('data.bash_scripts')
+        module = files / 'install_gm.sh'
+
+        if module.is_file():
+            print(f'Installer Script: {module}\n')
+            print(module.read_text())
+        else:
+            print("Error: get_github_installer.py not found in package data")
+
+    except Exception as err:
+        print(f"Error importing installer script: {err}")
 
 
 if __name__ == "__main__":
