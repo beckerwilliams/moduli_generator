@@ -1,112 +1,54 @@
 #!/usr/bin/env python
-import argparse
 from datetime import UTC, datetime
-from sys import exit
 
 # Import the default configuration
-from config import (ModuliConfig, default_config)
+from config import (ModuliConfig)
 # Import ModuliGenerator
+from config.moduli_generator_arg_parser import config as local_config
 from moduli_generator import ModuliGenerator
+
 
 
 # Import MariaDBConnector
 
-
-def parse_args_local_config():
-    """
-    Parse command-line arguments for the Moduli Generator and return the parsed arguments.
-
-    This function uses the `argparse` module to define and parse command-line options used
-    for managing the secure moduli generation process. It provides a variety of configurable
-    options, including base directory settings, directory paths for storing generated moduli,
-    and specific configuration file paths. Additionally, the function supports specifying
-    key lengths for moduli generation as well as process priority settings through a nice value.
-
-    :return: Parsed command-line arguments
-    :rtype: argparse.Namespace
-    """
-    parser = argparse.ArgumentParser(
-        description="Moduli Generator - Generate and manage secure moduli for cryptographic operations",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
-    )
-    parser.add_argument(
-        "--key-lengths",
-        type=int,
-        nargs="+",
-        default=default_config.key_lengths,
-        help="Space-separated list of key lengths to generate moduli for"
-    )
-    parser.add_argument(
-        "--moduli-home",
-        type=str,
-        default=str(default_config.base_dir),
-        help="Base directory for moduli generation and storage"
-    )
-    parser.add_argument(
-        "--candidates-dir",
-        type=str,
-        default=str(default_config.candidates_dir.relative_to(default_config.base_dir)),
-        help="Directory to store candidate moduli (relative to moduli-home)"
-    )
-    parser.add_argument(
-        "--moduli-dir",
-        type=str,
-        default=str(default_config.moduli_dir.relative_to(default_config.base_dir)),
-        help="Directory to store generated moduli (relative to moduli-home)"
-    )
-    parser.add_argument(
-        "--log-dir",
-        type=str,
-        default=str(default_config.log_dir.relative_to(default_config.base_dir)),
-        help="Directory to store log files (relative to moduli-home)"
-    )
-    parser.add_argument(
-        "--mariadb-cnf",
-        type=str,
-        default=str(default_config.mariadb_cnf.relative_to(default_config.base_dir)),
-        help="Path to MariaDB configuration file (relative to moduli-home)"
-    )
-    # Add a nice_value argument that might be missing
-    parser.add_argument(
-        "--nice-value",
-        type=int,
-        default=default_config.nice_value,
-        help="Process nice value for CPU inensive operations"
-    )
-    parser.add_argument("--records-per-keylength",
-                        type=int,
-                        default=default_config.records_per_keylength,
-                        help="Number of moduli per key-length to capture in each produced moduli file"
-                        )
-    parser.add_argument("--delete-records-on-moduli-write",
-                        type=bool,
-                        default=False,
-                        help="Delete records from DB written to moduli file")
-    parser.add_argument("--moduli_db",
-                        type=str,
-                        default=default_config.db_name,
-                        help="Name of the database to create and Initialize")
-
-    args = parser.parse_args()
-
-    # Create a custom configuration based on the command line arguments
-    config = default_config.with_base_dir(args.moduli_home)
-
-    # Override with command line options if provided
-    config.candidates_dir = config.base_dir / args.candidates_dir
-    config.moduli_dir = config.base_dir / args.moduli_dir
-    config.log_dir = config.base_dir / args.log_dir
-    config.moduli_generator_config = config.base_dir / args.mariadb_cnf
-    config.records_per_keylength = args.records_per_keylength
-    config.delete_records_on_moduli_write = args.delete_records_on_moduli_write
-
-    config.ensure_directories()
-    config.key_lengths = tuple(args.key_lengths)
-    config.nice_value = args.nice_value
-
-    config.moduli_db = args.moduli_db  # tbd - add sql validtion to input arg
-
-    return config
+#
+# def local_config():
+#     """
+#     Creates and returns a customized configuration object by overriding the default
+#     configuration with values provided via command-line arguments.
+#
+#     The function modifies various attributes of the configuration object, including
+#     directories and specific parameters for the functionality related to moduli
+#     generation. It ensures that the required directories exist and updates the
+#     configuration with the provided key lengths, nice value, database info, and additional
+#     options as needed.
+#
+#     :param args: Command-line arguments containing values to override the default
+#                  configuration.
+#     :type args: argparse.Namespace
+#
+#     :return: A customized configuration object with modified attributes based on
+#              the command-line arguments.
+#     :rtype: Config
+#     """
+#     # Create a custom configuration based on the command line arguments
+#     config = default_config.with_base_dir(args.moduli_home)
+#
+#     # Override with command line options if provided
+#     config.candidates_dir = config.base_dir / args.candidates_dir
+#     config.moduli_dir = config.base_dir / args.moduli_dir
+#     config.log_dir = config.base_dir / args.log_dir
+#     config.moduli_generator_config = config.base_dir / args.mariadb_cnf
+#     config.records_per_keylength = args.records_per_keylength
+#     config.delete_records_on_moduli_write = args.delete_records_on_moduli_write
+#
+#     config.ensure_directories()
+#     config.key_lengths = tuple(args.key_lengths)
+#     config.nice_value = args.nice_value
+#
+#     config.moduli_db = args.moduli_db  # tbd - add sql validtion to input arg
+#
+#     return config
 
 
 def main(config: ModuliConfig):
@@ -132,18 +74,18 @@ def main(config: ModuliConfig):
     logger.info(f'Starting Moduli Generation at {start_time}')
 
     # The Invocation
-    (ModuliGenerator(config)
-     .generate_moduli()
-     .store_moduli()
-     .write_moduli_file())
+    # (ModuliGenerator(config)
+    #  .generate_moduli()
+    #  .store_moduli()
+    #  .write_moduli_file())
 
-    # Stats and Cleanup
+    ModuliGenerator(config).write_moduli_file()
+
+
+# Stats and Cleanup
     duration = (datetime.now(UTC).replace(tzinfo=None) - start_time).seconds
-    logger.info(f'Moduli Generation Complete. Time taken: {duration/3600} hours')
-    print(f'Moduli Generation Complete. Time taken: {duration/3600} hours')
-
-    return 0
-
+    logger.info(f'Moduli Generation Complete. Time taken: {duration / 3600} hours')
+    print(f'Moduli Generation Complete. Time taken: ({int(duration)} seconds)')
 
 if __name__ == "__main__":
-    exit(main(parse_args_local_config()))
+        exit(main(local_config))

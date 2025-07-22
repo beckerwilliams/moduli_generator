@@ -2,7 +2,6 @@ import configparser
 from configparser import (ConfigParser)
 from contextlib import contextmanager
 from pathlib import PosixPath as Path
-from re import sub
 from typing import (
     Dict,
     List,
@@ -11,7 +10,7 @@ from typing import (
 
 from mariadb import (ConnectionPool, Error)  # Add this import
 
-from config import (DEFAULT_KEY_LENGTHS, ISO_UTC_TIMESTAMP, ModuliConfig, default_config, is_valid_identifier_sql)
+from config import (ModuliConfig, default_config, is_valid_identifier_sql)
 
 
 def parse_mysql_config(mysql_cnf: str) -> Dict[str, Dict[str, str]]:
@@ -434,8 +433,9 @@ class MariaDBConnector:
         try:
             with connection.cursor() as cursor:
                 db_table_names = '.'.join((self.db_name, self.table_name))
-                query = f"INSERT INTO {db_table_names} (timestamp, config_id, size, modulus) VALUES (%s, %s, %s, %s)"
+                query = f"INSERT INTO %s (timestamp, config_id, size, modulus) VALUES (%s, %s, %s, %s)"
                 params_list = (
+                    db_table_names,
                     timestamp,
                     self.config_id,
                     key_size,
@@ -443,7 +443,6 @@ class MariaDBConnector:
                 )
                 cursor.execute(query, params_list)
                 last_id = cursor.lastrowid
-                self.logger.debug(f'Successfully added {key_size} bit modulus')
                 return last_id
         except Error as err:
             self.logger.error(f"Error inserting candidate: {err}")
@@ -471,10 +470,10 @@ class MariaDBConnector:
             return 0
 
         try:
-            with self.get_connection() as connection:
+            with (self.get_connection() as connection):
                 with self.transaction(connection):
                     with connection.cursor() as cursor:
-                        query = "INSERT INTO %s (timestamp, config_id, size, modulus) VALUES (%s, %s, %s, %s)"
+                        query = f"INSERT INTO %s (timestamp, config_id, size, modulus) VALUES (%s, %s, %s, %s)"
 
                         db_table_names = '.'.join((self.db_name, self.table_name))
                         params_list = (
@@ -487,7 +486,6 @@ class MariaDBConnector:
 
                         cursor.execute(query, params_list)
                         last_id = cursor.lastrowid
-                        self.logger.debug(f'Successfully added {key_size} bit modulus')
                         return last_id
         except Error as err:
             self.logger.error(f"Error inserting candidate: {err}")
@@ -587,153 +585,101 @@ class MariaDBConnector:
                  where 0 indicates success and 1 indicates failure.
         :rtype: int
         """
-        try:
-            with self.get_connection() as connection:
-                with self.transaction(connection):
-                    for key, moduli_list in screened_moduli.items():
-                        for modulus in moduli_list:
-                            # Use the internal add method without its own transaction
+        with self.get_connection() as connection:
+            with self.transaction(connection):
+                for key, moduli_list in screened_moduli.items():
+                    for modulus in moduli_list:
+                        # Use the internal add method without its own transaction
+                        try:
                             self._add_without_transaction(connection, modulus["timestamp"], modulus["key-size"],
                                                           modulus["modulus"])
+                        except Error as err:
+                            if 'duplicate' in str(err).lower():
+                                self.logger.warn(f"Duplicate Modulus, Skipping ...: {modulus}")
+                                continue
+                            else:
+                                self.logger.error(f"Error storing moduli: {err}")
+                                return 1
             return 0
-        except Error as err:
-            self.logger.error(f"Error storing moduli: {err}")
-            return 1
 
-    def write_moduli_file(self, output_file: Path = None) -> Dict[int, list]:
-        """
-        Retrieves cryptographic moduli data from a database, ensuring sufficient
-        records exist for predefined key sizes, optionally writing the moduli
-        to a specified output file. Raises an exception if the required number
-        of records for any key size is unavailable.
 
-        :param output_file: Path to the file where moduli should be written. If None,
-            the function only returns the moduli dictionary without writing to a file.
-        :type output_file: Path, optional
-        :return: A dictionary that maps each key size to a list of its associated
-            retrieved moduli records from the database.
-        :rtype: Dict[int, list]
-        :raises RuntimeError: If there are insufficient records for any key size or
-            if the database query fails.
-        """
-        if not output_file:
-            output_file = self.base_dir / ''.join((self.moduli_file_pfx, ISO_UTC_TIMESTAMP(compress=True)))
+def write_moduli_file(self) -> None:
+    """
+    Writes the moduli file using the database interface.
 
-        self.logger.info(f'ssh-moduli output file: {output_file}')
+    This method retrieves data necessary for the moduli file from the
+    database and then writes it to the appropriate location using
+    the database interface.
 
-        # Verify that a sufficient number of moduli for each keysize exist in the db
-        stats = self.stats()
-        for stat in stats:
-            if stats[stat] < self.records_per_keylength:
-                self.logger.info(
-                    f"Insufficient records for key size {stat}: {stats[stat]} available,"
-                    f" {self.records_per_keylength} required"
-                )
-                raise RuntimeError(
-                    f"Insufficient records for key size {stat}: {stats[stat]} available, "
-                    f"{self.records_per_keylength} required"
-                )
+    :return: self
+    :rtype: ModuliGenerator
+    """
+    try:
+        # Import the standalone write_moduli_file function from the db module
+        from db import write_moduli_file
+        write_moduli_file(self.config)
 
-        # Collect Screened Moduli from Database
-        moduli = {}
+    except RuntimeError as err:
+        self.logger.info(err)
+
+    return self
+
+
+def stats(self) -> Dict[str, str]:
+    """
+    Generates statistics about moduli files by querying the database for each key size.
+    It calculates the number of available records per key size and potential SSH moduli
+    files based on the configured records per key length.
+
+    :param self: An instance of the class containing the method.
+
+    :raises RuntimeError: If the database query fails during execution.
+    :return: A dictionary containing sizes as keys and their respective counts or calculated
+        values as values. The keys represent moduli query sizes, while the values indicate
+        counts or moduli file statistics.
+    :rtype: Dict[str, str]
+
+    """
+    moduli_query_sizes = []
+    for item in self.key_lengths:
+        moduli_query_sizes.append(item - 1)
+
+    # First, check if we have enough records for each key size
+    status: List[int, int] = list()
+
+    # Validate identifiers
+    if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.view_name)):
+        self.logger.error("Invalid database or table name")
+        return 0
+
+    for size in moduli_query_sizes:
+        # Count query to check available records
+        db_table_names = '.'.join((self.db_name, self.table_name))
+        count_query = f"""
+                                  SELECT COUNT(*)
+                                  FROM {db_table_names}
+                                  WHERE size = %s
+                                  """
+        params_list = (size,)
         try:
-            with self.get_connection() as connection:
-                with connection.cursor(dictionary=True) as cursor:
-                    for size in DEFAULT_KEY_LENGTHS:  # We want UNIQUE Key Lengths, Not all the ones used to invoke
-                        db_table_names = '.'.join((self.db_name, self.view_name))
-                        query = f"""
-                                SELECT timestamp, type, tests, trials, size, generator, modulus
-                                FROM {db_table_names}
-                                WHERE size = %s
-                                LIMIT {self.records_per_keylength}
-                                """
-                        params_list = (size - 1)
-                        cursor.execute(query)
-                        records = list(cursor.fetchall())
-                        moduli[size] = records
-                        self.logger.info(f"Retrieved {len(records)} records for key size {size}")
-
+            result = self.execute_select(count_query, params_list)
         except Error as err:
             self.logger.error(f"Error retrieving moduli: {err}")
             raise RuntimeError(f"Database query failed: {err}")
 
-        # Write the moduli file
-        moduli_to_write: List[str] = []
-        for key, items in moduli.items():
-            for item in items:
-                # Access dictionary keys instead of object attributes
-                line = ' '.join([
-                    sub(r'[^0-9]', '', item['timestamp'].isoformat()),
-                    str(item['type']),
-                    str(item['tests']),
-                    str(item['trials']),
-                    str(item['size']),
-                    str(item['generator']),
-                    str(item['modulus']),
-                    '\n'
-                ])
-                moduli_to_write.append(line)
+        count = result[0]['COUNT(*)']
+        status.append(count)
 
-            moduli_hdr = f'# [usr/local]/etc/ssh/moduli from MODULI_GENERATOR: {ISO_UTC_TIMESTAMP()}\n'
+    # Calculate Number of Moduli Files Available
+    status.append(int(min(status) / self.records_per_keylength))
+    moduli_query_sizes.append('Available Moduli Files')
 
-            with self.file_writer(output_file.resolve()) as ssh_moduli_file:
-                ssh_moduli_file.writelines(moduli_hdr)
-                ssh_moduli_file.writelines(moduli_to_write)
-        self.logger.info(f"Successfully wrote moduli to file: {output_file}")
+    # Output
+    results = dict(zip(moduli_query_sizes, status))
 
-    def stats(self) -> Dict[str, str]:
-        """
-        Generates statistics about moduli files by querying the database for each key size.
-        It calculates the number of available records per key size and potential SSH moduli
-        files based on the configured records per key length.
+    self.logger.info(f"Moduli statistics:")
+    self.logger.info('size  count')
+    for size, count in results.items():
+        self.logger.info(f'{size:>4} {count:>4}')
 
-        :param self: An instance of the class containing the method.
-
-        :raises RuntimeError: If the database query fails during execution.
-        :return: A dictionary containing sizes as keys and their respective counts or calculated
-            values as values. The keys represent moduli query sizes, while the values indicate
-            counts or moduli file statistics.
-        :rtype: Dict[str, str]
-
-        """
-        moduli_query_sizes = []
-        for item in self.key_lengths:
-            moduli_query_sizes.append(item - 1)
-
-        # First, check if we have enough records for each key size
-        status: List[int, int] = list()
-
-        # Validate identifiers
-        if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.view_name)):
-            self.logger.error("Invalid database or table name")
-            return 0
-
-        try:
-            for size in moduli_query_sizes:
-                # Count query to check available records
-                db_table_names = '.'.join((self.db_name, self.table_name))
-                count_query = f"""
-                                      SELECT COUNT(*)
-                                      FROM {db_table_names}
-                                      WHERE size = %s
-                                      """
-                result = self.execute_select(count_query, (size,))
-                count = result[0]['COUNT(*)']
-                status.append(count)
-            # Calculate Number of Moduli Files Available
-            status.append(int(min(status) / self.records_per_keylength))
-            moduli_query_sizes.append('Available Moduli Files')
-
-        except Exception as err:
-            self.logger.error(f"Error retrieving moduli: {err}")
-            raise RuntimeError(f"Database query failed: {err}")
-
-        # Output
-        results = dict(zip(moduli_query_sizes, status))
-
-        self.logger.info(f"Moduli statistics:")
-        self.logger.info('size  count')
-        for size, count in results.items():
-            self.logger.info(f'{size:>4} {count:>4}')
-
-        return results
+    return results

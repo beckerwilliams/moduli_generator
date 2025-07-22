@@ -243,8 +243,7 @@ class ModuliConfig:
         # Delete on successful Write Flag
         self.delete_records_on_moduli_write = DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE
 
-        # From pyproject.toml
-        # version_path = Path(self.base_dir) / 'config' / '__version__.py'
+        # Set Project Version Number
         self.version = version
 
     def ensure_directories(self):

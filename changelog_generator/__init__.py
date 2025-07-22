@@ -1,150 +1,333 @@
-def validate_integer_parameters(key_length=None, nice_value=None):
+#!/usr/bin/env python3
+"""
+Changelog Generator for the moduli_generator project
+
+This script generates a CHANGELOG.rst file from git commit history,
+organizing commits by date in reStructuredText format.
+"""
+import re
+import subprocess
+from collections import defaultdict
+from datetime import datetime
+from pathlib import Path
+
+import toml
+
+__all__ = ['ChangelogGenerator']
+
+
+def _categorize_commit(message):
+    """Categorize commit based on message content."""
+    message_lower = message.lower()
+
+    # Define categories and their keywords
+    categories = {
+        'Database Improvements': [
+            'database', 'db', 'mariadb', 'connector', 'sql', 'schema',
+            'transactional', 'parameterized'
+        ],
+        'Bug Fixes': [
+            'fix', 'fixed', 'bug', 'error', 'issue', 'correct'
+        ],
+        'Features': [
+            'add', 'added', 'new', 'feature', 'implement', 'create', 'created'
+        ],
+        'Refactoring': [
+            'refactor', 'refactored', 'restructure', 'reorganize', 'cleanup'
+        ],
+        'Documentation': [
+            'doc', 'documentation', 'readme', 'comment', 'docstring'
+        ],
+        'Configuration': [
+            'config', 'configuration', 'settings', 'default', 'constants'
+        ],
+        'Testing': [
+            'test', 'testing', 'tests', 'successful', 'complete'
+        ],
+        'Performance': [
+            'performance', 'optimize', 'speed', 'efficiency'
+        ],
+        'Security': [
+            'security', 'secure', 'vulnerability', 'auth'
+        ]
+    }
+
+    # Check for category keywords
+    for category, keywords in categories.items():
+        if any(keyword in message_lower for keyword in keywords):
+            return category
+
+    # Check for specific patterns
+    if 'checkpoint' in message_lower or 'milestone' in message_lower:
+        return 'Milestones'
+
+    if 'production' in message_lower or 'release' in message_lower:
+        return 'Releases'
+
+    return 'General'
+
+
+class ChangelogGenerator:
     """
-    Validates that key_length and nice_value are proper integers.
+    Generates a detailed changelog based on git commit history and project metadata.
 
-    This function addresses the security concerns identified in the code analysis,
-    particularly the command injection risks from unvalidated inputs to subprocess calls.
+    The ChangelogGenerator class is designed to parse git commit logs, extract meaningful
+    information, categorize commits by their content, organize commits by date, and
+    generate a formatted changelog in reStructuredText (RST). Additionally, it provides
+    project-specific information if available in the `pyproject.toml`.
 
-    :param key_length: The cryptographic key length in bits (e.g., 1024, 2048, 4096)
-    :type key_length: Any
-    :param nice_value: The process priority value for 'nice' command (-20 to 19)
-    :type nice_value: Any
-    :raises ValueError: If parameters are not valid integers or are out of expected ranges
-    :raises TypeError: If parameters are not of expected types
-    :return: Tuple of validated integers (key_length, nice_value) or None values
-    :rtype: tuple[int | None, int | None]
+    :ivar project_root: The root directory of the project to be analyzed.
+    :type project_root: pathlib.Path
+    :ivar project_info: Metadata about the project extracted from `pyproject.toml`.
+    :type project_info: dict
     """
-    validated_key_length = None
-    validated_nice_value = None
 
-    # Validate key_length
-    if key_length is not None:
-        if not isinstance(key_length, (int, str)):
-            raise TypeError(f"key_length must be an integer or string, got {type(key_length).__name__}")
+    def __init__(self, project_root=None):
+        """
+        Initializes the class with a given project root directory and loads related
+        project information. If no project root is provided, it defaults to the
+        current working directory.
 
+        :param project_root: The root directory of the project
+        :type project_root: str or None
+        """
+        self.project_root = Path(project_root) if project_root else Path.cwd()
+        self.project_info = self._load_project_info()
+
+    def _load_project_info(self):
+        """Load project information from pyproject.toml."""
         try:
-            validated_key_length = int(key_length)
-        except (ValueError, OverflowError) as e:
-            raise ValueError(f"key_length must be convertible to integer: {e}")
+            pyproject_path = self.project_root / "pyproject.toml"
+            if pyproject_path.exists():
+                with open(pyproject_path, 'r') as f:
+                    data = toml.load(f)
+                    return data.get('tool', {}).get('poetry', {})
+        except Exception as e:
+            print(f"Warning: Could not load pyproject.toml: {e}")
 
-        # Additional validation for reasonable key lengths
-        # Allow 0 as a special case for screening operations that don't need key length
-        if validated_key_length != 0:
-            if validated_key_length < 3072:
-                raise ValueError(f"key_length {validated_key_length} is too small (minimum 3072 bits)")
-            if validated_key_length > 8192:
-                raise ValueError(f"key_length {validated_key_length} is too large (maximum 8192 bits)")
-            if validated_key_length % 8 != 0:
-                raise ValueError(f"key_length {validated_key_length} must be divisible by 8")
+        return {}
 
-    # Validate nice_value
-    if nice_value is not None:
-        if not isinstance(nice_value, (int, str)):
-            raise TypeError(f"nice_value must be an integer or string, got {type(nice_value).__name__}")
-
+    def _get_git_commits(self, max_commits=50):
+        """Get git commit history with dates and messages."""
         try:
-            validated_nice_value = int(nice_value)
-        except (ValueError, OverflowError) as e:
-            raise ValueError(f"nice_value must be convertible to integer: {e}")
+            # Get a commit log with format: hash|date|author|message
+            cmd = [
+                'git', 'log',
+                f'--max-count={max_commits}',
+                '--pretty=format:%H|%ad|%an <%ae>|%s',
+                '--date=short'
+            ]
 
-        # Validate nice_value range (standard Unix nice values)
-        if not -20 <= validated_nice_value <= 19:
-            raise ValueError(f"nice_value {validated_nice_value} must be between -20 and 19")
+            result = subprocess.run(cmd, capture_output=True, text=True,
+                                    cwd=self.project_root)
 
-    return validated_key_length, validated_nice_value
+            if result.returncode != 0:
+                raise RuntimeError(f"Git command failed: {result.stderr}")
 
+            # The following cleans up 'asterisk' cruft I've created in my Changelog Records
+            # cleanup = re.sub(r'\*\*\*', '**', result.stdout.strip().split('\n'))
+            #
+            # r2 = result.stdout.strip().split('\n')
+            return re.sub(r'\*\*\*', '**', result.stdout).strip().split('\n')
 
-def validate_subprocess_args(key_length, nice_value):
-    """
-    Specialized validation for subprocess arguments to prevent command injection.
+        except Exception as e:
+            print(f"Error getting git commits: {e}")
+            return []
 
-    This function ensures that parameters passed to subprocess calls are safe
-    and cannot be exploited for command injection attacks.
+    @staticmethod
+    def _parse_commit_line(line):
+        """Parse a single commit line into components."""
+        try:
+            parts = line.split('|', 3)
+            if len(parts) != 4:
+                return None
 
-    :param key_length: The cryptographic key length in bits
-    :type key_length: Any
-    :param nice_value: The process priority value
-    :type nice_value: Any
-    :raises ValueError: If parameters fail validation
-    :raises TypeError: If parameters are not of expected types
-    :return: Tuple of validated string representations safe for subprocess
-    :rtype: tuple[str, str]
-    """
-    # Use the main validation function first
-    validated_key_length, validated_nice_value = validate_integer_parameters(
-        key_length=key_length,
-        nice_value=nice_value
-    )
+            hash_id, date_str, author, message = parts
 
-    if validated_key_length is None:
-        raise ValueError("key_length is required for subprocess validation")
-    if validated_nice_value is None:
-        raise ValueError("nice_value is required for subprocess validation")
+            # Parse date
+            commit_date = datetime.strptime(date_str, '%Y-%m-%d')
 
-    # Convert to strings safe for subprocess
-    safe_key_length = str(validated_key_length)
-    safe_nice_value = str(validated_nice_value)
+            return {
+                'hash': hash_id,
+                'date': commit_date,
+                'author': author,
+                'message': message.strip()
+            }
+        except Exception as e:
+            print(f"Error parsing commit line '{line}': {e}")
+            return None
 
-    # Additional security check - ensure no special characters
-    import re
-    if not re.match(r'^\d+$', safe_key_length):
-        raise ValueError(f"key_length contains invalid characters: {safe_key_length}")
-    if not re.match(r'^-?\d+$', safe_nice_value):
-        raise ValueError(f"nice_value contains invalid characters: {safe_nice_value}")
+    @staticmethod
+    def _format_commit_message(message):
+        """Format commit message for changelog."""
+        # Remove common prefixes and clean up
+        message = re.sub(r'^(feat|fix|docs|style|refactor|test|chore):\s*', '', message)
 
-    return safe_key_length, safe_nice_value
+        # Capitalize the first letter
+        if message:
+            message = message[0].upper() + message[1:]
 
+        # Remove trailing periods and normalize
+        message = message.rstrip('.')
 
-@staticmethod
-def _screen_candidates_static(config, candidates_file: Path) -> Path:
-    """
-    Screen candidate moduli files using provided configuration and the `ssh-keygen` tool.
-    """
-    screened_file = config.moduli_dir / f'{candidates_file.name.replace('candidates', 'moduli')}'
-    logger = config.get_logger()
+        return message
 
-    # For screening operations, we only need to validate the nice_value
-    # Key length is not needed since we're processing existing candidates
-    _, safe_nice_value = validate_subprocess_args(0, config.nice_value)
+    @staticmethod
+    def _group_commits_by_date(commits):
+        """Group commits by date."""
+        grouped = defaultdict(list)
 
-    try:
-        checkpoint_file = config.candidates_dir / f".{candidates_file.name}"
-        result = subprocess.run([
-            'nice', '-n', f'{safe_nice_value}',
-            'ssh-keygen',
-            '-M', 'screen',
-            '-O', f'generator={config.generator_type}',
-            '-O', f'checkpoint={str(checkpoint_file)}',
-            '-f', str(candidates_file),
-            str(screened_file)
-        ], check=True, capture_output=True, text=True)
+        for commit in commits:
+            if commit:  # Skip None commits
+                date_key = commit['date'].strftime('%Y-%m-%d')
+                grouped[date_key].append(commit)
 
-        # Log the output after successful completion
-        if result.stdout:
-            for line in result.stdout.strip().split('\n'):
-                if line.strip():
-                    logger.info(line.strip())
+        return grouped
 
-        if result.stderr:
-            for line in result.stderr.strip().split('\n'):
-                if line.strip():
-                    logger.debug(line.strip())
+    def _generate_rst_header(self):
+        """Generate the RST header section."""
+        header = ["=========", "Changelog", "=========", "",
+                  "This document tracks the changes made to the moduli_generator project.", ""]
 
-        # Cleanup used Moduli Candidates
-        candidates_file.unlink()
-        return screened_file
+        # Add version info if available
+        if self.project_info.get('version'):
+            header.append(f"Version {self.project_info['version']}")
+            header.append("=" * (8 + len(self.project_info['version'])))
+            header.append("")
+            (Path.cwd() / 'config' / '__version__.py').write_text(f"version = '{self.project_info['version']}'\n")
 
-    except subprocess.CalledProcessError as err:
-        # Log any captured output from the failed process
-        if err.stdout:
-            for line in err.stdout.strip().split('\n'):
-                if line.strip():
-                    logger.error(f"stdout: {line.strip()}")
+        return header
 
-        if err.stderr:
-            for line in err.stderr.strip().split('\n'):
-                if line.strip():
-                    logger.error(f"stderr: {line.strip()}")
+    def _generate_date_section(self, date_str, commits):
+        """Generate an RST section for a specific date."""
+        section = []
 
-        logger.error(f'ssh-keygen screen failed for {candidates_file}: {err}')
-        raise err
+        # Convert date string to readable format
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+        formatted_date = date_obj.strftime('%Y-%m-%d')
+
+        section.append(formatted_date)
+        section.append("-" * len(formatted_date))
+        section.append("")
+
+        # Group commits by category
+        categorized = defaultdict(list)
+        for commit in commits:
+            category = _categorize_commit(commit['message'])
+            categorized[category].append(commit)
+
+        # Add commits by category
+        for category in sorted(categorized.keys()):
+            category_commits = categorized[category]
+
+            if len(category_commits) == 1:
+                # Single commit - format as a bullet point with category
+                commit = category_commits[0]
+                formatted_msg = self._format_commit_message(commit['message'])
+                section.append(f"* **{category}**: {formatted_msg}")
+            else:
+                # Multiple commits - create a subsection
+                section.append(f"**{category}**:")
+                section.append("")
+                for commit in category_commits:
+                    formatted_msg = self._format_commit_message(commit['message'])
+                    section.append(f"  * {formatted_msg}")
+                section.append("")
+
+        section.append("")
+        return section
+
+    def _generate_project_info_section(self):
+        """Generate project information section."""
+        section = ["Project Information", "===================", ""]
+
+        info = self.project_info
+        if info.get('name'):
+            section.append(f"* **Project**: {info['name']}")
+        if info.get('version'):
+            section.append(f"* **Version**: {info['version']}")
+        if info.get('description'):
+            section.append(f"* **Description**: {info['description']}")
+        if info.get('authors'):
+            authors = info['authors']
+            if isinstance(authors, list):
+                section.append(f"* **Author**: {authors[0]}")
+            else:
+                section.append(f"* **Author**: {authors}")
+
+        # Add URLs if available
+        urls = info.get('urls', {})
+        if urls.get('Repository'):
+            section.append(f"* **Repository**: {urls['Repository']}")
+        if urls.get('Homepage'):
+            section.append(f"* **Homepage**: {urls['Homepage']}")
+
+        section.append("* **License**: See LICENSE.rst")
+        section.append("")
+
+        return section
+
+    def generate_changelog(self, output_file="CHANGELOG.rst", max_commits=50):
+        """
+        Generates a changelog file based on git commit history and saves it to the
+        specified output file. The changelog is formatted in reStructuredText (RST)
+        format and includes grouped commit entries by date in descending order.
+
+        :param output_file: The name of the output changelog file with the default value "CHANGELOG.rst".
+        :type output_file: str, optional
+        :param max_commits: The maximum number of recent commits to include in the
+            changelog, with a default value of 50.
+        :type max_commits: int, optional
+        :return: None
+        :rtype: None
+        """
+        print("Generating changelog...")
+
+        # Get git commits
+        commit_lines = self._get_git_commits(max_commits)
+        if not commit_lines:
+            print("No git commits found.")
+            return
+
+        # Parse commits
+        commits = []
+        for line in commit_lines:
+            if line.strip():
+                commit = self._parse_commit_line(line)
+                if commit:
+                    commits.append(commit)
+
+        if not commits:
+            print("No valid commits found.")
+            return
+
+        print(f"Found {len(commits)} commits")
+
+        # Group by date
+        grouped_commits = self._group_commits_by_date(commits)
+
+        # Generate changelog content
+        changelog_lines = []
+
+        # Add header
+        changelog_lines.extend(self._generate_rst_header())
+
+        # Add date sections (most recent first)
+        for date_str in sorted(grouped_commits.keys(), reverse=True):
+            date_commits = grouped_commits[date_str]
+            changelog_lines.extend(self._generate_date_section(date_str, date_commits))
+
+        # Add the project info section
+        changelog_lines.extend(self._generate_project_info_section())
+
+        # Write to a file
+        output_path = self.project_root / output_file
+        try:
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write('\n'.join(changelog_lines))
+
+            print(f"Changelog written to {output_path}")
+            print(f"Generated {len(grouped_commits)} date sections from {len(commits)} commits")
+
+        except Exception as e:
+            print(f"Error writing changelog: {e}")
