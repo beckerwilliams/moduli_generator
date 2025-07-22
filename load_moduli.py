@@ -11,7 +11,6 @@ from moduli_generator import ModuliGenerator
 
 # Import MariaDBConnector
 
-
 def parse_args_local_config():
     """
     Parse command-line arguments for the Moduli Generator and return the parsed arguments.
@@ -86,7 +85,6 @@ def parse_args_local_config():
                         type=str,
                         default=default_config.db_name,
                         help="Name of the database to create and Initialize")
-
     args = parser.parse_args()
 
     # Create a custom configuration based on the command line arguments
@@ -103,8 +101,6 @@ def parse_args_local_config():
     config.ensure_directories()
     config.key_lengths = tuple(args.key_lengths)
     config.nice_value = args.nice_value
-
-    config.moduli_db = args.moduli_db  # tbd - add sql validtion to input arg
 
     return config
 
@@ -129,13 +125,10 @@ def main(config: ModuliConfig):
 
     # Generate, Screen, Store, and Write Moduli File
     start_time = datetime.now(UTC).replace(tzinfo=None)
-    logger.info(f'Starting Moduli Generation at {start_time}')
 
-    # The Invocation
-    (ModuliGenerator(config)
-     .generate_moduli()
-     .store_moduli()
-     .write_moduli_file())
+    logger.info(f'Starting Moduli Load {start_time}')
+    db = ModuliGenerator(config)
+    db.store_moduli()
 
     # Stats and Cleanup
     duration = (datetime.now(UTC).replace(tzinfo=None) - start_time).seconds

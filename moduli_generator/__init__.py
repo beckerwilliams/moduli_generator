@@ -576,11 +576,12 @@ class ModuliGenerator:
         except Error as err:
             self.logger.error(f'Error storing moduli: {err}')
 
-        moduli_files = self._list_moduli_files()
-        for file in moduli_files:
-            file.unlink()
+        # # Unlink source files once storate is verified
+        # moduli_files = self._list_moduli_files()
+        # for file in moduli_files:
+        #     file.unlink()
 
-        self.logger.info(f'Moduli Files Parsed & Stored in MariaDB database: {moduli_files}')
+        self.logger.info(f'Moduli Files Parsed & Stored in MariaDB database: {screened_moduli}')
 
         return self
 

@@ -433,10 +433,9 @@ class MariaDBConnector:
 
         try:
             with connection.cursor() as cursor:
-                query = "INSERT INTO %s (timestamp, config_id, size, modulus) VALUES (%s, %s, %s, %s)"
                 db_table_names = '.'.join((self.db_name, self.table_name))
+                query = f"INSERT INTO {db_table_names} (timestamp, config_id, size, modulus) VALUES (%s, %s, %s, %s)"
                 params_list = (
-                    db_table_names,
                     timestamp,
                     self.config_id,
                     key_size,
@@ -516,13 +515,13 @@ class MariaDBConnector:
             self.logger.error("Invalid database or table name")
             return False
 
-        query = """
-                INSERT INTO %s (timestamp, config_id, size, modulus)
+        db_table_names = '.'.join((self.db_name, self.table_name))
+        query = f"""
+                INSERT INTO {db_table_names} (timestamp, config_id, size, modulus)
                 VALUES (%s, %s, %s, %s)
                 """
         # Prepare parameters for batch execution
-        db_table_names = '.'.join((self.db_name, self.table_name))
-        params_list = [(db_table_names, timestamp, self.config_id, key_size, modulus)
+        params_list = [(timestamp, self.config_id, key_size, modulus)
                        for timestamp, key_size, modulus in records]
 
         try:
@@ -640,13 +639,15 @@ class MariaDBConnector:
         try:
             with self.get_connection() as connection:
                 with connection.cursor(dictionary=True) as cursor:
-                    for size in DEFAULT_KEY_LENGTHS:  # We want UNIQUE Key Lengths, Not all the ones used to invoke cli
+                    for size in DEFAULT_KEY_LENGTHS:  # We want UNIQUE Key Lengths, Not all the ones used to invoke
+                        db_table_names = '.'.join((self.db_name, self.view_name))
                         query = f"""
                                 SELECT timestamp, type, tests, trials, size, generator, modulus
-                                FROM {self.db_name}.{self.view_name}
-                                WHERE size = {size - 1}
+                                FROM {db_table_names}
+                                WHERE size = %s
                                 LIMIT {self.records_per_keylength}
                                 """
+                        params_list = (size - 1)
                         cursor.execute(query)
                         records = list(cursor.fetchall())
                         moduli[size] = records
@@ -710,10 +711,11 @@ class MariaDBConnector:
         try:
             for size in moduli_query_sizes:
                 # Count query to check available records
+                db_table_names = '.'.join((self.db_name, self.table_name))
                 count_query = f"""
                                       SELECT COUNT(*)
-                                      FROM {self.db_name}.{self.view_name}
-                                      WHERE size = ?
+                                      FROM {db_table_names}
+                                      WHERE size = %s
                                       """
                 result = self.execute_select(count_query, (size,))
                 count = result[0]['COUNT(*)']

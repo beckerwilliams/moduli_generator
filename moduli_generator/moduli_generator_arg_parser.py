@@ -1,17 +1,3 @@
-#!/usr/bin/env python
-import argparse
-from datetime import UTC, datetime
-from sys import exit
-
-# Import the default configuration
-from config import (ModuliConfig, default_config)
-# Import ModuliGenerator
-from moduli_generator import ModuliGenerator
-
-
-# Import MariaDBConnector
-
-
 def parse_args_local_config():
     """
     Parse command-line arguments for the Moduli Generator and return the parsed arguments.
@@ -87,63 +73,6 @@ def parse_args_local_config():
                         default=default_config.db_name,
                         help="Name of the database to create and Initialize")
 
-    args = parser.parse_args()
-
-    # Create a custom configuration based on the command line arguments
-    config = default_config.with_base_dir(args.moduli_home)
-
-    # Override with command line options if provided
-    config.candidates_dir = config.base_dir / args.candidates_dir
-    config.moduli_dir = config.base_dir / args.moduli_dir
-    config.log_dir = config.base_dir / args.log_dir
-    config.moduli_generator_config = config.base_dir / args.mariadb_cnf
-    config.records_per_keylength = args.records_per_keylength
-    config.delete_records_on_moduli_write = args.delete_records_on_moduli_write
-
-    config.ensure_directories()
-    config.key_lengths = tuple(args.key_lengths)
-    config.nice_value = args.nice_value
-
-    config.moduli_db = args.moduli_db  # tbd - add sql validtion to input arg
-
-    return config
+    return parser.parse_args()
 
 
-def main(config: ModuliConfig):
-    """
-    CLI utility for the generation, saving, and storage of moduli. This function
-    handles the entire workflow, including configuring paths, processing command-line arguments,
-    ensuring the required directories exist, and carrying out moduli generation, storage,
-    and cleanup. The workflow includes integration with MariaDB for storing resulting data.
-
-    Detail logs are generated throughout the process to facilitate debugging and tracking.
-
-    :return: The return code of the CLI function where 0 indicates successful execution.
-    :rtype: Int
-    """
-
-    logger = config.get_logger()
-    logger.name = __name__
-
-    logger.debug(f'Using default config: {config}')
-
-    # Generate, Screen, Store, and Write Moduli File
-    start_time = datetime.now(UTC).replace(tzinfo=None)
-    logger.info(f'Starting Moduli Generation at {start_time}')
-
-    # The Invocation
-    (ModuliGenerator(config)
-     .generate_moduli()
-     .store_moduli()
-     .write_moduli_file())
-
-    # Stats and Cleanup
-    duration = (datetime.now(UTC).replace(tzinfo=None) - start_time).seconds
-    logger.info(f'Moduli Generation Complete. Time taken: {duration/3600} hours')
-    print(f'Moduli Generation Complete. Time taken: {duration/3600} hours')
-
-    return 0
-
-
-if __name__ == "__main__":
-    exit(main(parse_args_local_config()))
