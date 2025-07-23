@@ -293,13 +293,13 @@ class ModuliGenerator:
 
     def _parse_moduli_files(self) -> Dict[str, List[Dict[str, Any]]]:
         """
-        Parses the moduli files to extract specific data entries and formats them
+        Parses the moduli files to extract specific installers entries and formats them
         into a dictionary structure for further processing. This method iterates
         over a set of screened files, reads their contents line by line, and
         extracts information about timestamp, key size, and modulus if the line
         meets specific criteria.
 
-        :return: A dictionary with parsed moduli data under the key
+        :return: A dictionary with parsed moduli installers under the key
                  'screened_moduli'. Each entry is a dictionary containing
                  'timestamp', 'key-size', and 'modulus'.
         :rtype: Dict[str, List[Dict[str, Any]]]
@@ -397,9 +397,9 @@ class ModuliGenerator:
 
     def save_moduli(self, moduli_file_dir: Path = None):
         """
-        Saves the processed moduli data to a JSON file in the specified directory or a default location.
+        Saves the processed moduli installers to a JSON file in the specified directory or a default location.
 
-        This method processes the moduli data and writes the output as a JSON file. If no directory is
+        This method processes the moduli installers and writes the output as a JSON file. If no directory is
         provided, the JSON file is saved in the default base directory specified in the configuration.
         The filename includes a timestamp in ISO UTC format to ensure a unique name.
 
@@ -410,7 +410,7 @@ class ModuliGenerator:
         :rtype: ModuliGenerator
         """
         if not moduli_file_dir:
-            moduli_file_dir = self.config.base_dir
+            moduli_file_dir = self.config.moduli_home
 
         moduli_json = moduli_file_dir / f'screened_moduli_{ISO_UTC_TIMESTAMP(True)}.json'
         with moduli_json.open('w') as f:
@@ -452,7 +452,7 @@ class ModuliGenerator:
         """
         Writes the moduli file using the database interface.
 
-        This method retrieves data necessary for the moduli file from the
+        This method retrieves installers necessary for the moduli file from the
         database and then writes it to the appropriate location using
         the database interface.
 

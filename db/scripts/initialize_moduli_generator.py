@@ -22,8 +22,8 @@ def arg_parser():
     argparse = ArgumentParser(description='Install SSH Moduli Schema')
     argparse.add_argument(
         '--moduli-home',
-        default=str(default_config.base_dir),
-        help=f'Change the Base directory for moduli generation and storage: default {default_config.base_dir}'
+        default=str(default_config.moduli_home),
+        help=f'Change the Base directory for moduli generation and storage: default {default_config.moduli_home}'
     )
     argparse.add_argument(
         '--mariadb-cnf',
@@ -61,7 +61,7 @@ def create_moduli_generator_home():
     args = arg_parser()
     config = default_config
     config.db_name = args.mariadb_name
-    config.base_dir = Path(args.moduli_home)
+    config.moduli_home = Path(args.moduli_home)
     generator = ModuliGenerator(config)
 
     # Move Identified mysql.cnf to Moduli Generator run directory, `${HOME}/.moduli_generator/moduli_generator.cnf`

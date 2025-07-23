@@ -15,7 +15,7 @@ def installer():
     :rtype: None
     """
     try:
-        # Access the module from the data directory
+        # Access the module from the installers directory
         files = importlib.resources.files('data.bash_scripts')
         module = files / 'install_gm.sh'
 
@@ -23,7 +23,7 @@ def installer():
             print(f'Installer Script: {module}\n')
             print(module.read_text())
         else:
-            print("Error: get_github_installer.py not found in package data")
+            print("Error: get_github_installer.py not found in package installers")
 
     except Exception as err:
         print(f"Error importing installer script: {err}")

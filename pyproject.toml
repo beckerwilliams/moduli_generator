@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "moduli_generator"
-version = "2.1.20"
+version = "2.1.21"
 description = "Command Line Utility to build moduli for /usr/local/etc/ssh/moduli_file"
 authors = ["Ron Williams <becker.williams@gmail.com>"]
 license = "MIT"
@@ -31,11 +31,12 @@ classifiers = [
 packages = [
 	{ include = "config" },
 	{ include = "db" },
+	{ include = "installers"},
 	{ include = "moduli_generator" }
 ]
 include = [
     "doc/**/*",
-    "data/**/*"  # This includes your shell scripts
+    "data/bashs_scripts/**/*"  # This includes your shell scripts
 ]
 exclude = [
 	"*.cnf",  # No Mariadb Configuration Files (Usually Contain Passwords)
@@ -68,7 +69,8 @@ moduli_stats = "db.scripts.moduli_stats:main"
 write_moduli = "moduli_generator.scripts.write_moduli:main"
 changelog = "changelog_generator:main"
 install_schema = "db.scripts.install_schema:main"
-get_installer = "moduli_generator.scripts.github_install."
+#get_installer = "moduli_generator.scripts.github_install"
+#default_config = "config.moduli_generator_arg_parser"
 
 [tool.poetry.urls]
 Homepage = "https://github.com/beckerwilliams/moduli_generator"

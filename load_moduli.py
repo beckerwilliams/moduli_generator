@@ -38,31 +38,31 @@ def parse_args_local_config():
     parser.add_argument(
         "--moduli-home",
         type=str,
-        default=str(default_config.base_dir),
+        default=str(default_config.moduli_home),
         help="Base directory for moduli generation and storage"
     )
     parser.add_argument(
         "--candidates-dir",
         type=str,
-        default=str(default_config.candidates_dir.relative_to(default_config.base_dir)),
+        default=str(default_config.candidates_dir.relative_to(default_config.moduli_home)),
         help="Directory to store candidate moduli (relative to moduli-home)"
     )
     parser.add_argument(
         "--moduli-dir",
         type=str,
-        default=str(default_config.moduli_dir.relative_to(default_config.base_dir)),
+        default=str(default_config.moduli_dir.relative_to(default_config.moduli_home)),
         help="Directory to store generated moduli (relative to moduli-home)"
     )
     parser.add_argument(
         "--log-dir",
         type=str,
-        default=str(default_config.log_dir.relative_to(default_config.base_dir)),
+        default=str(default_config.log_dir.relative_to(default_config.moduli_home)),
         help="Directory to store log files (relative to moduli-home)"
     )
     parser.add_argument(
         "--mariadb-cnf",
         type=str,
-        default=str(default_config.mariadb_cnf.relative_to(default_config.base_dir)),
+        default=str(default_config.mariadb_cnf.relative_to(default_config.moduli_home)),
         help="Path to MariaDB configuration file (relative to moduli-home)"
     )
     # Add a nice_value argument that might be missing
@@ -91,10 +91,10 @@ def parse_args_local_config():
     config = default_config.with_base_dir(args.moduli_home)
 
     # Override with command line options if provided
-    config.candidates_dir = config.base_dir / args.candidates_dir
-    config.moduli_dir = config.base_dir / args.moduli_dir
-    config.log_dir = config.base_dir / args.log_dir
-    config.moduli_generator_config = config.base_dir / args.mariadb_cnf
+    config.candidates_dir = config.moduli_home / args.candidates_dir
+    config.moduli_dir = config.moduli_home / args.moduli_dir
+    config.log_dir = config.moduli_home / args.log_dir
+    config.moduli_generator_config = config.moduli_home / args.mariadb_cnf
     config.records_per_keylength = args.records_per_keylength
     config.delete_records_on_moduli_write = args.delete_records_on_moduli_write
 
@@ -110,7 +110,7 @@ def main(config: ModuliConfig):
     CLI utility for the generation, saving, and storage of moduli. This function
     handles the entire workflow, including configuring paths, processing command-line arguments,
     ensuring the required directories exist, and carrying out moduli generation, storage,
-    and cleanup. The workflow includes integration with MariaDB for storing resulting data.
+    and cleanup. The workflow includes integration with MariaDB for storing resulting installers.
 
     Detail logs are generated throughout the process to facilitate debugging and tracking.
 

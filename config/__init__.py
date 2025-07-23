@@ -56,16 +56,20 @@ DEFAULT_MODULI_RECORDS_PER_KEYLENGTH: Final[int] = 20
 
 #  ref: https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl
 
-def ISO_UTC_TIMESTAMP(compress: bool = False) -> str:
+def ISO_UTC_TIMESTAMP(compress: bool = False) -> (str, datetime):
     """
-    Generate an ISO formatted UTC timestamp as a string. Optionally, the timestamp can
-    be compressed by enabling the `compress` parameter.
+    Generate an ISO 8601 UTC timestamp.
 
-    :param compress: Flag indicating whether the timestamp should be in compressed
-        format or not.
-    :type compress: Bool
-    :return: The ISO 8601 formatted a UTC timestamp as a string. If `compress` is
-        True, the string will be in a compressed format (numerals only, no punctuation).
+    This function generates a current timestamp in ISO 8601 format
+    based on UTC time. The timestamp can be returned as either a
+    compact numeric string or a fully formatted ISO string.
+
+    :param compress: A flag to indicate whether the resulting timestamp
+        should be compressed to include only numeric characters.
+    :return: Returns the generated ISO UTC timestamp as a string. If
+        `compress` is True, the returned string contains only numeric
+        characters representing the timestamp. If `compress` is False,
+        the returned string is the full ISO 8601 formatted timestamp.
     :rtype: str
     """
 
@@ -146,7 +150,7 @@ class ModuliConfig:
     for moduli generation and related operations. It ensures the existence of required
     directories and offers methods for logging and configuration handling.
 
-    :ivar base_dir: The root directory for all moduli-related operations, derived
+    :ivar moduli_home: The root directory for all moduli-related operations, derived
          from the provided `base_dir` parameter or environment variables.
     :type base_dir: Path
     :ivar candidates_dir: The directory path designated for candidate files
@@ -209,12 +213,12 @@ class ModuliConfig:
         :type base_dir: Path or None
         """
         # Use user-provided base dir, or env var, or default to ~/.moduli_assembly
-        self.base_dir = Path(base_dir or osenv.get('MODULI_HOME', DEFAULT_DIR))
+        self.moduli_home = Path(base_dir or osenv.get('MODULI_HOME', DEFAULT_DIR))
 
         # Define subdirectories as properties
-        self.candidates_dir = self.base_dir / DEFAULT_CANDIDATES_DIR
-        self.moduli_dir = self.base_dir / DEFAULT_MODULI_DIR
-        self.log_dir = self.base_dir / DEFAULT_LOG_DIR
+        self.candidates_dir = self.moduli_home / DEFAULT_CANDIDATES_DIR
+        self.moduli_dir = self.moduli_home / DEFAULT_MODULI_DIR
+        self.log_dir = self.moduli_home / DEFAULT_LOG_DIR
 
         # Default log files
         self.log_file = self.log_dir / DEFAULT_LOG_FILE
@@ -234,7 +238,7 @@ class ModuliConfig:
         self.config_id = DEFAULT_CONFIG_ID
 
         # Default Mariadb Configuration
-        self.mariadb_cnf = self.base_dir / DEFAULT_MARIADB_CNF
+        self.mariadb_cnf = self.moduli_home / DEFAULT_MARIADB_CNF
         self.moduli_file_pattern = DEFAULT_MODULI_FILENAME_PATTERN
 
         # Default moduli output files
@@ -255,7 +259,7 @@ class ModuliConfig:
         :return: The current instance after ensuring directories exist.
         :rtype: Self
         """
-        for dir_path in [self.base_dir, self.candidates_dir, self.moduli_dir, self.log_dir]:
+        for dir_path in [self.moduli_home, self.candidates_dir, self.moduli_dir, self.log_dir]:
             dir_path.mkdir(parents=True, exist_ok=True)
 
         return self
@@ -277,10 +281,10 @@ class ModuliConfig:
         :rtype: Logging.Logger
         """
 
-        if not self.base_dir.exists():
-            Path(self.base_dir).mkdir(parents=True, exist_ok=True)
-        if not (self.base_dir / DEFAULT_LOG_DIR).exists():
-            Path(self.base_dir / DEFAULT_LOG_DIR).mkdir(parents=True, exist_ok=True)
+        if not self.moduli_home.exists():
+            Path(self.moduli_home).mkdir(parents=True, exist_ok=True)
+        if not (self.moduli_home / DEFAULT_LOG_DIR).exists():
+            Path(self.moduli_home / DEFAULT_LOG_DIR).mkdir(parents=True, exist_ok=True)
 
         # Set logging to use UTC time globally
         import logging

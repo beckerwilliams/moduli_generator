@@ -60,7 +60,7 @@ def main(
     with status_file.open('w') as of:
         dump(status, of, indent=4)
 
-    # Print a header and then the data
+    # Print a header and then the installers
     logger.info(f'Key-Length: #Records')
     print(f'Key-Length: #Records')
     [logger.info(f'{keysize}: {status[keysize]}') for keysize in status if status[keysize] > 0]

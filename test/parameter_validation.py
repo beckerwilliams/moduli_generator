@@ -29,9 +29,9 @@ def validate_integer_parameters(key_length=None, nice_value=None):
 
         # Additional validation for reasonable key lengths
         if validated_key_length < 3072:
-            raise ValueError(f"key_length {validated_key_length} is too small (minimum 512 bits)")
+            raise ValueError(f"key_length {validated_key_length} is too small (minimum 3072 bits)")
         if validated_key_length > 8192:
-            raise ValueError(f"key_length {validated_key_length} is too large (maximum 16384 bits)")
+            raise ValueError(f"key_length {validated_key_length} is too large (maximum 8192 bits)")
         if validated_key_length % 8 != 0:
             raise ValueError(f"key_length {validated_key_length} must be divisible by 8")
 
@@ -39,7 +39,6 @@ def validate_integer_parameters(key_length=None, nice_value=None):
     if nice_value is not None:
         if not isinstance(nice_value, (int, str)):
             raise TypeError(f"nice_value must be an integer or string, got {type(nice_value).__name__}")
-
         try:
             validated_nice_value = int(nice_value)
         except (ValueError, OverflowError) as e:

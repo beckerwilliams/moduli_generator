@@ -29,7 +29,7 @@ class TestModuliGeneratorShowStats(unittest.TestCase):
         self.mock_cursor.fetchone.return_value = {"COUNT(*)": 42}
 
     def test_show_stats_success(self):
-        """Test that stats works correctly with valid data"""
+        """Test that stats works correctly with valid installers"""
         # Call the method
         self.mock_db.show_stats()
 
@@ -59,7 +59,7 @@ class TestModuliGeneratorShowStats(unittest.TestCase):
 
     def test_show_stats_empty_result(self):
         """Test that stats handles empty results correctly"""
-        # Set up the mock cursor to return empty count data
+        # Set up the mock cursor to return empty count installers
         self.mock_cursor.fetchone.return_value = {"COUNT(*)": 0}
 
         # Call the method

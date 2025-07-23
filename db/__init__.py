@@ -9,6 +9,7 @@ from typing import (
 )
 
 from mariadb import (ConnectionPool, Error)  # Add this import
+from typing_extensions import ContextManager
 
 from config import (ModuliConfig, default_config, is_valid_identifier_sql)
 
@@ -145,7 +146,7 @@ class MariaDBConnector:
         return False
 
     @contextmanager
-    def get_connection(self):
+    def get_connection(self) -> ContextManager:
         """
         Provides a context manager for safely getting and managing a connection
         from the connection pool. Ensures the connection is properly closed and
@@ -166,7 +167,7 @@ class MariaDBConnector:
                 connection.close()  # Returns connection to pool
 
     @contextmanager
-    def transaction(self, connection=None):
+    def transaction(self, connection: "MariaDBConnector" = None) -> ContextManager:
         """
         Provides a context manager for handling database transactions. It ensures that the
         transaction is properly committed or rolled back and manages logging for the process.
@@ -183,9 +184,9 @@ class MariaDBConnector:
                 yield connection
                 connection.commit()
                 self.logger.debug("Transaction committed")
-            except Exception as e:
+            except Exception as err:
                 connection.rollback()
-                self.logger.error(f"Transaction rolled back due to error: {e}")
+                self.logger.error(f"Transaction rolled back due to error: {err}")
                 raise
         else:
             # Get connection from pool
@@ -194,13 +195,13 @@ class MariaDBConnector:
                     yield conn
                     conn.commit()
                     self.logger.debug("Transaction committed")
-                except Exception as e:
+                except Error as err:
                     conn.rollback()
-                    self.logger.error(f"Transaction rolled back due to error: {e}")
+                    self.logger.error(f"Transaction rolled back due to error: {err}")
                     raise
 
     @contextmanager
-    def file_writer(self, output_file: Path):
+    def file_writer(self, output_file: Path) -> ContextManager:
         """
         Context manager for safely opening a file for writing.
 
@@ -219,7 +220,7 @@ class MariaDBConnector:
             self.logger.error(f"Error writing to file {output_file}: {err}")
             raise
 
-    def __init__(self, config: ModuliConfig = default_config):
+    def __init__(self, config: ModuliConfig = default_config) -> "MariaDBConnector":
         """
         Initializes a class instance with provided configuration parameters and sets up a MariaDB
         connection pool, along with configured logging for module operations.
@@ -413,7 +414,7 @@ class MariaDBConnector:
         """
         Inserts a new record into the database table without wrapping the operation
         in a transaction. This method directly interacts with the database cursor
-        to execute an INSERT statement for storing the provided data.
+        to execute an INSERT statement for storing the provided installers.
 
         :param timestamp: The timestamp for the record being inserted.
         :type timestamp: int
@@ -432,10 +433,9 @@ class MariaDBConnector:
 
         try:
             with connection.cursor() as cursor:
-                db_table_names = '.'.join((self.db_name, self.table_name))
-                query = f"INSERT INTO %s (timestamp, config_id, size, modulus) VALUES (%s, %s, %s, %s)"
+                table = '.'.join((self.db_name, self.table_name))
+                query = f"INSERT INTO {table} (timestamp, config_id, size, modulus) VALUES (%s, %s, %s, %s)"
                 params_list = (
-                    db_table_names,
                     timestamp,
                     self.config_id,
                     key_size,
@@ -452,7 +452,7 @@ class MariaDBConnector:
         """
         Inserts a record into a specified database table. The record includes details such
         as a timestamp, key size, and modulus value. The method validates the database name
-        and table name before attempting to insert data. If the validation fails or there
+        and table name before attempting to insert installers. If the validation fails or there
         is an error during the insertion, the operation will fail gracefully.
 
         :param timestamp: Timestamp representing the time associated with the record.
@@ -470,14 +470,12 @@ class MariaDBConnector:
             return 0
 
         try:
-            with (self.get_connection() as connection):
+            with self.get_connection() as connection:
                 with self.transaction(connection):
                     with connection.cursor() as cursor:
-                        query = f"INSERT INTO %s (timestamp, config_id, size, modulus) VALUES (%s, %s, %s, %s)"
-
-                        db_table_names = '.'.join((self.db_name, self.table_name))
+                        table = '.'.join((self.db_name, self.table_name))
+                        query = f"INSERT INTO {table} (timestamp, config_id, size, modulus) VALUES (%s, %s, %s, %s)"
                         params_list = (
-                            db_table_names,
                             timestamp,
                             self.config_id,
                             key_size,
@@ -513,14 +511,18 @@ class MariaDBConnector:
             self.logger.error("Invalid database or table name")
             return False
 
-        db_table_names = '.'.join((self.db_name, self.table_name))
+        table = '.'.join((self.db_name, self.table_name))
         query = f"""
-                INSERT INTO {db_table_names} (timestamp, config_id, size, modulus)
+                INSERT INTO {table} (timestamp, config_id, size, modulus)
                 VALUES (%s, %s, %s, %s)
                 """
         # Prepare parameters for batch execution
-        params_list = [(timestamp, self.config_id, key_size, modulus)
-                       for timestamp, key_size, modulus in records]
+        params_list = [(
+            timestamp,
+            self.config_id,
+            key_size,
+            modulus)
+            for timestamp, key_size, modulus in records]
 
         try:
             success = self.execute_batch([query] * len(records), params_list)
@@ -557,7 +559,8 @@ class MariaDBConnector:
 
                     parameter_list = (
                         table_name,
-                        where_clause)
+                        where_clause
+                    )
                     cursor.execute(query, parameter_list)
                     rows_affected = cursor.rowcount
 
@@ -571,15 +574,15 @@ class MariaDBConnector:
 
     def export_screened_moduli(self, screened_moduli: dict) -> int:
         """
-        Stores screened moduli data from the given dictionary into the storage.
+        Stores screened moduli installers from the given dictionary into the storage.
 
-        This method iterates over the provided moduli data, extracting
+        This method iterates over the provided moduli installers, extracting
         moduli attributes and saving them using an internal method. The operation
         is performed within a database transaction to ensure atomicity. Errors
         encountered during the process are logged, and an appropriate status is
         returned.
 
-        :param screened_moduli: A dictionary containing moduli data mapped to corresponding keys.
+        :param screened_moduli: A dictionary containing moduli installers mapped to corresponding keys.
         :type screened_moduli: dict
         :return: An integer indicating the status of the operation,
                  where 0 indicates success and 1 indicates failure.
@@ -591,8 +594,12 @@ class MariaDBConnector:
                     for modulus in moduli_list:
                         # Use the internal add method without its own transaction
                         try:
-                            self._add_without_transaction(connection, modulus["timestamp"], modulus["key-size"],
-                                                          modulus["modulus"])
+                            self._add_without_transaction(
+                                connection,
+                                modulus["timestamp"],
+                                modulus["key-size"],
+                                modulus["modulus"]
+                            )
                         except Error as err:
                             if 'duplicate' in str(err).lower():
                                 self.logger.warn(f"Duplicate Modulus, Skipping ...: {modulus}")
@@ -607,7 +614,7 @@ def write_moduli_file(self) -> None:
     """
     Writes the moduli file using the database interface.
 
-    This method retrieves data necessary for the moduli file from the
+    This method retrieves the installers necessary for the moduli file from the
     database and then writes it to the appropriate location using
     the database interface.
 
@@ -654,10 +661,10 @@ def stats(self) -> Dict[str, str]:
 
     for size in moduli_query_sizes:
         # Count query to check available records
-        db_table_names = '.'.join((self.db_name, self.table_name))
+        table = '.'.join((self.db_name, self.table_name))
         count_query = f"""
                                   SELECT COUNT(*)
-                                  FROM {db_table_names}
+                                  FROM {table}
                                   WHERE size = %s
                                   """
         params_list = (size,)
