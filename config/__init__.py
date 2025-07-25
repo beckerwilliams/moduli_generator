@@ -10,7 +10,24 @@ from pathlib import PosixPath as Path
 from re import (compile, sub)
 from typing import Final
 
-from .__version__ import version
+# from .__version__ import version
+
+try:
+    from importlib.metadata import version
+
+    __version__ = version('moduli_generator')
+except ImportError:
+    # Fallback for Python < 3.8
+    from importlib_metadata import version
+
+    __version__ = version('moduli_generator')
+except Exception:
+    # Final fallback to pyproject.toml
+    from get_version import get_version
+
+    __version__ = get_version()
+
+version = __version__
 
 __all__ = [
     'ModuliConfig',

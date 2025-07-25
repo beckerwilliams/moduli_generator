@@ -1,7 +1,22 @@
 import os
 import sys
-from pathlib import PosixPath as Path
 
+try:
+    from importlib.metadata import version
+
+    __version__ = version('moduli-generator')  # Replace with your actual package name
+except ImportError:
+    # Fallback for Python < 3.8
+    from importlib_metadata import version
+
+    __version__ = version('moduli-generator')
+except Exception:
+    # Final fallback to pyproject.toml
+    from get_version import get_version
+
+    __version__ = get_version()
+
+version = __version__
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -23,5 +38,3 @@ exclude_patterns = [
 html_theme = 'sphinx_rtd_theme'
 
 copyright = '2024,2025 Ronald Williams General Partner, Becker Williams General Partnership'
-
-version = (Path('config') / '__version__.py').read_text().strip()
