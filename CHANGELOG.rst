@@ -1,0 +1,207 @@
+=========
+Changelog
+=========
+
+This document tracks the changes made to the moduli_generator project.
+
+Version 2.1.21
+==============
+
+2025-07-23
+----------
+
+* **Bug Fixes**: Changelog_generator/__init__.py - Refactored, Fixed RST Header Line (Project) - Separated Class from main/test
+
+2025-07-22
+----------
+
+**Bug Fixes**:
+
+  * Changelog_generator/__init__.py - Refactored, Fixed RST Header Line (Project) - Separated Class from main/test
+  * Changelog_generator/__init__.py - Refactored, Fixed RST Header Line (Project) - Separated Class from main/test
+
+
+2025-07-21
+----------
+
+**Features**:
+
+  * Moduli_generator.ModuliGenerator   - ._generator_candidates_static()     - Added Validation Checking to key_length & nice_value   - ._screen_candidates_static()       - Added Validation Checking to key_length & nice_value
+  * Moduli_generator.ModuliGenerator   - ._generator_candidates_static()     - Added Validation Checking to key_length & nice_value   - ._screen_candidates_static()       - Added Validation Checking to key_length & nice_value
+
+
+2025-07-20
+----------
+
+**Bug Fixes**:
+
+  * Refactored Changelog into it's own module. - pyproject.toml fixed script 'changelog'
+  * Refactored Changelog into it's own module. - pyproject.toml fixed script 'changelog'
+
+* **Database Improvements**: Db.scripts.moduli_stats.py
+* **General**: Changelog_generator.py
+
+2025-07-19
+----------
+
+**General**:
+
+  * Changelog_generator.py
+  * Changelog_generator.py
+
+
+2025-07-18
+----------
+
+* **General**: Pyproject.toml
+
+2025-07-17
+----------
+
+* **Features**: Moduli_generator_github_install.sh   - Create and Tested   - Successfully installs Python virtual environment with Updated PIP and freshly built moduli_generator wheel
+* **General**: Moduli_generator_github_install.sh   - Refining Install - Looking Good!
+* **Refactoring**: Significant Install Documentation Refactor
+
+2025-07-16
+----------
+
+* **Bug Fixes**: Testing Installer - Fixing script definitions (moduli_stats)
+**Documentation**:
+
+  * Build_docs.py  - main() | Changed Output Directory to ${project_root}/docs, from ${project_root}/moduli_generator/docs
+  * Build_docs.py  - main() | Changed Output Directory to ${project_root}/docs, from ${project_root}/moduli_generator/docs
+
+
+2025-07-15
+----------
+
+* **Database Improvements**: Cleaned up MariaDBConnector.stats() function to output human readable data
+* **Milestones**: * Checkpoint *
+
+2025-07-14
+----------
+
+* **Database Improvements**: * MariadbConnector.get_and_write_moduli_file   Uniquifying key_lengths list, and ordering by key length.   Stop producing more than DEFAULT_RECORDS_PER_KEYLENGTH
+* **General**: Moduli_generator.cli
+
+2025-07-12
+----------
+
+**Database Improvements**:
+
+  * Refactoring Documentation - In Progress tbd   * Database Integration
+  * Refactoring Documentation - In Progress tbd   * Database Integration
+
+**Features**:
+
+  * Committing new RST Files
+  * Adding function 'main' to 'generate_changelog' in pyproject.toml specification
+
+* **General**: Moduli_generator.cli
+
+2025-07-11
+----------
+
+* **Features**: Refactored Changelog Processing will full featured changelog_generator.py. (Thank you Claude 4 Sonnet)
+
+2025-07-10
+----------
+
+* **Database Improvements**: Converted MariaDBConnector to context_manager and modified methods for proper transactional handling
+
+2025-07-09
+----------
+
+* **Database Improvements**: Refactored db/scripts/install_schema.py to accomodate parameterized SQL operations
+* **Releases**: Candidate Release w/ PRODUCTION ARGUMENTS
+
+2025-07-06
+----------
+
+**Bug Fixes**:
+
+  * Moduli_generator._version * Fixed current_dir to properly reference project location * Tests Successfully Complete * Checkpoint Sunday ** ~rbw
+  * Moduli_generator._version * Fixed current_dir to properly reference project location * Tests Successfully Complete * Checkpoint Sunday ** ~rbw
+
+**Documentation**:
+
+  * Researched optimal moduli per keysize. Included in reference section of documentation, and reflected in DEFAULT MODULI_RECORDS_PER_KEYLENGTH ~rbw
+  * Researched optimal moduli per keysize. Included in reference section of documentation, and reflected in DEFAULT MODULI_RECORDS_PER_KEYLENGTH ~rbw
+
+
+2025-07-05
+----------
+
+**Database Improvements**:
+
+  * Write_moduli_file.py * Refactored to Delete from Database all records captured and stored in Fresh  Moduli File * Includes DELETE for removal of USED Moduli from Database
+  * Write_moduli_file.py * Refactored to Delete from Database all records captured and stored in Fresh  Moduli File * Includes DELETE for removal of USED Moduli from Database
+
+
+2025-07-04
+----------
+
+* **Database Improvements**: Config.py * standardized __all__ * Reformatted functions' doc strings * default moduli_generator directory (~/.moduli) moduli_db_utilities.py * get_moduli.py   * Added identifier validation to verify variables db_name & db_view ~rbw
+
+2025-07-01
+----------
+
+**Database Improvements**:
+
+  * * MariadDBConnector: added:   * get_moduli - Retrieves Records from moduli_db, and writes out an /etc/ssh/moduli compatible file IF there are at least 'config.records_per_keylength' entries for each bitlength moduli * config.py   * Configuration object for all processes   * Refactored project constants to consolidate project configuration   * Supplies values for ModuliGenerator and MariaDBConnector * write_moduli_file.py   * Writes out a fresh moduli file to user's home directory (or file of their choice)
+  * * MariadDBConnector: added:   * get_moduli - Retrieves Records from moduli_db, and writes out an /etc/ssh/moduli compatible file IF there are at least 'config.records_per_keylength' entries for each bitlength moduli * config.py   * Configuration object for all processes   * Refactored project constants to consolidate project configuration   * Supplies values for ModuliGenerator and MariaDBConnector * write_moduli_file.py   * Writes out a fresh moduli file to user's home directory (or file of their choice)
+
+
+2025-06-28
+----------
+
+* **Database Improvements**: Moduli_db_utilities.py:  * Refactored Cursor Operations to use Context Managers  * Refactored exception handling to raise RuntimeException rather than exit(1) cli.py  * Refactored checkpoint file handling in _screen_candididates() for clarity  class ModuliGenerator:  * Incorrectly indented return that limited function to ONE Modulus File - ** FIXED **
+
+2025-06-25
+----------
+
+**Database Improvements**:
+
+  * * Refactored generate_moduli in moduli_generator.__init__.py to Accomodate Multiple Requests for Key Length. * Storing screened moduli in mariadb mod_gen.screened_moduli * Program runs and completes successfully
+  * Successfully generating, screening, and storing moduli in MariaDB
+
+* **Milestones**: CHECKPOINT
+
+2025-06-24
+----------
+
+* **Database Improvements**: Refactored mysql ConfigParser INTO mariadb_connector, where it belongs. ;-} All mariadb_config functione tests complete successfully
+
+2025-06-23
+----------
+
+**Database Improvements**:
+
+  * Created function MariaDBConnector.add, adds individually identified and screened moduli
+  * Created Mariadb Connector Class - Operational as-is
+
+
+2025-06-22
+----------
+
+* **Database Improvements**: Installed mariadb_cnf_parser.py w/ tests completing successfully. Preparing for Database Storage of Screened Moduli for on demand /etc/moduli creation ~rbw
+
+2025-06-01
+----------
+
+**General**:
+
+  * Initial Commit/push after Cloning Template ~rbw
+  * Initial Commit/push after Cloning Template ~rbw
+
+
+Project Information
+===================
+
+* **Project**: moduli_generator
+* **Version**: 2.1.21
+* **Description**: Command Line Utility to build moduli for /usr/local/etc/ssh/moduli_file
+* **Author**: Ron Williams <becker.williams@gmail.com>
+* **Repository**: https://github.com/beckerwilliams/moduli_generator.git
+* **Homepage**: https://github.com/beckerwilliams/moduli_generator
+* **License**: See LICENSE.rst
