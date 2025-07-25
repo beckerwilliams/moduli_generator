@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>SSH2 Moduli Generator &mdash; Moduli Generator documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3"/>
+    <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7"/>
+
+
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html"/>
+    <link rel="search" title="Search" href="search.html"/>
+    <link rel="next" title="module config" href="CONFIG.html"/>
+    <link rel="prev" title="ssh2-moduli-generator (moduli_generator)" href="index.html"/>
+</head>
+
+<body class="wy-body-for-nav">
+<div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+        <div class="wy-side-scroll">
+            <div class="wy-side-nav-search">
+
+
+                <a href="index.html" class="icon icon-home">
+                    Moduli Generator
+                </a>
+                <div role="search">
+                    <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+                        <input type="text" name="q" placeholder="Search docs" aria-label="Search docs"/>
+                        <input type="hidden" name="check_keywords" value="yes"/>
+                        <input type="hidden" name="area" value="default"/>
+                    </form>
+                </div>
+            </div>
+            <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+                <p class="caption" role="heading"><span class="caption-text">Documentation:</span></p>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="current reference internal" href="#">SSH2 Moduli
+                        Generator</a>
+                        <ul>
+                            <li class="toctree-l2"><a class="reference internal" href="#features">Features</a>
+                                <ul>
+                                    <li class="toctree-l3"><a class="reference internal" href="#getting-started">Getting
+                                        Started</a>
+                                        <ul>
+                                            <li class="toctree-l4"><a class="reference internal"
+                                                                      href="#install-ssh2-moduli-generator">Install SSH2
+                                                Moduli Generator</a></li>
+                                            <li class="toctree-l4"><a class="reference internal"
+                                                                      href="#install-moduli-generator-schema">Install
+                                                Moduli_Generator Schema</a></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="#configure-mariadb">Configure MariaDB</a>
+                    </li>
+                </ul>
+                <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="CONFIG.html">module config</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="DB.html">module db</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="MODULI_GENERATOR.html">module
+                        moduli_generator</a></li>
+                </ul>
+                <p class="caption" role="heading"><span class="caption-text">Contributing:</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href=".github/ISSUE_TEMPLATE/bug_report.html">bug_report
+                        template</a></li>
+                    <li class="toctree-l1"><a class="reference internal"
+                                              href=".github/ISSUE_TEMPLATE/feature_request.html">Feature Request
+                        Template</a></li>
+                </ul>
+                <p class="caption" role="heading"><span class="caption-text">Legal</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="COPYRIGHT.html">Copyright</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="LICENSE.html">MIT License</a></li>
+                </ul>
+                <p class="caption" role="heading"><span class="caption-text">Development Tests</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="TEST.html">Test Suite</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="TEST.html#test-configuration">Test
+                        Configuration</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="TEST.html#unit-tests">Unit Tests</a></li>
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+        <nav class="wy-nav-top" aria-label="Mobile navigation menu">
+            <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+            <a href="index.html">Moduli Generator</a>
+        </nav>
+
+        <div class="wy-nav-content">
+            <div class="rst-content">
+                <div role="navigation" aria-label="Page navigation">
+                    <ul class="wy-breadcrumbs">
+                        <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+                        <li class="breadcrumb-item active">SSH2 Moduli Generator</li>
+                        <li class="wy-breadcrumbs-aside">
+                            <a href="_sources/README.rst.txt" rel="nofollow"> View page source</a>
+                        </li>
+                    </ul>
+                    <hr/>
+                </div>
+                <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+                    <div itemprop="articleBody">
+
+                        <section id="ssh2-moduli-generator">
+                            <h1>SSH2 Moduli Generator<a class="headerlink" href="#ssh2-moduli-generator"
+                                                        title="Link to this heading"></a></h1>
+                            <a class="reference external image-reference" href="https://www.python.org/downloads/"><img
+                                    alt="https://img.shields.io/badge/python-3.12+-blue.svg"
+                                    src="https://img.shields.io/badge/python-3.12+-blue.svg"/>
+                            </a>
+                            <a class="reference external image-reference" href="LICENSE.rst"><img
+                                    alt="https://img.shields.io/badge/license-MIT-green.svg"
+                                    src="https://img.shields.io/badge/license-MIT-green.svg"/>
+                            </a>
+                            <p>A command-line utility for generating SSH moduli files used in SSH key exchange
+                                processes.</p>
+                            <p>Do <cite>it all</cite>:</p>
+                            <div class="highlight-default notranslate">
+                                <div class="highlight"><pre><span></span><span class="n">python</span> <span
+                                        class="o">-</span><span class="n">m</span> <span
+                                        class="n">moduli_generator</span><span class="o">.</span><span
+                                        class="n">cli</span>
+</pre>
+                                </div>
+                            </div>
+                            <dl class="simple">
+                                <dt>At completion, you will find</dt>
+                                <dd><p>${HOME}/.moduli_generator/
+                                    ${HOME}/.moduli_generator/ssh2-moduli_&lt;timestamp&gt;</p>
+                                </dd>
+                            </dl>
+                            <section id="features">
+                                <h2>Features<a class="headerlink" href="#features" title="Link to this heading"></a>
+                                </h2>
+                                <ul class="simple">
+                                    <li><p>Generate <em>Unique and Secure</em>, SSH2 Compliant moduli files</p></li>
+                                    <li><p>Mysql/MariaDB integration for storing and managing screened moduli</p></li>
+                                    <li><p>Command-line interface for easy automation</p></li>
+                                    <li><p>Comprehensive documentation and changelog</p></li>
+                                    <li><p>Support standard mysql.cnf connection files</p></li>
+                                    <li><p>Statistics and analysis tools</p></li>
+                                </ul>
+                                <section id="getting-started">
+                                    <h3>Getting Started<a class="headerlink" href="#getting-started"
+                                                          title="Link to this heading"></a></h3>
+                                    <section id="install-ssh2-moduli-generator">
+                                        <h4>Install SSH2 Moduli Generator<a class="headerlink"
+                                                                            href="#install-ssh2-moduli-generator"
+                                                                            title="Link to this heading"></a></h4>
+                                        <div class="highlight-bash notranslate">
+                                            <div class="highlight"><pre><span></span>pip<span
+                                                    class="w"> </span>install<span class="w"> </span>moduli_generator
+</pre>
+                                            </div>
+                                        </div>
+                                        <p><em>Response</em></p>
+                                        <div class="highlight-bash notranslate">
+                                            <div class="highlight"><pre><span></span><span class="s2">&quot;tbd : installation response&quot;</span>
+</pre>
+                                            </div>
+                                        </div>
+                                    </section>
+                                    <section id="install-moduli-generator-schema">
+                                        <h4>Install Moduli_Generator Schema<a class="headerlink"
+                                                                              href="#install-moduli-generator-schema"
+                                                                              title="Link to this heading"></a></h4>
+                                        <dl class="simple">
+                                            <dt><cite>Requirements</cite></dt>
+                                            <dd><p>A Running MariaDB SQL Database</p>
+                                            </dd>
+                                        </dl>
+                                    </section>
+                                </section>
+                            </section>
+                        </section>
+                        <section id="configure-mariadb">
+                            <h1>Configure MariaDB<a class="headerlink" href="#configure-mariadb"
+                                                    title="Link to this heading"></a></h1>
+                            <p>To install MariaDB for your site, see:</p>
+                            <blockquote>
+                                <div><p><a class="reference external"
+                                           href="https://mariadb.com/docs/server/mariadb-quickstart-guides/installing-mariadb-server-guide">Official
+                                    MariaDB Installation Guide</a></p>
+                                </div>
+                            </blockquote>
+                            <p>In the provided target MariaDB Instance, <strong>SSH2 Moduli Generator</strong> creates a
+                                database, <code class="docutils literal notranslate"><span class="pre">moduli_db</span></code>,
+                                a view <code class="docutils literal notranslate"><span
+                                        class="pre">moduli_view</span></code>
+                                , and a constants table <code class="docutils literal notranslate"><span class="pre">mod_fl_consts</span></code>.
+                            </p>
+                            <p>To configure, you will need to prepare Two (2) mysql.cnf files, <code
+                                    class="docutils literal notranslate"><span
+                                    class="pre">moduli_generator.cnf</span></code>, and <code
+                                    class="docutils literal notranslate"><span class="pre">privileged.cnf</span></code>.
+                                Substitute the &lt;HOST&gt;, &lt;USERNAME&gt;, and &lt;PASSWORD&gt;, with the
+                                appropriate <code class="docutils literal notranslate"><span
+                                        class="pre">host</span></code>, <code class="docutils literal notranslate"><span
+                                        class="pre">username</span></code>, and <code
+                                        class="docutils literal notranslate"><span class="pre">password</span></code> of
+                                your &lt;privileged&gt; account into a file named <code
+                                        class="docutils literal notranslate"><span
+                                        class="pre">privileged.cnf</span></code></p>
+                            <blockquote>
+                                <div><p>The <cite>moduli_generator</cite> application <code
+                                        class="docutils literal notranslate"><span class="pre">owner</span></code> is
+                                    configured and limited to this database on the server.</p>
+                                    <p>The <cite>moduli_generator</cite> privileged <code
+                                            class="docutils literal notranslate"><span class="pre">user</span></code> is
+                                        configured for <em>installation</em> of the <cite>moduli_generator</cite> schema
+                                        and user.</p>
+                                </div>
+                            </blockquote>
+                            <p><strong>Configure MariaDB for Moduli Generator</strong></p>
+                            <blockquote>
+                                <div><p>Assuming an MariaDB is operational and available, we need to install <cite>moduli_generator</cite>’s
+                                    db <cite>schema</cite> and
+                                    configure the the user, <cite>moduli_generator</cite>, with ALL PRIVILEGES WITH
+                                    GRANT on the moduli_generator db.</p>
+                                    <p><code class="docutils literal notranslate"><span class="pre">moduli_generator.scripts.install_schema</span></code>
+                                        installs a schema in a database named <code
+                                                class="docutils literal notranslate"><span class="pre">moduli_db</span></code>
+                                        having three tables, <code class="docutils literal notranslate"><span
+                                                class="pre">moduli</span></code>, <code
+                                                class="docutils literal notranslate"><span
+                                                class="pre">moduli_view</span></code>, and <code
+                                                class="docutils literal notranslate"><span
+                                                class="pre">mod_fl_consts</span></code>.</p>
+                                </div>
+                            </blockquote>
+                            <p>A system user <cite>‘`&lt;privileged&gt;</cite>’&#64;’%’<cite>, must be granted ALL
+                                PRIVILEGES on `’`*</cite>’.’*’` with Grant. This configuration can be deleted after
+                                schema install.</p>
+                            <div class="highlight-bash notranslate">
+                                <div class="highlight"><pre><span></span><span class="c1">#</span>
+<span class="c1"># This group is read both by the client and the server</span>
+<span class="c1"># use it for options that affect everything, see</span>
+<span class="c1"># https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#option-groups</span>
+<span class="c1">#</span>
+<span class="o">[</span>client<span class="o">]</span>
+<span class="nv">host</span><span class="w">                                </span><span class="o">=</span><span
+                                            class="w"> </span>&lt;HOSTNAME&gt;
+<span class="nv">port</span><span class="w">	                            </span><span class="o">=</span><span
+                                            class="w"> </span><span class="m">3306</span>
+<span class="nv">socket</span><span class="w">	                            </span><span class="o">=</span><span
+                                            class="w"> </span>/var/run/mysql/mysql.sock
+<span class="nv">password</span><span class="w">                            </span><span class="o">=</span><span
+                                            class="w"> </span>&lt;PASSWORD&gt;
+<span class="nv">user</span><span class="w">                                </span><span class="o">=</span><span
+                                            class="w"> </span>&lt;USERNAME&gt;
+<span class="nv">database</span><span class="w">                            </span><span class="o">=</span><span
+                                            class="w"> </span>moduli_db
+<span class="nv">ssl</span><span class="w">                                 </span><span class="o">=</span><span
+                                            class="w"> </span><span class="nb">true</span>
+</pre>
+                                </div>
+                            </div>
+                            <p>The user <cite>‘`moduli_generator’&#64;’%</cite>’` is created and granted ALL PRIVILEGES
+                                on <cite>‘`**moduli_db**</cite>’.’*’` with GRANT. No other access for this user should
+                                be allowed.</p>
+                            <div class="highlight-bash notranslate">
+                                <div class="highlight"><pre><span></span><span class="c1"># This group is read both by the client and the server</span>
+<span class="c1"># use it for options that affect everything, see</span>
+<span class="c1"># https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#option-groups</span>
+<span class="c1">#</span>
+<span class="o">[</span>client<span class="o">]</span>
+<span class="nv">host</span><span class="w">                                </span><span class="o">=</span><span
+                                            class="w"> </span>&lt;HOSTNAME&gt;
+<span class="nv">port</span><span class="w">	                            </span><span class="o">=</span><span
+                                            class="w"> </span><span class="m">3306</span>
+<span class="nv">socket</span><span class="w">	                            </span><span class="o">=</span><span
+                                            class="w"> </span>/var/run/mysql/mysql.sock
+<span class="nv">password</span><span class="w">                            </span><span class="o">=</span><span
+                                            class="w"> </span>&lt;PASSWORD&gt;
+<span class="nv">user</span><span class="w">                                </span><span class="o">=</span><span
+                                            class="w"> </span>moduli_generator
+<span class="nv">database</span><span class="w">                            </span><span class="o">=</span><span
+                                            class="w"> </span>moduli_db
+<span class="nv">ssl</span><span class="w">                                 </span><span class="o">=</span><span
+                                            class="w"> </span><span class="nb">true</span>
+</pre>
+                                </div>
+                            </div>
+                            <ol class="arabic">
+                                <li><p>Configure Moduli Generator User (and Installer Privileged Profile)</p>
+                                    <blockquote>
+                                        <div>
+                                            <dl class="simple">
+                                                <dt>Inputs:</dt>
+                                                <dd>
+                                                    <dl class="simple">
+                                                        <dt>privilged.cnf, a privileged user account having</dt>
+                                                        <dd><p><cite>GRANT ALL PRIVILEGES on moduli_db.* WITH
+                                                            GRANT</cite></p>
+                                                        </dd>
+                                                        <dt>moduli_generator.cnf, the <em>will be assigned</em> an
+                                                            application owner account with
+                                                        </dt>
+                                                        <dd><p><cite>GRANT ALL PRIVILEGES on *.* WITH GRANT</cite> with
+                                                            schema installation.</p>
+                                                        </dd>
+                                                    </dl>
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </blockquote>
+                                </li>
+                            </ol>
+                            <p>Place both <a href="#id1"><span class="problematic" id="id2">*</span></a>.cnf files in
+                                ${HOME}, and then cut and paste the script below into a terminal session to install
+                                schema.</p>
+                            <div class="highlight-bash notranslate">
+                                <div class="highlight"><pre><span></span><span class="c1"># moduli_generator_dir home directory = ${HOME}/moduli_generator</span>
+<span class="nv">MODULI_GENERATOR_HOME</span><span class="o">=</span><span class="si">${</span><span
+                                            class="nv">HOME</span><span class="si">}</span>.moduli_generator
+cp<span class="w"> </span><span class="si">${</span><span class="nv">HOME</span><span class="si">}</span>/moduli_generator.cnf<span
+                                            class="w"> </span><span class="si">${</span><span class="nv">MODULI_GENERATOR</span><span
+                                            class="si">}</span>
+
+<span class="c1"># Install Schema</span>
+python<span class="w"> </span>-m<span class="w"> </span>db.moduli_db_utilities.install_schema:main<span
+                                            class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--moduli-db-name<span class="w"> </span>moduli_db<span class="w"> </span><span
+                                            class="se">\</span>
+<span class="w">    </span>--mariadb-cnf<span class="w"> </span><span class="si">${</span><span
+                                            class="nv">HOME</span><span class="si">}</span>/privileged_mariadb.cnf
+<span class="w">    </span>--batch
+</pre>
+                                </div>
+                            </div>
+                            <p><em>response:</em></p>
+                            <div class="highlight-bash notranslate">
+                                <div class="highlight"><pre><span></span>Installing<span class="w"> </span>schema<span
+                                        class="w"> </span><span class="k">for</span><span
+                                        class="w"> </span>database:<span class="w"> </span>moduli_db<span
+                                        class="w"> </span>with<span class="w"> </span>MariaDB<span class="w"> </span>config<span
+                                        class="w"> </span>file:<span class="w"> </span>privileged_mariadb.cnf
+Installing<span class="w"> </span>schema<span class="w"> </span><span class="k">for</span><span class="w"> </span>database:<span
+                                            class="w"> </span>moduli_db
+Schema<span class="w"> </span>installation<span class="w"> </span>completed<span class="w"> </span>successfully<span
+                                            class="w"> </span><span class="o">(</span>batch<span
+                                            class="w"> </span>mode<span class="o">)</span>
+Database<span class="w"> </span>schema<span class="w"> </span>installed<span class="w"> </span>successfully
+</pre>
+                                </div>
+                            </div>
+                            <p><em>completion:</em></p>
+                            <div class="highlight-bash notranslate">
+                                <div class="highlight"><pre><span></span>rm<span class="w"> </span><span
+                                        class="si">${</span><span class="nv">HOME</span><span class="si">}</span>/privileged_mariadb.cnf
+</pre>
+                                </div>
+                            </div>
+                            <p><strong>MODULI_GENERATOR DB Schema</strong></p>
+                            <div class="highlight-sql notranslate">
+                                <div class="highlight"><pre><span></span><span class="k">CREATE</span><span
+                                        class="w"> </span><span class="k">USER</span><span class="w"> </span><span
+                                        class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span
+                                        class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span
+                                        class="s1">&#39;moduli_generator&#39;</span><span class="o">@</span><span
+                                        class="s1">&#39;%&#39;</span>
+<span class="n">IDENTIFIED</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span
+                                            class="s1">&#39;&lt;MODULI_GENERATOR_PASSWORD&gt;&#39;</span>
+<span class="k">WITH</span><span class="w"> </span><span class="n">MAX_QUERIES_PER_HOUR</span><span
+                                            class="w"> </span><span class="mi">500</span>
+<span class="n">MAX_CONNECTIONS_PER_HOUR</span><span class="w"> </span><span class="mi">100</span>
+<span class="n">MAX_UPDATES_PER_HOUR</span><span class="w"> </span><span class="mi">200</span>
+<span class="n">MAX_USER_CONNECTIONS</span><span class="w"> </span><span class="mi">50</span><span class="p">;</span>
+<span class="k">GRANT</span><span class="w"> </span><span class="k">ALL</span><span class="w"> </span><span class="k">PRIVILEGES</span><span
+                                            class="w"> </span><span class="k">ON</span><span class="w"> </span><span
+                                            class="n">moduli_db</span><span class="p">.</span><span
+                                            class="o">*</span><span class="w"> </span><span class="k">TO</span><span
+                                            class="w"> </span><span class="s1">&#39;moduli_generator&#39;</span><span
+                                            class="o">@</span><span class="s1">&#39;%&#39;</span><span
+                                            class="w"> </span><span class="k">WITH</span><span class="w"> </span><span
+                                            class="k">GRANT</span><span class="w"> </span><span
+                                            class="k">OPTION</span><span class="p">;</span>
+<span class="n">FLUSH</span><span class="w"> </span><span class="k">PRIVILEGES</span><span class="p">;</span>
+</pre>
+                                </div>
+                            </div>
+                            <p><strong>MODULI_GENERATOR CREATE USER Schema</strong></p>
+                            <div class="highlight-sql notranslate">
+                                <div class="highlight"><pre><span></span><span class="k">CREATE</span><span
+                                        class="w"> </span><span class="k">DATABASE</span><span class="w"> </span><span
+                                        class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span
+                                        class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span
+                                        class="n">moduli_db</span><span class="p">;</span>
+
+<span class="c1">-- Configuration table for constant values</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span
+                                            class="n">moduli_db</span><span class="p">.</span><span class="n">mod_fl_consts</span><span
+                                            class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">config_id</span><span class="w"> </span><span class="n">TINYINT</span><span
+                                            class="w"> </span><span class="n">UNSIGNED</span><span
+                                            class="w"> </span><span class="k">PRIMARY</span><span
+                                            class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+<span class="w">    </span><span class="k">type</span><span class="w"> </span><span class="n">ENUM</span><span
+                                            class="p">(</span><span class="s1">&#39;2&#39;</span><span
+                                            class="p">,</span><span class="w"> </span><span
+                                            class="s1">&#39;5&#39;</span><span class="p">)</span><span
+                                            class="w"> </span><span class="k">NOT</span><span class="w"> </span><span
+                                            class="k">NULL</span><span class="w"> </span><span
+                                            class="k">COMMENT</span><span class="w"> </span><span class="s1">&#39;Generator type (2 or 5)&#39;</span><span
+                                            class="p">,</span>
+<span class="w">    </span><span class="n">tests</span><span class="w"> </span><span class="nb">VARCHAR</span><span
+                                            class="p">(</span><span class="mi">50</span><span class="p">)</span><span
+                                            class="w"> </span><span class="k">NOT</span><span class="w"> </span><span
+                                            class="k">NULL</span><span class="w"> </span><span
+                                            class="k">COMMENT</span><span class="w"> </span><span class="s1">&#39;Tests performed on the modulus&#39;</span><span
+                                            class="p">,</span>
+<span class="w">    </span><span class="n">trials</span><span class="w"> </span><span class="nb">INT</span><span
+                                            class="w"> </span><span class="n">UNSIGNED</span><span
+                                            class="w"> </span><span class="k">NOT</span><span class="w"> </span><span
+                                            class="k">NULL</span><span class="w"> </span><span
+                                            class="k">COMMENT</span><span class="w"> </span><span class="s1">&#39;Number of trials performed&#39;</span><span
+                                            class="p">,</span>
+<span class="w">    </span><span class="n">generator</span><span class="w"> </span><span class="nb">BIGINT</span><span
+                                            class="w"> </span><span class="n">UNSIGNED</span><span
+                                            class="w"> </span><span class="k">NOT</span><span class="w"> </span><span
+                                            class="k">NULL</span><span class="w"> </span><span
+                                            class="k">COMMENT</span><span class="w"> </span><span class="s1">&#39;Generator value&#39;</span><span
+                                            class="p">,</span>
+<span class="w">    </span><span class="n">description</span><span class="w"> </span><span
+                                            class="nb">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span
+                                            class="p">)</span><span class="w"> </span><span
+                                            class="k">COMMENT</span><span class="w"> </span><span class="s1">&#39;Optional description of this configuration&#39;</span>
+<span class="p">);</span>
+
+<span class="c1">-- Main moduli table with a foreign key to config</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span
+                                            class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span
+                                            class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span
+                                            class="n">moduli_db</span><span class="p">.</span><span
+                                            class="n">moduli</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">BIGINT</span><span
+                                            class="w"> </span><span class="n">UNSIGNED</span><span
+                                            class="w"> </span><span class="n">AUTO_INCREMENT</span><span
+                                            class="w"> </span><span class="k">PRIMARY</span><span
+                                            class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+<span class="w">    </span><span class="k">timestamp</span><span class="w"> </span><span class="n">DATETIME</span><span
+                                            class="w"> </span><span class="k">NOT</span><span class="w"> </span><span
+                                            class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">config_id</span><span class="w"> </span><span class="n">TINYINT</span><span
+                                            class="w"> </span><span class="n">UNSIGNED</span><span
+                                            class="w"> </span><span class="k">NOT</span><span class="w"> </span><span
+                                            class="k">NULL</span><span class="w"> </span><span
+                                            class="k">COMMENT</span><span class="w"> </span><span class="s1">&#39;Foreign key to moduli constants&#39;</span><span
+                                            class="p">,</span>
+<span class="w">    </span><span class="k">size</span><span class="w"> </span><span class="nb">INT</span><span
+                                            class="w"> </span><span class="n">UNSIGNED</span><span
+                                            class="w"> </span><span class="k">NOT</span><span class="w"> </span><span
+                                            class="k">NULL</span><span class="w"> </span><span
+                                            class="k">COMMENT</span><span class="w"> </span><span class="s1">&#39;Key size in bits&#39;</span><span
+                                            class="p">,</span>
+<span class="w">    </span><span class="n">modulus</span><span class="w"> </span><span class="nb">TEXT</span><span
+                                            class="w"> </span><span class="k">NOT</span><span class="w"> </span><span
+                                            class="k">NULL</span><span class="w"> </span><span
+                                            class="k">COMMENT</span><span class="w"> </span><span class="s1">&#39;Prime modulus value&#39;</span><span
+                                            class="p">,</span>
+<span class="w">    </span><span class="n">modulus_hash</span><span class="w"> </span><span
+                                            class="nb">VARCHAR</span><span class="p">(</span><span class="mi">128</span><span
+                                            class="p">)</span><span class="w"> </span><span
+                                            class="k">GENERATED</span><span class="w"> </span><span
+                                            class="n">ALWAYS</span><span class="w"> </span><span
+                                            class="k">AS</span><span class="w"> </span><span class="p">(</span><span
+                                            class="n">SHA2</span><span class="p">(</span><span
+                                            class="n">modulus</span><span class="p">,</span><span
+                                            class="w"> </span><span class="mi">512</span><span class="p">))</span><span
+                                            class="w"> </span><span class="n">STORED</span><span class="w"> </span><span
+                                            class="k">COMMENT</span><span class="w"> </span><span class="s1">&#39;Hash of modulus for uniqueness check&#39;</span><span
+                                            class="p">,</span>
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span
+                                            class="k">TIMESTAMP</span><span class="w"> </span><span
+                                            class="k">DEFAULT</span><span class="w"> </span><span class="k">CURRENT_TIMESTAMP</span><span
+                                            class="p">,</span>
+<span class="w">    </span><span class="k">FOREIGN</span><span class="w"> </span><span class="k">KEY</span><span
+                                            class="w"> </span><span class="p">(</span><span
+                                            class="n">config_id</span><span class="p">)</span><span
+                                            class="w"> </span><span class="k">REFERENCES</span><span
+                                            class="w"> </span><span class="n">mod_fl_consts</span><span
+                                            class="p">(</span><span class="n">config_id</span><span class="p">),</span>
+<span class="w">    </span><span class="k">UNIQUE</span><span class="w"> </span><span class="k">KEY</span><span
+                                            class="w"> </span><span class="p">(</span><span
+                                            class="n">modulus_hash</span><span class="p">)</span>
+<span class="p">);</span>
+
+<span class="k">CREATE</span><span class="w"> </span><span class="k">VIEW</span><span class="w"> </span><span class="k">IF</span><span
+                                            class="w"> </span><span class="k">NOT</span><span class="w"> </span><span
+                                            class="k">EXISTS</span><span class="w"> </span><span
+                                            class="n">moduli_db</span><span class="p">.</span><span class="n">moduli_view</span><span
+                                            class="w"> </span><span class="k">AS</span>
+<span class="k">SELECT</span>
+<span class="w">    </span><span class="n">m</span><span class="p">.</span><span class="k">timestamp</span><span
+                                            class="p">,</span>
+<span class="w">    </span><span class="k">c</span><span class="p">.</span><span class="k">type</span><span
+                                            class="p">,</span>
+<span class="w">    </span><span class="k">c</span><span class="p">.</span><span class="n">tests</span><span
+                                            class="p">,</span>
+<span class="w">    </span><span class="k">c</span><span class="p">.</span><span class="n">trials</span><span class="p">,</span>
+<span class="w">    </span><span class="n">m</span><span class="p">.</span><span class="k">size</span><span
+                                            class="p">,</span>
+<span class="w">    </span><span class="k">c</span><span class="p">.</span><span class="n">generator</span><span
+                                            class="p">,</span>
+<span class="w">    </span><span class="n">m</span><span class="p">.</span><span class="n">modulus</span>
+<span class="k">FROM</span>
+<span class="w">    </span><span class="n">moduli_db</span><span class="p">.</span><span class="n">moduli</span><span
+                                            class="w"> </span><span class="n">m</span>
+<span class="w">        </span><span class="k">JOIN</span>
+<span class="w">    </span><span class="n">moduli_db</span><span class="p">.</span><span
+                                            class="n">mod_fl_consts</span><span class="w"> </span><span
+                                            class="k">c</span><span class="w"> </span><span class="k">ON</span><span
+                                            class="w"> </span><span class="n">m</span><span class="p">.</span><span
+                                            class="n">config_id</span><span class="w"> </span><span
+                                            class="o">=</span><span class="w"> </span><span class="k">c</span><span
+                                            class="p">.</span><span class="n">config_id</span><span class="p">;</span>
+
+<span class="c1">-- Indexes for commonly queried fields</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span
+                                            class="n">idx_size</span><span class="w"> </span><span
+                                            class="k">ON</span><span class="w"> </span><span
+                                            class="n">moduli_db</span><span class="p">.</span><span
+                                            class="n">moduli</span><span class="p">(</span><span
+                                            class="k">size</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span
+                                            class="n">idx_timestamp</span><span class="w"> </span><span
+                                            class="k">ON</span><span class="w"> </span><span
+                                            class="n">moduli_db</span><span class="p">.</span><span
+                                            class="n">moduli</span><span class="p">(</span><span
+                                            class="k">timestamp</span><span class="p">);</span>
+
+<span class="c1">-- Insert configuration</span>
+<span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">moduli_db</span><span
+                                            class="p">.</span><span class="n">mod_fl_consts</span><span
+                                            class="w"> </span><span class="p">(</span><span
+                                            class="n">config_id</span><span class="p">,</span><span
+                                            class="w"> </span><span class="k">type</span><span class="p">,</span><span
+                                            class="w"> </span><span class="n">tests</span><span class="p">,</span><span
+                                            class="w"> </span><span class="n">trials</span><span class="p">,</span><span
+                                            class="w"> </span><span class="n">generator</span><span
+                                            class="p">,</span><span class="w"> </span><span class="n">description</span><span
+                                            class="p">)</span>
+<span class="k">VALUES</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span
+                                            class="p">,</span><span class="w"> </span><span
+                                            class="s1">&#39;2&#39;</span><span class="p">,</span><span
+                                            class="w"> </span><span class="mi">6</span><span class="p">,</span><span
+                                            class="w"> </span><span class="mi">100</span><span class="p">,</span><span
+                                            class="w"> </span><span class="mi">2</span><span class="p">,</span><span
+                                            class="w"> </span><span class="s1">&#39;Becker Williams SSH moduli properties&#39;</span><span
+                                            class="p">);</span>
+
+<span class="c1">-- Insert moduli using the configuration</span>
+<span class="o">#</span><span class="w"> </span><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span
+                                            class="w"> </span><span class="n">moduli_db</span><span
+                                            class="p">.</span><span class="n">moduli</span><span class="w"> </span><span
+                                            class="p">(</span><span class="k">timestamp</span><span
+                                            class="p">,</span><span class="w"> </span><span
+                                            class="n">config_id</span><span class="p">,</span><span
+                                            class="w"> </span><span class="k">size</span><span class="p">,</span><span
+                                            class="w"> </span><span class="n">modulus</span><span class="p">)</span>
+<span class="o">#</span><span class="w"> </span><span class="k">VALUES</span><span class="w"> </span><span
+                                            class="p">(</span><span class="k">TIMESTAMP</span><span
+                                            class="p">,</span><span class="w"> </span><span class="mi">1</span><span
+                                            class="p">,</span><span class="w"> </span><span
+                                            class="n">KEYSIZE</span><span class="p">,</span><span
+                                            class="w"> </span><span class="n">MODULUS</span><span class="p">)</span>
+</pre>
+                                </div>
+                            </div>
+                        </section>
+
+
+                    </div>
+                </div>
+                <footer>
+                    <div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+                        <a href="index.html" class="btn btn-neutral float-left"
+                           title="ssh2-moduli-generator (moduli_generator)" accesskey="p" rel="prev"><span
+                                class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+                        <a href="CONFIG.html" class="btn btn-neutral float-right" title="module config" accesskey="n"
+                           rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+                    </div>
+
+                    <hr/>
+
+                    <div role="contentinfo">
+                        <p>&#169; Copyright 2024,2025 Ronald Williams General Partner, Becker Williams General
+                            Partnership.</p>
+                    </div>
+
+                    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+                    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+                    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+                </footer>
+            </div>
+        </div>
+    </section>
+</div>
+<script>
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+</script>
+
+</body>
+</html>

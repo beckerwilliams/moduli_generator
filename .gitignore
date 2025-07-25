@@ -1,10 +1,12 @@
+MG_TEST*/
 stash/
 dist/
 _build/
 _static/
 _template/
 _templates/
-*.cnf
+privileged_mariadb.cnf
+moduli_generator.cnf
 __pycache__/
 *.py[cod]
 *$py.class

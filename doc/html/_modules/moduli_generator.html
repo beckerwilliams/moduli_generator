@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>moduli_generator &mdash; Moduli Generator documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3"/>
+    <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7"/>
+
+
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html"/>
+    <link rel="search" title="Search" href="../search.html"/>
+</head>
+
+<body class="wy-body-for-nav">
+<div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+        <div class="wy-side-scroll">
+            <div class="wy-side-nav-search">
+
+
+                <a href="../index.html" class="icon icon-home">
+                    Moduli Generator
+                </a>
+                <div role="search">
+                    <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+                        <input type="text" name="q" placeholder="Search docs" aria-label="Search docs"/>
+                        <input type="hidden" name="check_keywords" value="yes"/>
+                        <input type="hidden" name="area" value="default"/>
+                    </form>
+                </div>
+            </div>
+            <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+                <p class="caption" role="heading"><span class="caption-text">Documentation:</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../EXAMPLE_INSTALL_SESSION.html">Boostrap
+                        Dev Installer</a></li>
+                    <li class="toctree-l1"><a class="reference internal"
+                                              href="../EXAMPLE_INSTALL_SESSION.html#requirements">Requirements</a></li>
+                    <li class="toctree-l1"><a class="reference internal"
+                                              href="../EXAMPLE_INSTALL_SESSION.html#configure">Configure</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../MARIADB.html">MariaDB</a></li>
+                </ul>
+                <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../CONFIG.html">module config</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../DB.html">module db</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../MODULI_GENERATOR.html">module
+                        moduli_generator</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../TEST.html">module test</a></li>
+                </ul>
+                <p class="caption" role="heading"><span class="caption-text">Contributing:</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal"
+                                              href="../.github/ISSUE_TEMPLATE/bug_report.html">bug_report template</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal"
+                                              href="../.github/ISSUE_TEMPLATE/feature_request.html">Feature Request
+                        Template</a></li>
+                </ul>
+                <p class="caption" role="heading"><span class="caption-text">Legal</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../COPYRIGHT.html">Copyright</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../LICENSE.html">MIT License</a></li>
+                </ul>
+                <p class="caption" role="heading"><span class="caption-text">Leftovers</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../DATABASE_INTEGRATION.html">Database
+                        Integration</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../MARIADB.html">MariaDB</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../CHANGELOG_GENERATOR.html">module
+                        changelog_generator</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../README.html">SSH2 Moduli Generator</a>
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+        <nav class="wy-nav-top" aria-label="Mobile navigation menu">
+            <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+            <a href="../index.html">Moduli Generator</a>
+        </nav>
+
+        <div class="wy-nav-content">
+            <div class="rst-content">
+                <div role="navigation" aria-label="Page navigation">
+                    <ul class="wy-breadcrumbs">
+                        <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+                        <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+                        <li class="breadcrumb-item active">moduli_generator</li>
+                        <li class="wy-breadcrumbs-aside">
+                        </li>
+                    </ul>
+                    <hr/>
+                </div>
+                <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+                    <div itemprop="articleBody">
+
+                        <h1>Source code for moduli_generator</h1>
+                        <div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">concurrent.futures</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">json</span><span class="w"> </span><span
+                                class="kn">import</span> <span class="n">dump</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span
+                                class="kn">import</span> <span class="n">PosixPath</span> <span
+                                class="k">as</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span
+                                class="kn">import</span> <span class="p">(</span><span class="n">Any</span><span
+                                class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span
+                                class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">mariadb</span><span class="w"> </span><span
+                                class="kn">import</span> <span class="p">(</span><span class="n">Error</span><span
+                                class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">config</span><span class="w"> </span><span
+                                class="kn">import</span> <span class="p">(</span><span
+                                class="n">ISO_UTC_TIMESTAMP</span><span class="p">,</span> <span class="n">default_config</span><span
+                                class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">db</span><span class="w"> </span><span class="kn">import</span> <span
+                                class="n">MariaDBConnector</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">moduli_generator.logger_writer</span><span
+                                class="w"> </span><span class="kn">import</span> <span class="n">LoggerWriter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">moduli_generator.validators</span><span
+                                class="w"> </span><span class="kn">import</span> <span class="p">(</span><span
+                                class="n">validate_subprocess_args</span><span class="p">)</span>
+
+<span class="c1"># Constants</span>
+<span class="n">MODULI_FIELD_COUNT</span> <span class="o">=</span> <span class="mi">7</span>  <span class="c1"># Expected number of fields in moduli file format</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ModuliGenerator&#39;</span><span
+                                class="p">]</span>
+
+
+<div class="viewcode-block" id="ModuliGenerator">
+<a class="viewcode-back" href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModuliGenerator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handles the generation, screening, and management of cryptographic modulus files</span>
+<span class="sd">    used for secure communications. This class provides methods for generating</span>
+<span class="sd">    moduli candidates, screening them for validity, and organizing them into</span>
+<span class="sd">    structured formats.</span>
+
+<span class="sd">    This utility is intended for cryptographic security operations, where moduli</span>
+<span class="sd">    are required for operations like key exchange. It uses external tools like</span>
+<span class="sd">    `ssh-keygen` for candidate generation and screening processes.</span>
+
+<span class="sd">    :ivar config: The configuration object contains paths and settings such as</span>
+<span class="sd">        directory paths and security-related configurations.</span>
+<span class="sd">    :type config: Configuration</span>
+<span class="sd">    :ivar version: The version of the moduli generator settings.</span>
+<span class="sd">    :type version: str</span>
+<span class="sd">    :ivar logger: The logger used for logging information, warnings, and errors</span>
+<span class="sd">        during execution.</span>
+<span class="sd">    :type logger: Logger</span>
+<span class="sd">    :ivar db: Lazily instantiated attribute for database storage of moduli,</span>
+<span class="sd">        created as needed.</span>
+<span class="sd">    :type db: Optional[Any]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span
+        class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="o">=</span><span
+        class="n">default_config</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the class with a configuration object. This configuration includes</span>
+<span class="sd">        various paths and settings necessary for operation, such as directories for</span>
+<span class="sd">        modules, log files, and the MariaDB configuration. Also sets up a logger</span>
+<span class="sd">        specifically configured for the application and logs the key paths in use.</span>
+
+<span class="sd">        The class maintains an internal placeholder for the database instance, which</span>
+<span class="sd">        is not initialized until required.</span>
+
+<span class="sd">        :param conf: Configuration object to initialize the instance. It contains</span>
+<span class="sd">                     paths and settings used for logging, database configurations,</span>
+<span class="sd">                     and other operational needs.</span>
+<span class="sd">        :type conf: Object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span
+        class="n">conf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span
+        class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">version</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span
+        class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span
+        class="n">get_logger</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span
+        class="n">name</span> <span class="o">=</span> <span class="vm">__name__</span>
+
+        <span class="c1"># Log paths used</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span
+        class="p">:</span>
+            <span class="k">for</span> <span class="n">path_name</span><span class="p">,</span> <span
+        class="n">path_obj</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="p">(</span><span class="s1">&#39;Base directory&#39;</span><span class="p">,</span> <span
+        class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span
+        class="n">moduli_dir</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;Candidates directory&#39;</span><span
+        class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span
+        class="o">.</span><span class="n">candidates_dir</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;Moduli directory&#39;</span><span class="p">,</span> <span
+        class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span
+        class="n">moduli_dir</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;Log directory&#39;</span><span class="p">,</span> <span
+        class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span
+        class="n">log_dir</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;MariaDB config&#39;</span><span class="p">,</span> <span
+        class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span
+        class="n">mariadb_cnf</span><span class="p">)</span>
+            <span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span
+        class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Using </span><span
+        class="si">{</span><span class="n">path_name</span><span class="si">}</span><span class="s1">: </span><span
+        class="si">{</span><span class="n">path_obj</span><span class="si">}</span><span class="s1">&#39;</span><span
+        class="p">)</span>
+
+        <span class="c1"># Store config for lazy DB initialization instead of creating a connection here</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span class="o">=</span> <span
+        class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">db</span><span class="p">(</span><span
+        class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Lazy initialization of the database connection property.</span>
+
+<span class="sd">        This property ensures that the database connection is initialized only once,</span>
+<span class="sd">        upon first access, and then reused for subsequent operations.</span>
+
+<span class="sd">        :return: Initialized database connection object.</span>
+<span class="sd">        :rtype: MariaDBConnector</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span
+        class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span
+        class="o">=</span> <span class="n">MariaDBConnector</span><span class="p">(</span><span
+        class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__version__</span><span class="p">(</span><span
+        class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Represents the version property of a class that retrieves</span>
+<span class="sd">        the version information of the instance.</span>
+
+<span class="sd">        This property is read-only and provides access to the internal</span>
+<span class="sd">        `version` attribute of the class instance.</span>
+
+<span class="sd">        :return: Current version of the instance.</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span>
+
+<div class="viewcode-block" id="ModuliGenerator._run_subprocess_with_logging">
+<a class="viewcode-back"
+   href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._run_subprocess_with_logging">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_subprocess_with_logging</span><span
+        class="p">(</span><span class="n">command</span><span class="p">,</span>
+                                     <span class="n">logger</span><span class="p">,</span>
+                                     <span class="n">info_level</span><span class="o">=</span><span
+        class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+                                     <span class="n">debug_level</span><span class="o">=</span><span
+        class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span>
+                                     <span class="p">)</span> <span class="o">-&gt;</span> <span
+        class="n">subprocess</span><span class="o">.</span><span class="n">CompletedProcess</span><span
+        class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run a subprocess command and capture output for logging.</span>
+
+<span class="sd">        This method uses subprocess.PIPE to capture stdout and stderr,</span>
+<span class="sd">        then logs the captured output using the provided logger.</span>
+
+<span class="sd">        :param command: List of command arguments to execute</span>
+<span class="sd">        :type command: List[str]</span>
+<span class="sd">        :param logger: Logger instance for logging output</span>
+<span class="sd">        :type logger: logging.Logger</span>
+<span class="sd">        :param info_level: Log level for stdout messages</span>
+<span class="sd">        :type info_level: int</span>
+<span class="sd">        :param debug_level: Log level for stderr messages</span>
+<span class="sd">        :type debug_level: int</span>
+<span class="sd">        :return: CompletedProcess instance</span>
+<span class="sd">        :rtype: subprocess.CompletedProcess</span>
+<span class="sd">        :raises CalledProcessError: If the subprocess fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span
+        class="n">run</span><span class="p">(</span>
+            <span class="n">command</span><span class="p">,</span>
+            <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span
+        class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">check</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Log stdout if present</span>
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span
+        class="n">stdout</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span
+        class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span
+        class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span
+        class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span
+        class="p">):</span>
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span
+        class="n">strip</span><span class="p">():</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span
+        class="p">(</span><span class="n">info_level</span><span class="p">,</span> <span class="n">line</span><span
+        class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+        <span class="c1"># Log stderr if present</span>
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span
+        class="n">stderr</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span
+        class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span
+        class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span
+        class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span
+        class="p">):</span>
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span
+        class="n">strip</span><span class="p">():</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span
+        class="p">(</span><span class="n">debug_level</span><span class="p">,</span> <span class="n">line</span><span
+        class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="ModuliGenerator._generate_candidates_static">
+<a class="viewcode-back"
+   href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._generate_candidates_static">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_candidates_static</span><span
+        class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">key_length</span><span
+        class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span
+        class="n">Path</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a moduli candidate file using the SSH key generation utility.</span>
+
+<span class="sd">        This method runs the `ssh-keygen` command-line tool to generate moduli candidates for</span>
+<span class="sd">        Diffie-Hellman group exchange, leveraging subprocess handling for system command execution.</span>
+<span class="sd">        The output and errors are captured using subprocess.PIPE and then logged appropriately.</span>
+<span class="sd">        The generated file is returned as a `Path` object pointing to its location.</span>
+
+<span class="sd">        :param config: The configuration object contains the necessary parameters for the process,</span>
+<span class="sd">                       including paths and logging setup.</span>
+<span class="sd">        :type config: Any</span>
+<span class="sd">        :param key_length: The desired key length in bits for the moduli candidate generation.</span>
+<span class="sd">        :type key_length: int</span>
+<span class="sd">        :return: Path to the generated moduli candidate file.</span>
+<span class="sd">        :rtype: Path</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">candidates_file</span> <span class="o">=</span> <span class="n">config</span><span
+        class="o">.</span><span class="n">candidates_dir</span> <span class="o">/</span> <span class="sa">f</span><span
+        class="s1">&#39;candidates_</span><span class="si">{</span><span class="n">key_length</span><span
+        class="si">}</span><span class="s1">_</span><span class="si">{</span><span
+        class="n">ISO_UTC_TIMESTAMP</span><span class="p">(</span><span class="n">compress</span><span
+        class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">config</span><span
+        class="o">.</span><span class="n">get_logger</span><span class="p">()</span>
+
+        <span class="c1"># nice_value and key_length(s) CAN Be User provided Variables. We need to make sure they&#39;re safe.</span>
+        <span class="n">safe_key_length</span><span class="p">,</span> <span class="n">safe_nice_value</span> <span
+        class="o">=</span> <span class="n">validate_subprocess_args</span><span class="p">(</span><span class="n">key_length</span><span
+        class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">nice_value</span><span
+        class="p">)</span>
+
+        <span class="c1"># try:</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;nice&#39;</span><span class="p">,</span> <span class="s1">&#39;-n&#39;</span><span
+        class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span
+        class="n">safe_nice_value</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ssh-keygen&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-M&#39;</span><span class="p">,</span> <span class="s1">&#39;generate&#39;</span><span
+        class="p">,</span>
+            <span class="s1">&#39;-O&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;bits=</span><span
+        class="si">{</span><span class="n">safe_key_length</span><span class="si">}</span><span
+        class="s1">&#39;</span><span class="p">,</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">candidates_file</span><span
+        class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ModuliGenerator</span><span class="o">.</span><span
+        class="n">_run_subprocess_with_logging</span><span class="p">(</span><span class="n">command</span><span
+        class="p">,</span> <span class="n">logger</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span
+        class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span
+        class="p">(</span><span class="sa">f</span><span class="s1">&#39;ssh-keygen generate failed for </span><span
+        class="si">{</span><span class="n">key_length</span><span class="si">}</span><span
+        class="s1"> bits: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span
+        class="s1">&#39;</span><span class="p">)</span>
+            <span class="c1"># Log captured stderr if available</span>
+            <span class="k">if</span> <span class="n">err</span><span class="o">.</span><span
+        class="n">stderr</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span
+        class="p">(</span><span class="sa">f</span><span class="s1">&#39;ssh-keygen stderr: </span><span
+        class="si">{</span><span class="n">err</span><span class="o">.</span><span class="n">stderr</span><span
+        class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">err</span>
+
+        <span class="k">return</span> <span class="n">candidates_file</span></div>
+
+
+<div class="viewcode-block" id="ModuliGenerator._screen_candidates_static">
+<a class="viewcode-back"
+   href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._screen_candidates_static">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_screen_candidates_static</span><span
+        class="p">(</span><span class="n">config</span><span class="p">,</span> <span
+        class="n">candidates_file</span><span class="p">:</span> <span class="n">Path</span><span
+        class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Screen candidate moduli files using the provided configuration and the `ssh-keygen` tool.</span>
+<span class="sd">        This method takes a configuration object and a path to a candidate moduli file and processes</span>
+<span class="sd">        the file to generate a screened moduli file. The `ssh-keygen` tool is used with the `-M screen`</span>
+<span class="sd">        option to evaluate and filter candidate moduli using various configuration parameters. Output</span>
+<span class="sd">        is captured using subprocess.PIPE and logged appropriately.</span>
+
+<span class="sd">        If the operation is successful, the processed moduli file is returned. The candidate file is</span>
+<span class="sd">        removed from the filesystem after processing. In case of errors during execution, log and re-raises</span>
+<span class="sd">        exceptions.</span>
+
+<span class="sd">        :param config: Configuration object providing required details for processing such as moduli</span>
+<span class="sd">                       directory, logger, generator type, candidates directory, and nice value.</span>
+<span class="sd">        :type config: Any</span>
+<span class="sd">        :param candidates_file: Path to the candidate moduli file to be screened.</span>
+<span class="sd">        :type candidates_file: Path</span>
+<span class="sd">        :return: Path to the generated screened moduli file.</span>
+<span class="sd">        :rtype: Path</span>
+<span class="sd">        :raises CalledProcessError: If the `ssh-keygen` tool fails during execution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">screened_file</span> <span class="o">=</span> <span class="n">config</span><span
+        class="o">.</span><span class="n">moduli_dir</span> <span class="o">/</span> <span class="sa">f</span><span
+        class="s1">&#39;</span><span class="si">{</span><span class="n">candidates_file</span><span
+        class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span
+        class="p">(</span><span class="s1">&#39;candidates&#39;</span><span class="p">,</span><span
+        class="w"> </span><span class="s1">&#39;moduli&#39;</span><span class="p">)</span><span class="si">}</span><span
+        class="s1">&#39;</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">config</span><span
+        class="o">.</span><span class="n">get_logger</span><span class="p">()</span>
+
+        <span class="c1"># We only need to validate a nice value, Using valid key_length(int(3072)) to pass argument validator</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">safe_nice_value</span> <span class="o">=</span> <span
+        class="n">validate_subprocess_args</span><span class="p">(</span><span class="nb">int</span><span
+        class="p">(</span><span class="mi">3072</span><span class="p">),</span> <span class="n">config</span><span
+        class="o">.</span><span class="n">nice_value</span><span class="p">)</span>
+
+        <span class="c1"># try:</span>
+        <span class="n">checkpoint_file</span> <span class="o">=</span> <span class="n">config</span><span
+        class="o">.</span><span class="n">candidates_dir</span> <span class="o">/</span> <span class="sa">f</span><span
+        class="s2">&quot;.</span><span class="si">{</span><span class="n">candidates_file</span><span class="o">.</span><span
+        class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;nice&#39;</span><span class="p">,</span> <span class="s1">&#39;-n&#39;</span><span
+        class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span
+        class="n">safe_nice_value</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ssh-keygen&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-M&#39;</span><span class="p">,</span> <span class="s1">&#39;screen&#39;</span><span
+        class="p">,</span>
+            <span class="s1">&#39;-O&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;generator=</span><span
+        class="si">{</span><span class="n">config</span><span class="o">.</span><span
+        class="n">generator_type</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-O&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;checkpoint=</span><span
+        class="si">{</span><span class="nb">str</span><span class="p">(</span><span
+        class="n">checkpoint_file</span><span class="p">)</span><span class="si">}</span><span
+        class="s1">&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-f&#39;</span><span class="p">,</span> <span class="nb">str</span><span
+        class="p">(</span><span class="n">candidates_file</span><span class="p">),</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">screened_file</span><span
+        class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Use subprocess.PIPE to capture and log output</span>
+            <span class="n">ModuliGenerator</span><span class="o">.</span><span
+        class="n">_run_subprocess_with_logging</span><span class="p">(</span><span class="n">command</span><span
+        class="p">,</span> <span class="n">logger</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span
+        class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span
+        class="p">(</span><span class="sa">f</span><span class="s1">&#39;ssh-keygen screen failed for </span><span
+        class="si">{</span><span class="n">candidates_file</span><span class="si">}</span><span
+        class="s1">: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span
+        class="s1">&#39;</span><span class="p">)</span>
+            <span class="c1"># Log captured stderr if available</span>
+            <span class="k">if</span> <span class="n">err</span><span class="o">.</span><span
+        class="n">stderr</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span
+        class="p">(</span><span class="sa">f</span><span class="s1">&#39;ssh-keygen stderr: </span><span
+        class="si">{</span><span class="n">err</span><span class="o">.</span><span class="n">stderr</span><span
+        class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">err</span>
+
+        <span class="c1"># Cleanup used Moduli Candidates</span>
+        <span class="n">candidates_file</span><span class="o">.</span><span class="n">unlink</span><span
+        class="p">()</span>
+
+        <span class="k">return</span> <span class="n">screened_file</span></div>
+
+
+<div class="viewcode-block" id="ModuliGenerator._generate_candidates">
+<a class="viewcode-back" href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._generate_candidates">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_candidates</span><span
+        class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key_length</span><span
+        class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span
+        class="n">Path</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates candidate cryptographic keys of a specified length.</span>
+
+<span class="sd">        This method internally uses a static method to generate candidate keys</span>
+<span class="sd">        based on the provided key length and configuration. Logs the result of</span>
+<span class="sd">        the operation and handles subprocess errors.</span>
+
+<span class="sd">        :param key_length: Length of the key in bits to be generated.</span>
+<span class="sd">        :type key_length: int</span>
+<span class="sd">        :return: Path to the generated candidate keys.</span>
+<span class="sd">        :rtype: Path</span>
+<span class="sd">        :raises subprocess.CalledProcessError: If the candidate generation fails.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span
+        class="o">.</span><span class="n">_generate_candidates_static</span><span class="p">(</span><span class="bp">self</span><span
+        class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">key_length</span><span
+        class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span
+        class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Generated candidate file for </span><span
+        class="si">{</span><span class="n">key_length</span><span class="si">}</span><span
+        class="s1"> bits&#39;</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span
+        class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span
+        class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Candidate generation failed for </span><span
+        class="si">{</span><span class="n">key_length</span><span class="si">}</span><span class="s1">: </span><span
+        class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s1">&#39;</span><span
+        class="p">)</span>
+            <span class="k">raise</span> <span class="n">err</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="ModuliGenerator._screen_candidates">
+<a class="viewcode-back" href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._screen_candidates">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_screen_candidates</span><span class="p">(</span><span
+        class="bp">self</span><span class="p">,</span> <span class="n">candidates_file</span><span
+        class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span
+        class="n">Path</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Screens the provided candidates file by applying a static screening process defined in the configuration.</span>
+
+<span class="sd">        The method attempts to process the given candidates file using a static screening function.</span>
+<span class="sd">        If the process executes successfully, the screened result is logged and returned.</span>
+<span class="sd">        In case of failure, the error is logged and re-raised for further handling.</span>
+
+<span class="sd">        :param candidates_file: Path to the file containing the moduli candidates to be screened.</span>
+<span class="sd">        :type candidates_file: Path</span>
+<span class="sd">        :return: Path to the screened candidates file.</span>
+<span class="sd">        :rtype: Path</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span
+        class="o">.</span><span class="n">_screen_candidates_static</span><span class="p">(</span><span
+        class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span
+        class="n">candidates_file</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span
+        class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Screened candidate files: </span><span
+        class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s1">&#39;</span><span
+        class="p">)</span>
+
+        <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span
+        class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span
+        class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Screening failed for </span><span
+        class="si">{</span><span class="n">candidates_file</span><span class="si">}</span><span
+        class="s1">: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span
+        class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">err</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="ModuliGenerator._parse_moduli_files">
+<a class="viewcode-back" href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._parse_moduli_files">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_moduli_files</span><span
+        class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span
+        class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span
+        class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span
+        class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parses the moduli files to extract specific installers entries and formats them</span>
+<span class="sd">        into a dictionary structure for further processing. This method iterates</span>
+<span class="sd">        over a set of screened files, reads their contents line by line, and</span>
+<span class="sd">        extracts information about timestamp, key size, and modulus if the line</span>
+<span class="sd">        meets specific criteria.</span>
+
+<span class="sd">        :return: A dictionary with parsed moduli installers under the key</span>
+<span class="sd">                 &#39;screened_moduli&#39;. Each entry is a dictionary containing</span>
+<span class="sd">                 &#39;timestamp&#39;, &#39;key-size&#39;, and &#39;modulus&#39;.</span>
+<span class="sd">        :rtype: Dict[str, List[Dict[str, Any]]]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">screened_files</span> <span class="o">=</span> <span class="bp">self</span><span
+        class="o">.</span><span class="n">_list_moduli_files</span><span class="p">()</span>
+        <span class="n">screened_moduli</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span
+        class="n">screened_files</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">file</span><span class="o">.</span><span
+        class="n">open</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">)</span> <span
+        class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span
+        class="n">f</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span
+        class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">)</span> <span class="ow">or</span> <span
+        class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span
+        class="p">():</span>
+                            <span class="k">continue</span>
+
+                        <span class="n">parts</span> <span class="o">=</span> <span class="n">line</span><span
+        class="o">.</span><span class="n">split</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span
+        class="p">)</span> <span class="o">==</span> <span class="n">MODULI_FIELD_COUNT</span><span class="p">:</span>
+                            <span class="n">moduli_entry</span> <span class="o">=</span> <span class="p">{</span>
+                                <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="n">parts</span><span
+        class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c1"># TIMESTAMP</span>
+                                <span class="c1"># &#39;type&#39;: parts[1],         # Constant, Stored in moduli_db.mod_fl_consts</span>
+                                <span class="c1"># &#39;tests&#39;: parts[2],        # Constant, Stored in moduli_db.mod_fl_consts</span>
+                                <span class="c1"># &#39;trials&#39;: parts[3],       # Constant, Stored in moduli_db.mod_fl_consts</span>
+                                <span class="s1">&#39;key-size&#39;</span><span class="p">:</span> <span
+        class="n">parts</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>  <span
+        class="c1"># KEY_LENGTH</span>
+                                <span class="c1"># &#39;generator&#39;: parts[5], # Constant, Stored in moduli_db.mod_fl_consts</span>
+                                <span class="s1">&#39;modulus&#39;</span><span class="p">:</span> <span
+        class="n">parts</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>  <span
+        class="c1"># MODULUS</span>
+                            <span class="p">}</span>
+
+                            <span class="n">screened_moduli</span><span class="o">.</span><span
+        class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;screened_moduli&#39;</span><span
+        class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span
+        class="p">(</span><span class="n">moduli_entry</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span
+        class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span
+        class="s1">&#39;Moduli file not found: </span><span class="si">{</span><span class="n">file</span><span
+        class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">screened_moduli</span></div>
+
+
+<div class="viewcode-block" id="ModuliGenerator._list_moduli_files">
+<a class="viewcode-back" href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._list_moduli_files">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_list_moduli_files</span><span class="p">(</span><span
+        class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span
+        class="p">[</span><span class="n">Path</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Lists all moduli files based on the configured moduli directory and file</span>
+<span class="sd">        pattern.</span>
+
+<span class="sd">        This function retrieves and returns a list of all files in the</span>
+<span class="sd">        configured moduli directory that match the specified file pattern.</span>
+
+<span class="sd">        :return: List of matching moduli files</span>
+<span class="sd">        :rtype: list[Path]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span
+        class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span
+        class="n">moduli_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span
+        class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span
+        class="n">moduli_file_pattern</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="ModuliGenerator.generate_moduli">
+<a class="viewcode-back"
+   href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.generate_moduli">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_moduli</span><span
+        class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span
+        class="s1">&#39;ModuliGenerator&#39;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates and screens Diffie-Hellman moduli files for specified key lengths.</span>
+
+<span class="sd">        The method first generates candidate files for Diffie-Hellman moduli in parallel</span>
+<span class="sd">        using a process pool. Next, it screens these candidates to produce final moduli</span>
+<span class="sd">        files. Generated moduli are organized by key lengths. The candidate and moduli</span>
+<span class="sd">        generations are logged for debugging purposes.</span>
+
+<span class="sd">        :return: self</span>
+<span class="sd">        :rtype: ModuliGenerator</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">generated_moduli</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">with</span> <span class="n">concurrent</span><span class="o">.</span><span
+        class="n">futures</span><span class="o">.</span><span class="n">ProcessPoolExecutor</span><span
+        class="p">()</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+            <span class="c1"># First, generate candidates</span>
+            <span class="n">candidate_futures</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">length</span> <span class="ow">in</span> <span
+        class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span
+        class="n">key_lengths</span><span class="p">:</span>
+                <span class="n">future</span> <span class="o">=</span> <span class="n">executor</span><span
+        class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="bp">self</span><span
+        class="o">.</span><span class="n">_generate_candidates_static</span><span class="p">,</span> <span class="bp">self</span><span
+        class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">length</span><span
+        class="p">)</span>
+                <span class="n">candidate_futures</span><span class="o">.</span><span class="n">append</span><span
+        class="p">((</span><span class="n">future</span><span class="p">,</span> <span class="n">length</span><span
+        class="p">))</span>
+
+            <span class="c1"># Process completed futures and organized candidates by key length</span>
+            <span class="n">candidates_by_length</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">future</span><span class="p">,</span> <span
+        class="n">length</span> <span class="ow">in</span> <span class="n">candidate_futures</span><span
+        class="p">:</span>
+                <span class="n">candidate_file</span> <span class="o">=</span> <span class="n">future</span><span
+        class="o">.</span><span class="n">result</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">length</span> <span class="ow">not</span> <span
+        class="ow">in</span> <span class="n">candidates_by_length</span><span class="p">:</span>
+                    <span class="n">candidates_by_length</span><span class="p">[</span><span
+        class="n">length</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">candidates_by_length</span><span class="p">[</span><span class="n">length</span><span
+        class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">candidate_file</span><span
+        class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span
+        class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Generated </span><span class="si">{</span><span
+        class="nb">len</span><span class="p">(</span><span class="n">candidate_futures</span><span
+        class="p">)</span><span class="si">}</span><span class="s1"> candidate files for key-lengths: </span><span
+        class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span
+        class="o">.</span><span class="n">key_lengths</span><span class="si">}</span><span class="s1">&#39;</span><span
+        class="p">)</span>
+
+            <span class="c1"># Then screen candidates</span>
+            <span class="n">screening_futures</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">length</span><span class="p">,</span> <span class="n">candidate_files</span> <span
+        class="ow">in</span> <span class="n">candidates_by_length</span><span class="o">.</span><span
+        class="n">items</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">candidate_file</span> <span class="ow">in</span> <span
+        class="n">candidate_files</span><span class="p">:</span>
+                    <span class="n">future</span> <span class="o">=</span> <span class="n">executor</span><span
+        class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="bp">self</span><span
+        class="o">.</span><span class="n">_screen_candidates_static</span><span class="p">,</span> <span
+        class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span
+        class="n">candidate_file</span><span class="p">)</span>
+                    <span class="n">screening_futures</span><span class="o">.</span><span class="n">append</span><span
+        class="p">((</span><span class="n">future</span><span class="p">,</span> <span class="n">length</span><span
+        class="p">))</span>
+            <span class="c1"># Process completed screening futures</span>
+            <span class="k">for</span> <span class="n">future</span><span class="p">,</span> <span
+        class="n">length</span> <span class="ow">in</span> <span class="n">screening_futures</span><span
+        class="p">:</span>
+                <span class="n">moduli_file</span> <span class="o">=</span> <span class="n">future</span><span
+        class="o">.</span><span class="n">result</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">length</span> <span class="ow">not</span> <span
+        class="ow">in</span> <span class="n">generated_moduli</span><span class="p">:</span>
+                    <span class="n">generated_moduli</span><span class="p">[</span><span class="n">length</span><span
+        class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">generated_moduli</span><span class="p">[</span><span class="n">length</span><span
+        class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">moduli_file</span><span
+        class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span
+        class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Screened {len(screening_futures)} candidate files for key-lengths:&#39;</span> <span
+        class="o">+</span>
+                             <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span
+        class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span
+        class="n">key_lengths</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="ModuliGenerator.save_moduli">
+<a class="viewcode-back" href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.save_moduli">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_moduli</span><span class="p">(</span><span
+        class="bp">self</span><span class="p">,</span> <span class="n">moduli_file_dir</span><span
+        class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="kc">None</span><span
+        class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ModuliGenerator&#39;</span><span
+        class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Saves the processed moduli installers to a JSON file in the specified directory or a default location.</span>
+
+<span class="sd">        This method processes the moduli installers and writes the output as a JSON file. If no directory is</span>
+<span class="sd">        provided, the JSON file is saved in the default base directory specified in the configuration.</span>
+<span class="sd">        The filename includes a timestamp in ISO UTC format to ensure a unique name.</span>
+
+<span class="sd">        :param moduli_file_dir: Directory where the moduli JSON file should be saved. If not specified,</span>
+<span class="sd">                                the default base directory from the configuration is used.</span>
+<span class="sd">        :type moduli_file_dir: Path, optional</span>
+<span class="sd">        :return: self</span>
+<span class="sd">        :rtype: ModuliGenerator</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">moduli_file_dir</span><span
+        class="p">:</span>
+            <span class="n">moduli_file_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span
+        class="n">config</span><span class="o">.</span><span class="n">moduli_home</span>
+
+        <span class="n">moduli_json</span> <span class="o">=</span> <span class="n">moduli_file_dir</span> <span
+        class="o">/</span> <span class="sa">f</span><span class="s1">&#39;screened_moduli_</span><span
+        class="si">{</span><span class="n">ISO_UTC_TIMESTAMP</span><span class="p">(</span><span
+        class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="s1">.json&#39;</span>
+        <span class="k">with</span> <span class="n">moduli_json</span><span class="o">.</span><span
+        class="n">open</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span
+        class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="c1"># with open(moduli_json, &#39;w&#39;) as f:</span>
+            <span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span
+        class="n">_parse_moduli_files</span><span class="p">(),</span> <span class="n">f</span><span class="p">,</span> <span
+        class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span
+        class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Moduli schema saved to </span><span
+        class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span
+        class="o">.</span><span class="n">moduli_dir</span><span class="w"> </span><span class="o">/</span><span
+        class="w"> </span><span class="n">moduli_json</span><span class="si">}</span><span class="s1">&#39;</span><span
+        class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="ModuliGenerator.store_moduli">
+<a class="viewcode-back" href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.store_moduli">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">store_moduli</span><span class="p">(</span><span
+        class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ModuliGenerator&#39;</span><span
+        class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parse, validate, and store screened moduli into the database and manage their source</span>
+<span class="sd">        files once the operation is successful. This function ensures that the moduli records</span>
+<span class="sd">        are stored transactionally. After successful storage, the source files are deleted.</span>
+
+<span class="sd">        :return: self</span>
+<span class="sd">        :rtype: ModuliGenerator</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">screened_moduli</span> <span class="o">=</span> <span class="bp">self</span><span
+        class="o">.</span><span class="n">_parse_moduli_files</span><span class="p">()</span>
+
+        <span class="c1"># tbd - Verify Successful DB Load prior to Deletion</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span
+        class="n">export_screened_moduli</span><span class="p">(</span><span class="n">screened_moduli</span><span
+        class="p">)</span>
+
+            <span class="c1"># # DELETE source moduli files once storage is verified</span>
+            <span class="c1"># moduli_files = self._list_moduli_files()</span>
+            <span class="c1"># for file in moduli_files:</span>
+            <span class="c1">#     file.unlink()</span>
+
+        <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span
+        class="n">err</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span
+        class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error storing moduli: </span><span
+        class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s1">&#39;</span><span
+        class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span
+        class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Moduli Stored in MariaDB database: </span><span
+        class="si">{</span><span class="nb">len</span><span class="p">(</span><span
+        class="n">screened_moduli</span><span class="p">)</span><span class="si">}</span><span
+        class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="ModuliGenerator.write_moduli_file">
+<a class="viewcode-back"
+   href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.write_moduli_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">write_moduli_file</span><span
+        class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span
+        class="s1">&#39;ModuliGenerator&#39;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Writes the moduli file using the database interface.</span>
+
+<span class="sd">        This method retrieves installers necessary for the moduli file from the</span>
+<span class="sd">        database and then writes it to the appropriate location using</span>
+<span class="sd">        the database interface.</span>
+
+<span class="sd">        :return: self</span>
+<span class="sd">        :rtype: ModuliGenerator</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span
+        class="n">write_moduli_file</span><span class="p">()</span>
+
+        <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span
+        class="n">err</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span
+        class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">err</span><span
+        class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+</div>
+
+</pre>
+                        </div>
+
+                    </div>
+                </div>
+                <footer>
+
+                    <hr/>
+
+                    <div role="contentinfo">
+                        <p>&#169; Copyright 2024,2025 Ronald Williams General Partner, Becker Williams General
+                            Partnership.</p>
+                    </div>
+
+                    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+                    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+                    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+                </footer>
+            </div>
+        </div>
+    </section>
+</div>
+<script>
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+</script>
+
+</body>
+</html>

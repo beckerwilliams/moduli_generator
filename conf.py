@@ -32,7 +32,8 @@ project = 'Moduli Generator'
 exclude_patterns = [
     '.venv',
     'Thumbs.db',
-    '.DS_Store'
+    '.DS_Store',
+    'stash'
 ]
 # TBD Fix Version Path below - Need to import RESOURCES
 html_theme = 'sphinx_rtd_theme'

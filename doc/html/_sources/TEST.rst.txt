@@ -1,0 +1,81 @@
+Test Suite
+==========
+
+This section documents the test suite for the moduli_generator project.
+
+Test Configuration
+==================
+
+.. automodule:: test.conftest
+    :members:
+    :no-index:
+
+Unit Tests
+==========
+
+Configuration Tests
+-------------------
+
+.. automodule:: test.test_config_init
+    :members:
+    :no-index:
+
+.. automodule:: test.test_config_integration
+    :members:
+    :no-index:
+
+CLI Tests
+---------
+
+.. automodule:: test.test_cli_main
+    :members:
+    :no-index:
+
+.. automodule:: test.test_cli_integration
+    :members:
+    :no-index:
+
+.. automodule:: test.test_cli_argument_parsing
+    :members:
+    :no-index:
+
+Database Tests
+--------------
+
+.. automodule:: test.test_database_integration
+    :members:
+    :no-index:
+
+.. automodule:: test.test_database_config_simple
+    :members:
+    :no-index:
+
+.. automodule:: test.test_db_error_coverage
+    :members:
+    :no-index:
+
+Coverage and Integration Tests
+------------------------------
+
+.. automodule:: test.test_coverage_boost
+    :members:
+    :no-index:
+
+.. automodule:: test.test_coverage_boost_db
+    :members:
+    :no-index:
+
+Utility Tests
+-------------
+
+.. automodule:: test.test_logger_writer
+    :members:
+    :no-index:
+
+.. automodule:: test.test_parameter_validation
+    :members:
+    :no-index:
+
+.. automodule:: test.test_restart
+    :members:
+    :no-index:

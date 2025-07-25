@@ -1,15 +1,15 @@
-from changelog_generator import ChangelogGenerator
-from config import default_config
 from pathlib import PosixPath as Path
+from changelog_generator import ChangelogGenerator
 
-project_root = Path(__name__).parent.parent
+project_root = Path(__name__).parent.parent.absolute()
+
 
 def main():
     """Main entry point for the changelog generator."""
     import argparse
 
     parser = argparse.ArgumentParser(description='Generate CHANGELOG.rst from git history')
-    parser.add_argument('--output', '-o', default=f"{project_root.absolute() / 'CHANGELOG.rst'}",
+    parser.add_argument('--output', '-o', default=f"{project_root / 'CHANGELOG.rst'}",
                         help='Output file name (default: CHANGELOG.rst)')
     parser.add_argument('--max-commits', '-m', type=int, default=50,
                         help='Maximum number of commits to process (default: 50)')

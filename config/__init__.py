@@ -73,20 +73,16 @@ DEFAULT_MODULI_RECORDS_PER_KEYLENGTH: Final[int] = 20
 
 #  ref: https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl
 
-def ISO_UTC_TIMESTAMP(compress: bool = False) -> (str, datetime):
+def ISO_UTC_TIMESTAMP(compress: bool = False) -> str:
     """
-    Generate an ISO 8601 UTC timestamp.
+    Generates a UTC timestamp in ISO 8601 format. Optionally, the output can be compressed
+    to remove non-numeric characters.
 
-    This function generates a current timestamp in ISO 8601 format
-    based on UTC time. The timestamp can be returned as either a
-    compact numeric string or a fully formatted ISO string.
-
-    :param compress: A flag to indicate whether the resulting timestamp
-        should be compressed to include only numeric characters.
-    :return: Returns the generated ISO UTC timestamp as a string. If
-        `compress` is True, the returned string contains only numeric
-        characters representing the timestamp. If `compress` is False,
-        the returned string is the full ISO 8601 formatted timestamp.
+    :param compress: Specifies whether the timestamp should be compressed by removing
+        non-numeric characters.
+    :type compress: bool
+    :return: The generated UTC timestamp as a string. If `compress` is True, the
+        timestamp will only contain numeric characters.
     :rtype: str
     """
 
@@ -95,6 +91,18 @@ def ISO_UTC_TIMESTAMP(compress: bool = False) -> (str, datetime):
         return sub(r'[^0-9]', '', timestamp)
     else:
         return timestamp
+
+
+def iso_utc_time() -> datetime:
+    """
+    Generates and returns the current time in UTC format, stripped of timezone
+    information. This function uses the UTC timezone to fetch the current time
+    but removes the timezone information from the resulting datetime object.
+
+    :return: The current UTC time as a timezone-naive datetime object.
+    :rtype: datetime
+    """
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 # The Product: a Complete ssh-moduli file

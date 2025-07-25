@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>module config &mdash; Moduli Generator documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3"/>
+    <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7"/>
+
+
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html"/>
+    <link rel="search" title="Search" href="search.html"/>
+    <link rel="next" title="module db" href="DB.html"/>
+    <link rel="prev" title="Bootstrap" href="DEFAULTS.html"/>
+</head>
+
+<body class="wy-body-for-nav">
+<div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+        <div class="wy-side-scroll">
+            <div class="wy-side-nav-search">
+
+
+                <a href="index.html" class="icon icon-home">
+                    Moduli Generator
+                </a>
+                <div role="search">
+                    <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+                        <input type="text" name="q" placeholder="Search docs" aria-label="Search docs"/>
+                        <input type="hidden" name="check_keywords" value="yes"/>
+                        <input type="hidden" name="area" value="default"/>
+                    </form>
+                </div>
+            </div>
+            <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+                <p class="caption" role="heading"><span class="caption-text">Documentation:</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="EXAMPLE_INSTALL_SESSION.html">Boostrap
+                        Dev Installer</a></li>
+                    <li class="toctree-l1"><a class="reference internal"
+                                              href="EXAMPLE_INSTALL_SESSION.html#requirements">Requirements</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="EXAMPLE_INSTALL_SESSION.html#configure">Configure</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="MARIADB.html">MariaDB</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="DEFAULTS.html">Bootstrap</a></li>
+                    <li class="toctree-l1"><a class="reference internal"
+                                              href="DEFAULTS.html#moduli-generator-db-initialization">Moduli Generator
+                        DB Initialization</a></li>
+                </ul>
+                <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="current reference internal" href="#">module config</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="DB.html">module db</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="MODULI_GENERATOR.html">module
+                        moduli_generator</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="TEST.html">Test Suite Documentation</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="TEST.html#test-configuration">Test
+                        Configuration</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="TEST.html#unit-tests">Unit Tests</a></li>
+                </ul>
+                <p class="caption" role="heading"><span class="caption-text">Contributing:</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href=".github/ISSUE_TEMPLATE/bug_report.html">bug_report
+                        template</a></li>
+                    <li class="toctree-l1"><a class="reference internal"
+                                              href=".github/ISSUE_TEMPLATE/feature_request.html">Feature Request
+                        Template</a></li>
+                </ul>
+                <p class="caption" role="heading"><span class="caption-text">Legal</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="COPYRIGHT.html">Copyright</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="LICENSE.html">MIT License</a></li>
+                </ul>
+                <p class="caption" role="heading"><span class="caption-text">Leftovers</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="DATABASE_INTEGRATION.html">Database
+                        Integration</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="MARIADB.html">MariaDB</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="CHANGELOG.html">Changelog</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="CHANGELOG_GENERATOR.html">module
+                        changelog_generator</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="README.html">SSH2 Moduli Generator</a>
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+        <nav class="wy-nav-top" aria-label="Mobile navigation menu">
+            <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+            <a href="index.html">Moduli Generator</a>
+        </nav>
+
+        <div class="wy-nav-content">
+            <div class="rst-content">
+                <div role="navigation" aria-label="Page navigation">
+                    <ul class="wy-breadcrumbs">
+                        <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+                        <li class="breadcrumb-item active">module config</li>
+                        <li class="wy-breadcrumbs-aside">
+                            <a href="_sources/CONFIG.rst.txt" rel="nofollow"> View page source</a>
+                        </li>
+                    </ul>
+                    <hr/>
+                </div>
+                <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+                    <div itemprop="articleBody">
+
+                        <section id="module-config">
+                            <h1>module config<a class="headerlink" href="#module-config"
+                                                title="Link to this heading"></a></h1>
+                            <p>Configuration module for the moduli generator project.
+                                Centralizes all default configuration values.</p>
+                            <dl class="py function">
+                                <dt class="sig sig-object py">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">config.__init__.</span></span><span
+                                        class="sig-name descname"><span class="pre">ISO_UTC_TIMESTAMP</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">compress</span></span><span class="p"><span
+                                        class="pre">:</span></span><span class="w"> </span><span class="n"><span
+                                        class="pre">bool</span></span><span class="w"> </span><span class="o"><span
+                                        class="pre">=</span></span><span class="w"> </span><span
+                                        class="default_value"><span class="pre">False</span></span></em><span
+                                        class="sig-paren">)</span> <span class="sig-return"><span
+                                        class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span
+                                        class="pre">str</span></span></span><a class="reference internal"
+                                                                               href="_modules/config/__init__.html#ISO_UTC_TIMESTAMP"><span
+                                        class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                <dd><p>Generates a UTC timestamp in ISO 8601 format. Optionally, the output can be
+                                    compressed
+                                    to remove non-numeric characters.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters<span class="colon">:</span></dt>
+                                        <dd class="field-odd"><p><strong>compress</strong> (<em>bool</em>) – Specifies
+                                            whether the timestamp should be compressed by removing
+                                            non-numeric characters.</p>
+                                        </dd>
+                                        <dt class="field-even">Returns<span class="colon">:</span></dt>
+                                        <dd class="field-even"><p>The generated UTC timestamp as a string. If <cite>compress</cite>
+                                            is True, the
+                                            timestamp will only contain numeric characters.</p>
+                                        </dd>
+                                        <dt class="field-odd">Return type<span class="colon">:</span></dt>
+                                        <dd class="field-odd"><p>str</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py class">
+                                <dt class="sig sig-object py">
+                                    <em class="property"><span class="k"><span class="pre">class</span></span><span
+                                            class="w"> </span></em><span class="sig-prename descclassname"><span
+                                        class="pre">config.__init__.</span></span><span class="sig-name descname"><span
+                                        class="pre">ModuliConfig</span></span><span class="sig-paren">(</span><em
+                                        class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span
+                                        class="o"><span class="pre">=</span></span><span class="default_value"><span
+                                        class="pre">None</span></span></em><span class="sig-paren">)</span><a
+                                        class="reference internal"
+                                        href="_modules/config/__init__.html#ModuliConfig"><span
+                                        class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                <dd><p>Represents a configuration structure for moduli assembly, encompassing paths,
+                                    logs, database configurations, and default settings.</p>
+                                    <p>This class provides directory management, default file paths, and configuration
+                                        for moduli generation and related operations. It ensures the existence of
+                                        required
+                                        directories and offers methods for logging and configuration handling.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Variables<span class="colon">:</span></dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>moduli_home</strong> – The root directory for all
+                                                    moduli-related operations, derived
+                                                    from the provided <cite>base_dir</cite> parameter or environment
+                                                    variables.</p></li>
+                                                <li><p><strong>candidates_dir</strong> – The directory path designated
+                                                    for candidate files
+                                                    involved in the moduli assembly process.</p></li>
+                                                <li><p><strong>moduli_dir</strong> – The directory for storing generated
+                                                    moduli files.</p></li>
+                                                <li><p><strong>log_dir</strong> – The directory housing log files for
+                                                    the moduli assembly process.</p></li>
+                                                <li><p><strong>moduli_generator_config</strong> – Path to the default
+                                                    moduli generator
+                                                    configuration file.</p></li>
+                                                <li><p><strong>log_file</strong> – Default log file path.</p></li>
+                                                <li><p><strong>moduli_file</strong> – Default path for storing the
+                                                    primary moduli output file.</p></li>
+                                                <li><p><strong>key_lengths</strong> – Default key lengths used during
+                                                    moduli generation.</p></li>
+                                                <li><p><strong>generator_type</strong> – Type of generator used for
+                                                    moduli generation.</p></li>
+                                                <li><p><strong>nice_value</strong> – Default nice value for process
+                                                    prioritization.</p></li>
+                                                <li><p><strong>config_id</strong> – Identifier used to associate
+                                                    constants with configuration
+                                                    tables.</p></li>
+                                                <li><p><strong>mariadb_cnf</strong> – Path to the MariaDB configuration
+                                                    file used during moduli
+                                                    assembly.</p></li>
+                                                <li><p><strong>moduli_file_pattern</strong> – Filename pattern for
+                                                    generated moduli files.</p></li>
+                                                <li><p><strong>delete_records_on_moduli_write</strong> – Flag indicating
+                                                    whether records should
+                                                    be deleted upon a successful moduli file write operation.</p></li>
+                                                <li><p><strong>db_name</strong> – Default database name for MariaDB
+                                                    configurations.</p></li>
+                                                <li><p><strong>table_name</strong> – Name of the table used in the
+                                                    database for moduli record
+                                                    storage.</p></li>
+                                                <li><p><strong>view_name</strong> – Name of the database view associated
+                                                    with moduli records.</p></li>
+                                                <li><p><strong>records_per_keylength</strong> – Number of records
+                                                    associated with each
+                                                    key length in the moduli assembly process.</p></li>
+                                                <li><p><strong>version</strong> – Current version of the moduli
+                                                    configuration as derived
+                                                    from the <cite>pyproject.toml</cite>.</p></li>
+                                            </ul>
+                                        </dd>
+                                    </dl>
+                                    <dl class="py method">
+                                        <dt class="sig sig-object py">
+                                            <span class="sig-name descname"><span class="pre">ensure_directories</span></span><span
+                                                class="sig-paren">(</span><span class="sig-paren">)</span><a
+                                                class="reference internal"
+                                                href="_modules/config/__init__.html#ModuliConfig.ensure_directories"><span
+                                                class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                        <dd><p>Ensures that a set of directories (base, candidates, moduli, and log
+                                            directories) exist.
+                                            If they do not exist, they will be created. This method ensures all
+                                            necessary directories
+                                            are ready for further operations.</p>
+                                            <dl class="field-list simple">
+                                                <dt class="field-odd">Returns<span class="colon">:</span></dt>
+                                                <dd class="field-odd"><p>The current instance after ensuring directories
+                                                    exist.</p>
+                                                </dd>
+                                                <dt class="field-even">Return type<span class="colon">:</span></dt>
+                                                <dd class="field-even"><p>Self</p>
+                                                </dd>
+                                            </dl>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="py method">
+                                        <dt class="sig sig-object py">
+                                            <span class="sig-name descname"><span class="pre">get_log_file</span></span><span
+                                                class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                                class="pre">name</span></span></em><span class="sig-paren">)</span><a
+                                                class="reference internal"
+                                                href="_modules/config/__init__.html#ModuliConfig.get_log_file"><span
+                                                class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                        <dd><p>Retrieve the log file path, either by name or default log file path.</p>
+                                            <p>This method determines whether a specific log file name is provided. If a
+                                                name is given, the method constructs and returns the full path to the
+                                                named
+                                                log file within the logging directory. If no name is provided, it
+                                                returns the
+                                                path to the default log file.</p>
+                                            <dl class="field-list simple">
+                                                <dt class="field-odd">Parameters<span class="colon">:</span></dt>
+                                                <dd class="field-odd"><p><strong>name</strong>
+                                                    (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Name of the
+                                                    log file to retrieve. If None, the default log file
+                                                    path is returned.</p>
+                                                </dd>
+                                                <dt class="field-even">Returns<span class="colon">:</span></dt>
+                                                <dd class="field-even"><p>The full path to the specified log file if a
+                                                    name is provided, or
+                                                    the default log file path otherwise.</p>
+                                                </dd>
+                                                <dt class="field-odd">Return type<span class="colon">:</span></dt>
+                                                <dd class="field-odd"><p>Path</p>
+                                                </dd>
+                                            </dl>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="py method">
+                                        <dt class="sig sig-object py">
+                                            <span class="sig-name descname"><span
+                                                    class="pre">get_logger</span></span><span class="sig-paren">(</span><span
+                                                class="sig-paren">)</span><a class="reference internal"
+                                                                             href="_modules/config/__init__.html#ModuliConfig.get_logger"><span
+                                                class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                        <dd><p>Initializes and returns a logger instance configured for file-based
+                                            logging.</p>
+                                            <p>This function ensures that the required directories and configuration
+                                                files exist
+                                                before setting up the logging system. It verifies the existence of the
+                                                base logging
+                                                directory, the default log directory, and the MariaDB configuration
+                                                file. If they do not
+                                                exist, they are created as needed. Once these prerequisites are met, the
+                                                logger is
+                                                configured with a specific logging level, format, and file output.</p>
+                                            <dl class="field-list simple">
+                                                <dt class="field-odd">Raises<span class="colon">:</span></dt>
+                                                <dd class="field-odd">
+                                                    <ul class="simple">
+                                                        <li><p><strong>OSError</strong> – If there is an issue, create
+                                                            required directories or files.</p></li>
+                                                        <li><p><strong>IOError</strong> – If there is an issue, read the
+                                                            default MariaDB configuration file.</p></li>
+                                                    </ul>
+                                                </dd>
+                                                <dt class="field-even">Returns<span class="colon">:</span></dt>
+                                                <dd class="field-even"><p>Configured logger instance.</p>
+                                                </dd>
+                                                <dt class="field-odd">Return type<span class="colon">:</span></dt>
+                                                <dd class="field-odd"><p>Logging.Logger</p>
+                                                </dd>
+                                            </dl>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="py method">
+                                        <dt class="sig sig-object py">
+                                            <em class="property"><span class="k"><span
+                                                    class="pre">static</span></span><span class="w"> </span></em><span
+                                                class="sig-name descname"><span
+                                                class="pre">with_base_dir</span></span><span
+                                                class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                                class="pre">base_dir</span></span></em><span
+                                                class="sig-paren">)</span><a class="reference internal"
+                                                                             href="_modules/config/__init__.html#ModuliConfig.with_base_dir"><span
+                                                class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                        <dd><p>Creates a new instance of ModuliConfig with the given base directory.</p>
+                                            <p>This static method provides a convenience to instantiate the ModuliConfig
+                                                class with a specified base directory. It ensures that the provided base
+                                                directory is explicitly set during the object creation.</p>
+                                            <dl class="field-list simple">
+                                                <dt class="field-odd">Parameters<span class="colon">:</span></dt>
+                                                <dd class="field-odd"><p><strong>base_dir</strong> (<em>str</em>) – The
+                                                    base directory to be used for initialization.</p>
+                                                </dd>
+                                                <dt class="field-even">Returns<span class="colon">:</span></dt>
+                                                <dd class="field-even"><p>A new instance of the ModuliConfig class
+                                                    initialized with the given
+                                                    base directory.</p>
+                                                </dd>
+                                                <dt class="field-odd">Return type<span class="colon">:</span></dt>
+                                                <dd class="field-odd"><p>ModuliConfig</p>
+                                                </dd>
+                                            </dl>
+                                        </dd>
+                                    </dl>
+
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">config.__init__.</span></span><span
+                                        class="sig-name descname"><span
+                                        class="pre">is_valid_identifier_sql</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">identifier</span></span><span class="p"><span
+                                        class="pre">:</span></span><span class="w"> </span><span class="n"><span
+                                        class="pre">str</span></span></em><span class="sig-paren">)</span> <span
+                                        class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                        class="sig-return-typehint"><span class="pre">bool</span></span></span><a
+                                        class="reference internal"
+                                        href="_modules/config/__init__.html#is_valid_identifier_sql"><span
+                                        class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                <dd><p>Determines if the given string is a valid identifier following specific
+                                    rules. Valid identifiers must either be unquoted strings containing only
+                                    alphanumeric characters, underscores, and dollar signs, or quoted strings
+                                    wrapped in backticks with proper pairing. Additionally, identifiers must not
+                                    exceed 64 characters.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters<span class="colon">:</span></dt>
+                                        <dd class="field-odd"><p><strong>identifier</strong> (<em>str</em>) – The
+                                            identifier string to validate.</p>
+                                        </dd>
+                                        <dt class="field-even">Returns<span class="colon">:</span></dt>
+                                        <dd class="field-even"><p>True if the identifier is valid, otherwise False.</p>
+                                        </dd>
+                                        <dt class="field-odd">Return type<span class="colon">:</span></dt>
+                                        <dd class="field-odd"><p>Bool</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py">
+                                    <span class="sig-prename descclassname"><span
+                                            class="pre">config.__init__.</span></span><span
+                                        class="sig-name descname"><span
+                                        class="pre">strip_punction_from_datetime_str</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">timestamp</span></span><span class="p"><span
+                                        class="pre">:</span></span><span class="w"> </span><span class="n"><span
+                                        class="pre">datetime</span></span></em><span class="sig-paren">)</span> <span
+                                        class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                        class="sig-return-typehint"><span class="pre">str</span></span></span><a
+                                        class="reference internal"
+                                        href="_modules/config/__init__.html#strip_punction_from_datetime_str"><span
+                                        class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                <dd><p>Compresses a datetime object into a compact string format by removing non-numeric
+                                    characters from its ISO 8601 format string.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters<span class="colon">:</span></dt>
+                                        <dd class="field-odd"><p><strong>timestamp</strong> (<em>Datetime</em>) – A
+                                            datetime object to compress into a string.</p>
+                                        </dd>
+                                        <dt class="field-even">Returns<span class="colon">:</span></dt>
+                                        <dd class="field-even"><p>A string representation of the given datetime with all
+                                            non-numeric
+                                            characters removed.</p>
+                                        </dd>
+                                        <dt class="field-odd">Return type<span class="colon">:</span></dt>
+                                        <dd class="field-odd"><p>str</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                        </section>
+
+
+                    </div>
+                </div>
+                <footer>
+                    <div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+                        <a href="DEFAULTS.html" class="btn btn-neutral float-left" title="Bootstrap" accesskey="p"
+                           rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+                        <a href="DB.html" class="btn btn-neutral float-right" title="module db" accesskey="n"
+                           rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+                    </div>
+
+                    <hr/>
+
+                    <div role="contentinfo">
+                        <p>&#169; Copyright 2024,2025 Ronald Williams General Partner, Becker Williams General
+                            Partnership.</p>
+                    </div>
+
+                    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+                    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+                    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+                </footer>
+            </div>
+        </div>
+    </section>
+</div>
+<script>
+    jQuery(function () {
+        SphinxRtdTheme.Navigation.enable(true);
+    });
+</script>
+
+</body>
+</html>

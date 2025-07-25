@@ -4,8 +4,15 @@ Changelog
 
 This document tracks the changes made to the moduli_generator project.
 
-Version 2.1.21
+Version 2.1.23
 ==============
+
+2025-07-25
+----------
+
+* **Features**: Pyproject.toml - Refactored to align with PEP 621 - Including automatic versioning - Implemented PEP 440-compliant version
+* **General**: Including CHANGELOG.rst in git image
+* **Refactoring**: Config/__version__.py - Refactored to import version from importlib.metadata (for wheel installations)
 
 2025-07-23
 ----------
@@ -181,27 +188,11 @@ Version 2.1.21
   * Created Mariadb Connector Class - Operational as-is
 
 
-2025-06-22
-----------
-
-* **Database Improvements**: Installed mariadb_cnf_parser.py w/ tests completing successfully. Preparing for Database Storage of Screened Moduli for on demand /etc/moduli creation ~rbw
-
-2025-06-01
-----------
-
-**General**:
-
-  * Initial Commit/push after Cloning Template ~rbw
-  * Initial Commit/push after Cloning Template ~rbw
-
-
 Project Information
 ===================
 
 * **Project**: moduli_generator
-* **Version**: 2.1.21
+* **Version**: 2.1.23
 * **Description**: Command Line Utility to build moduli for /usr/local/etc/ssh/moduli_file
 * **Author**: Ron Williams <becker.williams@gmail.com>
-* **Repository**: https://github.com/beckerwilliams/moduli_generator.git
-* **Homepage**: https://github.com/beckerwilliams/moduli_generator
 * **License**: See LICENSE.rst
