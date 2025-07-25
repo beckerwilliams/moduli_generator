@@ -29,8 +29,7 @@ def _moduli_generator_argparser() -> Namespace:
         help="Directory to store candidate moduli (relative to moduli-home)"
     )
     parser.add_argument("--delete-records-on-moduli-write",
-                        type=bool,
-                        default=False,
+                        action='store_true',
                         help="Delete records from DB written to moduli file")
     parser.add_argument("--key-lengths",
                         type=int,
@@ -66,7 +65,7 @@ def _moduli_generator_argparser() -> Namespace:
     parser.add_argument("--nice-value",
                         type=int,
                         default=default_config.nice_value,
-                        help="Process nice value for CPU inensive operations"
+                        help="Process nice value for CPU intensive operations"
                         )
     parser.add_argument("--records-per-keylength",
                         type=int,
@@ -100,9 +99,9 @@ def local_config(args: Namespace = None) -> ModuliConfig:
     # Create the config object first
     config = default_config.with_base_dir(args.moduli_home)
 
-    # Verify user input prior to intitialization
+    # Verify user input prior to initialization
     if is_valid_identifier_sql(args.moduli_db):
-        config.moduli_db = is_valid_identifier_sql(args.moduli_db)
+        config.db_name = args.moduli_db
     else:
         raise RuntimeError(f"Invalid database name: {args.moduli_db}")
 
@@ -110,7 +109,7 @@ def local_config(args: Namespace = None) -> ModuliConfig:
     config.candidates_dir = config.moduli_home / args.candidates_dir
     config.moduli_dir = config.moduli_home / args.moduli_dir
     config.log_dir = config.moduli_home / args.log_dir
-    config.moduli_generator_config = config.moduli_home / args.mariadb_cnf
+    config.mariadb_cnf = config.moduli_home / args.mariadb_cnf
     config.records_per_keylength = args.records_per_keylength
     config.delete_records_on_moduli_write = args.delete_records_on_moduli_write
 

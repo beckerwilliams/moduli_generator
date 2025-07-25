@@ -1,76 +1,122 @@
-import configparser
-from configparser import (ConfigParser)
 from contextlib import contextmanager
 from pathlib import PosixPath as Path
-from typing import (
-    Dict,
-    List,
-    Optional
-)
+from typing import Any, Dict, List, Optional
 
 from mariadb import (ConnectionPool, Error)  # Add this import
 from typing_extensions import ContextManager
 
 from config import (ModuliConfig, default_config, is_valid_identifier_sql)
 
+__all__ = [
+    "MariaDBConnector",
+    "parse_mysql_config",
+    "get_mysql_config_value",
+]
 
-def parse_mysql_config(mysql_cnf: str) -> Dict[str, Dict[str, str]]:
+
+def parse_mysql_config(mysql_cnf) -> Dict[str, Dict[str, str]]:
     """
-    Parses a MySQL configuration file and returns its content as a dictionary.
+    Parse MySQL/MariaDB configuration file and return a dictionary structure.
 
-    This function processes a MySQL configuration file, validates its existence,
-    and extracts its content into a nested dictionary structure. The outer dictionary
-    keys correspond to section names, and the inner dictionaries map option names
-    to their respective values in each section.
-
-    :param mysql_cnf: Path to the MySQL configuration file.
-    :type mysql_cnf: str
-    :raises FileNotFoundError: If the specified configuration file does not exist.
-    :raises ValueError: If the configuration file has parsing errors.
-    :return: Dictionary containing the parsed configuration sections and options.
-    :rtype: Dict[str, Dict[str, str]]
+    :param mysql_cnf: Path to config file (str or Path) or file-like object
+    :return: Dictionary with sections and key-value pairs
+    :raises ValueError: If configuration file has parsing errors
+    :raises FileNotFoundError: If file doesn't exist
     """
-    if not (Path(mysql_cnf).is_file() and Path(mysql_cnf).exists()):
-        raise FileNotFoundError(f"Configuration file not found: {Path(mysql_cnf).resolve()}")
+    import configparser
+    from pathlib import Path
+    import re
 
-    cnf = ConfigParser(allow_no_value=True)
+    if not mysql_cnf:
+        return {}
+
+    # Handle different input types
+    config = configparser.ConfigParser(
+        allow_no_value=True,
+        interpolation=None,
+        strict=False  # Allow duplicate sections to be merged
+    )
+
     try:
-        cnf.read(mysql_cnf)
-        result = {local_section: dict(cnf[local_section]) for local_section in cnf.sections()}
+        if hasattr(mysql_cnf, 'read'):
+            # File-like object (already open file)
+            config.read_file(mysql_cnf)
+        elif hasattr(mysql_cnf, 'name'):
+            # File object with name attribute
+            config.read(mysql_cnf.name)
+        else:
+            # String path - check if file exists first
+            path_obj = Path(mysql_cnf)
+            if not path_obj.exists():
+                raise FileNotFoundError(f"Configuration file not found: {mysql_cnf}")
+
+            # Check if file is empty
+            if path_obj.stat().st_size == 0:
+                return {}
+
+            config.read(str(path_obj))
+
+        # Convert to dictionary and clean up comments
+        result = {}
+        for section_name in config.sections():
+            result[section_name] = {}
+            for key, value in config.items(section_name):
+                if value is not None:
+                    # Strip inline comments (everything after # including whitespace before it)
+                    cleaned_value = re.sub(r'\s*#.*$', '', value).strip()
+                    result[section_name][key] = cleaned_value
+                else:
+                    result[section_name][key] = None
 
         return result
-    except configparser.Error as err:
-        raise ValueError(f"Error parsing configuration filerr: {err}")
+
+    except configparser.DuplicateSectionError as e:
+        raise ValueError(f"Error parsing configuration file: {e}")
+    except configparser.ParsingError as e:
+        raise ValueError(f"Error parsing configuration file: {e}")
+    except configparser.Error as e:
+        raise ValueError(f"Error parsing configuration file: {e}")
+    except FileNotFoundError:
+        # Re-raise FileNotFoundError as-is (don't wrap in ValueError)
+        raise
+    except Exception as e:
+        if "already exists" in str(e).lower():
+            raise ValueError(f"Error parsing configuration file: {e}")
+        raise ValueError(f"Error parsing configuration file: {e}")
 
 
 def get_mysql_config_value(cnf: Dict[str, Dict[str, str]],
-                           local_section: str,
-                           local_key: str) -> str:
+                           section: str,
+                           key: str,
+                           default: Any = None) -> Any:
     """
-    Retrieves a value from a nested dictionary based on the provided section
-    and key. The function is primarily used to fetch configurations from a
-    MySQL configuration dictionary. If the specified section and key exist
-    in the dictionary, their corresponding value is returned. If either the
-    section or key is absent, the function returns None.
+    Get a specific value from parsed MySQL config dictionary.
 
-    :param cnf: A dictionary representing a MySQL configuration where keys
-        are section names and values are dictionaries containing key-value
-        pairs within those sections.
-    :type cnf: Dict[str, Dict[str, str]]
-    :param local_section: The section name in the configuration dictionary
-        from which the key-value pair should be retrieved.
-    :type local_section: str
-    :param local_key: The key within the specified section of the
-        configuration dictionary whose associated value needs to be fetched.
-    :type local_key: str
-    :return: The value associated with the given section and key if it
-        exists, otherwise None.
-    :rtype: str  | None
+    :param cnf: Parsed config dictionary from parse_mysql_config
+    :param section: Section name
+    :param key: Key name
+    :param default: Default value if not found
+    :return: Config value or default
+    :raises TypeError: If parameters are not of correct type
     """
-    if local_section in cnf and local_key in cnf[local_section]:
-        return cnf[local_section][local_key]
-    else:
-        return None
+    # Type validation - None config should raise TypeError
+    if cnf is None:
+        raise TypeError("config cannot be None")
+
+    if not isinstance(cnf, dict):
+        raise TypeError(f"config must be dict, got {type(cnf).__name__}")
+    if not isinstance(section, str):
+        raise TypeError(f"section must be string, got {type(section).__name__}")
+    if not isinstance(key, str):
+        raise TypeError(f"key must be string, got {type(key).__name__}")
+
+    if section not in cnf:
+        return default
+
+    if key not in cnf[section]:
+        return default
+
+    return cnf[section][key]
 
 
 class MariaDBConnector:
@@ -195,7 +241,7 @@ class MariaDBConnector:
                     yield conn
                     conn.commit()
                     self.logger.debug("Transaction committed")
-                except Error as err:
+                except Exception as err:
                     conn.rollback()
                     self.logger.error(f"Transaction rolled back due to error: {err}")
                     raise
@@ -607,86 +653,176 @@ class MariaDBConnector:
                             else:
                                 self.logger.error(f"Error storing moduli: {err}")
                                 return 1
+                        except Exception as err:
+                            self.logger.error(f"Error storing moduli: {err}")
+                            return 1
             return 0
 
+    def write_moduli_file(self) -> None:
+        """
+        Writes the moduli file using the database interface.
 
-def write_moduli_file(self) -> None:
-    """
-    Writes the moduli file using the database interface.
+        This method retrieves the installers necessary for the moduli file from the
+        database and then writes it to the appropriate location using
+        the database interface.
 
-    This method retrieves the installers necessary for the moduli file from the
-    database and then writes it to the appropriate location using
-    the database interface.
-
-    :return: self
-    :rtype: ModuliGenerator
-    """
-    try:
-        # Import the standalone write_moduli_file function from the db module
-        from db import write_moduli_file
-        write_moduli_file(self.config)
-
-    except RuntimeError as err:
-        self.logger.info(err)
-
-    return self
-
-
-def stats(self) -> Dict[str, str]:
-    """
-    Generates statistics about moduli files by querying the database for each key size.
-    It calculates the number of available records per key size and potential SSH moduli
-    files based on the configured records per key length.
-
-    :param self: An instance of the class containing the method.
-
-    :raises RuntimeError: If the database query fails during execution.
-    :return: A dictionary containing sizes as keys and their respective counts or calculated
-        values as values. The keys represent moduli query sizes, while the values indicate
-        counts or moduli file statistics.
-    :rtype: Dict[str, str]
-
-    """
-    moduli_query_sizes = []
-    for item in self.key_lengths:
-        moduli_query_sizes.append(item - 1)
-
-    # First, check if we have enough records for each key size
-    status: List[int, int] = list()
-
-    # Validate identifiers
-    if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.view_name)):
-        self.logger.error("Invalid database or table name")
-        return 0
-
-    for size in moduli_query_sizes:
-        # Count query to check available records
-        table = '.'.join((self.db_name, self.table_name))
-        count_query = f"""
-                                  SELECT COUNT(*)
-                                  FROM {table}
-                                  WHERE size = %s
-                                  """
-        params_list = (size,)
+        :return: None
+        """
         try:
-            result = self.execute_select(count_query, params_list)
-        except Error as err:
-            self.logger.error(f"Error retrieving moduli: {err}")
-            raise RuntimeError(f"Database query failed: {err}")
+            # Get the output file path from instance attributes
+            output_file = Path(self.moduli_file)
 
-        count = result[0]['COUNT(*)']
-        status.append(count)
+            # Create sizes and counts dictionary based on key_lengths and records_per_keylength
+            sizes_and_counts = {}
+            for key_length in self.key_lengths:
+                sizes_and_counts[key_length - 1] = self.records_per_keylength
 
-    # Calculate Number of Moduli Files Available
-    status.append(int(min(status) / self.records_per_keylength))
-    moduli_query_sizes.append('Available Moduli Files')
+            # Write moduli file directly using the database connection
+            total_records = 0
 
-    # Output
-    results = dict(zip(moduli_query_sizes, status))
+            # Validate identifiers
+            if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.view_name)):
+                raise RuntimeError("Invalid database or view name")
 
-    self.logger.info(f"Moduli statistics:")
-    self.logger.info('size  count')
-    for size, count in results.items():
-        self.logger.info(f'{size:>4} {count:>4}')
+            with open(output_file, 'w') as f:
+                # Write header
+                from datetime import datetime
+                timestamp = datetime.utcnow().isoformat() + 'Z'
+                f.write(f"# SSH moduli file generated by moduli_generator at {timestamp}\n")
 
-    return results
+                for size, count in sizes_and_counts.items():
+                    if count <= 0:
+                        continue
+
+                    # Query moduli for this size
+                    query = f"""
+                        SELECT modulus, size, generator, created_at
+                        FROM {self.db_name}.{self.view_name}
+                        WHERE size = %s
+                        ORDER BY RAND()
+                        LIMIT %s
+                    """
+
+                    records = self.execute_select(query, (size, count))
+
+                    for record in records:
+                        # Format as SSH moduli format
+                        timestamp_str = record['created_at'].strftime('%Y%m%d%H%M%S')
+                        line = f"{timestamp_str} 2 6 100 {record['size']} {record['generator']} {record['modulus']}\n"
+                        f.write(line)
+                        total_records += 1
+
+                    self.logger.debug(f"Wrote {len(records)} records of size {size}")
+
+            self.logger.info(f"Successfully wrote {total_records} moduli records to {output_file}")
+
+        except Exception as err:
+            self.logger.error(f"Error writing moduli file: {err}")
+            raise RuntimeError(f"Moduli file writing failed: {err}")
+
+    def stats(self) -> Dict[str, str]:
+        """
+        Generates statistics about moduli files by querying the database for each key size.
+        It calculates the number of available records per key size and potential SSH moduli
+        files based on the configured records per key length.
+
+        :param self: An instance of the class containing the method.
+
+        :raises RuntimeError: If the database query fails during execution.
+        :return: A dictionary containing sizes as keys and their respective counts or calculated
+            values as values. The keys represent moduli query sizes, while the values indicate
+            counts or moduli file statistics.
+        :rtype: Dict[str, str]
+
+        """
+        moduli_query_sizes = []
+        for item in self.key_lengths:
+            moduli_query_sizes.append(item - 1)
+
+        # First, check if we have enough records for each key size
+        status: List[int, int] = list()
+
+        # Validate identifiers
+        if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.view_name)):
+            self.logger.error("Invalid database or table name")
+            return 0
+
+        for size in moduli_query_sizes:
+            # Count query to check available records
+            table = '.'.join((self.db_name, self.table_name))
+            count_query = f"""
+                                      SELECT COUNT(*)
+                                      FROM {table}
+                                      WHERE size = %s
+                                      """
+            params_list = (size,)
+            try:
+                result = self.execute_select(count_query, params_list)
+            except Error as err:
+                self.logger.error(f"Error retrieving moduli: {err}")
+                raise RuntimeError(f"Database query failed: {err}")
+
+            count = result[0]['COUNT(*)']
+            status.append(count)
+
+        # Calculate Number of Moduli Files Available
+        status.append(int(min(status) / self.records_per_keylength))
+        moduli_query_sizes.append('Available Moduli Files')
+
+        # Output
+        results = dict(zip(moduli_query_sizes, status))
+
+        self.logger.info(f"Moduli statistics:")
+        self.logger.info('size  count')
+        for size, count in results.items():
+            self.logger.info(f'{size:>4} {count:>4}')
+
+        return results
+
+    def stats2(self) -> Dict[str, int]:
+
+        """
+        We want
+            Counts by key size
+            Number of potential SSH moduli files based on the configured records per key length.
+            Earliest timestamp for each key size
+            Latest timestamp for each key size
+
+            To do we need to
+                Collect Counts by key size (Done)
+                Collect earliest timestamp for each key size (tbd)
+                Collect latest timestamp for each key size (tbd)
+        """
+        stats = {}
+
+        table = '.'.join((self.db_name, self.table_name))
+        for key_length in self.key_lengths:
+            stats.update({key_length: {}})
+            stats[key_length].update({'counts': []})
+            stats[key_length].update({'early_stats': []})
+            stats[key_length].update({'late_stats': []})
+
+            counts_query = f'SELECT COUNT(*) FROM {table} where size = %s'
+            params_list = (key_length,)
+            stats[key_length]['counts'].append(self.execute_select(counts_query, params_list))
+
+            early_stats_query = f'SELECT MIN(timestamp) FROM {table} where size = %s'
+            params_list = (key_length,)
+            stats[key_length]['early_stats'].append(
+                self.execute_select(
+                    early_stats_query,
+                    params_list
+                )[0]['MIN(timestamp)'])
+
+            late_stats_query = f'SELECT MAX(timestamp) FROM {table} where size = %s'
+            params_list = (key_length,)
+            stats[key_length]['late_stats'].append(
+                self.execute_select(
+                    late_stats_query, params_list
+                )[0]['MAX(timestamp)'])
+
+        return stats
+
+    def show_stats(self):
+        """Show statistics for moduli in the database - alias for stats method."""
+        return self.stats()

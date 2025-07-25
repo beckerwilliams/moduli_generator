@@ -8,10 +8,7 @@ from config import (ISO_UTC_TIMESTAMP, ModuliConfig, default_config)
 from db import MariaDBConnector
 
 
-def main(
-        config: ModuliConfig = default_config,
-        output_file=None,
-):
+def main(config: ModuliConfig = default_config, output_file=None):
     """
     Writes moduli records to a specified output file. Configures logging, connects to
     the MariaDB database using the provided configuration, retrieves moduli records,
@@ -63,8 +60,17 @@ def main(
     # Print a header and then the installers
     logger.info(f'Key-Length: #Records')
     print(f'Key-Length: #Records')
-    [logger.info(f'{keysize}: {status[keysize]}') for keysize in status if status[keysize] > 0]
-    [print(f'{keysize}: {status[keysize]}' for keysize in status if status[keysize] > 0)]
 
-    if __name__ == "__main__":
-        exit(main())
+    logger.info(f'Key-Length: #Records')
+    for keysize in status:
+        logger.info(f'{keysize}: {status[keysize]}')
+        print(f'{keysize}: {status[keysize]}')
+
+    status2 = db.stats2()
+    status_file2 = status_file.parent / status_file.name.replace('MG_STATUS_', 'MG_STATUS2_')
+    with status_file2.open('w') as of:
+        dump(status2, of, indent=4)
+
+
+if __name__ == "__main__":
+    exit(main())

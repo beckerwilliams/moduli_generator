@@ -18,6 +18,7 @@ ssh2-moduli-generator (moduli_generator)
     CONFIG
     DB
     MODULI_GENERATOR
+    TEST
 
 .. toctree::
     :maxdepth: 2

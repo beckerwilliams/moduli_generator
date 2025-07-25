@@ -28,6 +28,10 @@ class TestModuliGeneratorShowStats(unittest.TestCase):
         # Set up fetchone to return a dictionary with COUNT(*)
         self.mock_cursor.fetchone.return_value = {"COUNT(*)": 42}
 
+    def show_stats(self):
+        """Alias for stats method to match test expectations."""
+        return self.stats()
+
     def test_show_stats_success(self):
         """Test that stats works correctly with valid installers"""
         # Call the method
@@ -78,7 +82,7 @@ class TestModuliGeneratorShowStats(unittest.TestCase):
 
         # Check that execute was called with the correct query for each size
         expected_query = f"""
-                            SELECT COUNT(*) FROM moduli_db_test.moduli_view
+                            SELECT COUNT(*) FROM test_moduli_db.moduli_view
                             """
 
         # Verify execute was called with the correct query 3 times (once per size)

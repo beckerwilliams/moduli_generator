@@ -3,8 +3,7 @@ from datetime import UTC, datetime
 from sys import exit
 
 # Import the default configuration
-from config import ModuliConfig, arg_parser, ISO_UTC_TIMESTAMP
-from config.arg_parser import local_config
+from config import ModuliConfig, arg_parser
 from moduli_generator import ModuliGenerator
 
 
@@ -29,7 +28,7 @@ def main(config: ModuliConfig = None):
     logger.debug(f'Using default config: {config}')
 
     # Generate, Screen, Store, and Write Moduli File
-    start_time = ISO_UTC_TIMESTAMP()
+    start_time = datetime.now(UTC).replace(tzinfo=None)
     logger.info(f'Starting Moduli Generation at {start_time}, with {config.key_lengths} as moduli key-lengths')
 
     # The Invocation
@@ -46,7 +45,7 @@ def main(config: ModuliConfig = None):
         return 2
     else:
         # Stats and Cleanup
-        duration = (ISO_UTC_TIMESTAMP() - start_time).seconds
+        duration = (datetime.now(UTC).replace(tzinfo=None) - start_time).seconds
         logger.info(f'Moduli Generation Complete. Time taken: {int(duration)} seconds')
         logger.info('Moduli Generation Complete')
         return 0

@@ -1,5 +1,4 @@
 stash/
-doc/
 dist/
 _build/
 _static/
@@ -82,3 +81,4 @@ dmypy.json
 .pytype/
 cython_debug/
 /.moduli_assembly/moduli_generator.cnf
+!/test/.coverage.aragorn.local.35893.XNOXzMXx

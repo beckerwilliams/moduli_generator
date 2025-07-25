@@ -1,15 +1,14 @@
-# tbd - this is cleaner than change log . . . lets simplify and incorporate!
 def get_version() -> str:
     """
     Retrieves the version information of the project specified in the `pyproject.toml` file.
 
     This function locates the `pyproject.toml` file in the project root directory and parses it
-    to get the project version from the `[tool.poetry]` section. If the file is not found
-    or the version information is missing, an appropriate error is raised. It requires the `toml`
-    package to be installed for parsing the `pyproject.toml` file.
+    to get the project version from the `[project]` section (PEP 621 standard). If the file is not found
+    or the version information is missing, it falls back to checking the `[tool.poetry]` section
+    for backward compatibility. It requires the `toml` package to be installed for parsing the `pyproject.toml` file.
 
     :raises RuntimeError: If the `pyproject.toml` file is not found, if the version cannot be
-        retrieved from the `[tool.poetry]` section, or if the `toml` package is not installed.
+        retrieved from either the `[project]` or `[tool.poetry]` section, or if the `toml` package is not installed.
     :raises RuntimeError: For all other unexpected issues accessing or parsing the file.
     :return: Project version string as defined in the `pyproject.toml` file.
     :rtype: str
@@ -29,11 +28,15 @@ def get_version() -> str:
         with open(pyproject_path, 'r') as f:
             pyproject_data = toml.load(f)
 
-        # Extract version from the [tool.poetry] section
-        version = pyproject_data.get('tool', {}).get('poetry', {}).get('version')
+        # First try to extract version from the [project] section (PEP 621 standard)
+        version = pyproject_data.get('project', {}).get('version')
+
+        # If not found, fall back to [tool.poetry] section for backward compatibility
+        if not version:
+            version = pyproject_data.get('tool', {}).get('poetry', {}).get('version')
 
         if not version:
-            raise RuntimeError("Version not found in pyproject.toml [tool.poetry] section.")
+            raise RuntimeError("Version not found in pyproject.toml [project] or [tool.poetry] section.")
 
         return version
 
@@ -41,4 +44,3 @@ def get_version() -> str:
         raise RuntimeError("toml package is required to read pyproject.toml. Please install it with: pip install toml")
     except Exception as e:
         raise RuntimeError(f"Unable to read version from pyproject.toml: {str(e)}")
-

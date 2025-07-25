@@ -13,6 +13,9 @@ from db import MariaDBConnector
 from moduli_generator.logger_writer import LoggerWriter
 from moduli_generator.validators import (validate_subprocess_args)
 
+# Constants
+MODULI_FIELD_COUNT = 7  # Expected number of fields in moduli file format
+
 __all__ = ['ModuliGenerator']
 
 
@@ -104,7 +107,11 @@ class ModuliGenerator:
         return self.version
 
     @staticmethod
-    def _run_subprocess_with_logging(command, logger, info_level=logging.INFO, debug_level=logging.DEBUG):
+    def _run_subprocess_with_logging(command,
+                                     logger,
+                                     info_level=logging.INFO,
+                                     debug_level=logging.DEBUG
+                                     ) -> subprocess.CompletedProcess:
         """
         Run a subprocess command and capture output for logging.
 
@@ -316,7 +323,7 @@ class ModuliGenerator:
                             continue
 
                         parts = line.split()
-                        if len(parts) == 7:
+                        if len(parts) == MODULI_FIELD_COUNT:
                             moduli_entry = {
                                 'timestamp': parts[0],  # TIMESTAMP
                                 # 'type': parts[1],         # Constant, Stored in moduli_db.mod_fl_consts
@@ -334,7 +341,7 @@ class ModuliGenerator:
 
         return screened_moduli
 
-    def _list_moduli_files(self):
+    def _list_moduli_files(self) -> List[Path]:
         """
         Lists all moduli files based on the configured moduli directory and file
         pattern.
@@ -347,7 +354,7 @@ class ModuliGenerator:
         """
         return list(self.config.moduli_dir.glob(self.config.moduli_file_pattern))
 
-    def generate_moduli(self) -> Dict[int, List[Path]]:
+    def generate_moduli(self) -> 'ModuliGenerator':
         """
         Generates and screens Diffie-Hellman moduli files for specified key lengths.
 
@@ -395,7 +402,7 @@ class ModuliGenerator:
 
         return self
 
-    def save_moduli(self, moduli_file_dir: Path = None):
+    def save_moduli(self, moduli_file_dir: Path = None) -> 'ModuliGenerator':
         """
         Saves the processed moduli installers to a JSON file in the specified directory or a default location.
 
@@ -421,7 +428,7 @@ class ModuliGenerator:
 
         return self
 
-    def store_moduli(self):
+    def store_moduli(self) -> 'ModuliGenerator':
         """
         Parse, validate, and store screened moduli into the database and manage their source
         files once the operation is successful. This function ensures that the moduli records
@@ -448,7 +455,7 @@ class ModuliGenerator:
 
         return self
 
-    def write_moduli_file(self) -> None:
+    def write_moduli_file(self) -> 'ModuliGenerator':
         """
         Writes the moduli file using the database interface.
 

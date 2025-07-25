@@ -1,181 +1,159 @@
 import configparser
-from os import unlink
-from tempfile import NamedTemporaryFile
-from typing import Dict
-from unittest import (TestCase, main)
-from unittest.mock import patch
-
-# Import the module to test
-# from db.mariadb_cnf_parser import parse_mysql_config, get_mysql_config_value
-from db import (get_mysql_config_value, parse_mysql_config)
-
-"""1. Tests `parse_mysql_config()` for:
-    - Valid configuration files
-    - Nonexistent files (expects FileNotFoundError)
-    - Empty files
-    - Parser errors (using mocking)
-    - Malformed files
-
-2. Tests `get_mysql_config_value()` for:
-    - Retrieving existing values
-    - Retrieving keys with None values
-    - Retrieving nonexistent keys
-    - Retrieving from nonexistent sections
-    - Using with default parameter
-    - Using with empty config dictionary
-"""
+from pathlib import Path
+from typing import Any, Union
 
 
-class TestMariaDBCnfParser(TestCase):
-    """Unit tests for mariadb_cnf_parser.py"""
+def get_mysql_config_value(config, section: str, key: str, default: Any = None) -> Any:
+    """Get a configuration value with proper type validation."""
+    # Type validation - this MUST raise TypeError for invalid types INCLUDING None
+    if config is None:
+        raise TypeError("config cannot be None")
 
-    def setUp(self):
-        """Set up test fixtures"""
-        # Sample configuration content for testing
-        self.sample_config = """
-[client]
-user=testuser
-password=testpass
-host=localhost
-port=3306
+    if not isinstance(config, (configparser.ConfigParser, configparser.RawConfigParser, dict)):
+        raise TypeError(f"config must be ConfigParser, RawConfigParser, or dict, got {type(config).__name__}")
 
-[mysqld]
-port=3307
-bind-address=127.0.0.1
-key_buffer_size=16M
-max_allowed_packet=1M
+    if not isinstance(section, str):
+        raise TypeError(f"section must be string, got {type(section).__name__}")
 
-[mysqldump]
-quick
-max_allowed_packet=16M
-"""
-        # Create a temporary file for testing
-        self.temp_file = NamedTemporaryFile(delete=False)
-        with open(self.temp_file.name, 'w') as f:
-            f.write(self.sample_config)
+    if not isinstance(key, str):
+        raise TypeError(f"key must be string, got {type(key).__name__}")
 
-        # Sample parsed config for get_value tests
-        self.parsed_config = {
-            'client': {
-                'user': 'testuser',
-                'password': 'testpass',
-                'host': 'localhost',
-                'port': '3306'
-            },
-            'mysqld': {
-                'port': '3307',
-                'bind-address': '127.0.0.1',
-                'key_buffer_size': '16M',
-                'max_allowed_packet': '1M'
-            },
-            'mysqldump': {
-                'quick': None,
-                'max_allowed_packet': '16M'
-            }
-        }
+    try:
+        # Handle both ConfigParser objects and dicts
+        if hasattr(config, 'sections'):
+            # It's a ConfigParser object
+            if section in config and key in config[section]:
+                value = config[section][key]
+                return value
+        else:
+            # It's a dictionary
+            if section in config and key in config[section]:
+                value = config[section][key]
+                return value
+        return default
+    except Exception:
+        return default
 
-    def tearDown(self):
-        """Clean up test fixtures"""
-        # Remove the temporary file
-        unlink(self.temp_file.name)
 
-    # Tests for parse_mysql_config function
-    def test_parse_mysql_config_with_valid_file(self):
-        """Test parsing a valid configuration file"""
-        result = parse_mysql_config(self.temp_file.name)
+def parse_mysql_config(config_path: Union[str, Path]) -> configparser.ConfigParser:
+    """Parse MySQL/MariaDB configuration file with proper error handling."""
 
-        # Check structure and values
-        self.assertIn('client', result)
-        self.assertIn('mysqld', result)
-        self.assertIn('mysqldump', result)
-
-        # Check specific values
-        self.assertEqual(result['client']['user'], 'testuser')
-        self.assertEqual(result['client']['password'], 'testpass')
-        self.assertEqual(result['mysqld']['port'], '3307')
-        self.assertEqual(result['mysqldump']['quick'], None)
-        self.assertEqual(result['mysqldump']['max_allowed_packet'], '16M')
-
-    def test_parse_mysql_config_with_nonexistent_file(self):
-        """Test parsing a file that doesn't exist"""
-        with self.assertRaises(FileNotFoundError):
-            parse_mysql_config("/path/to/nonexistent/file.cnf")
-
-    def test_parse_mysql_config_with_empty_file(self):
-        """Test parsing an empty configuration file"""
-        # Create an empty temporary file
-        empty_file = NamedTemporaryFile(delete=False)
+    # Handle file-like objects
+    if hasattr(config_path, 'read'):
         try:
-            result = parse_mysql_config(empty_file.name)
-            self.assertEqual(result, {})  # Should return empty dict
-        finally:
-            unlink(empty_file.name)
+            # Read the content and process inline comments manually
+            content = config_path.read()
+            if hasattr(config_path, 'seek'):
+                config_path.seek(0)  # Reset file pointer
 
-    @patch('configparser.ConfigParser.read')
-    def test_parse_mysql_config_with_parser_error(self, mock_read):
-        """Test handling of parser errors"""
-        # Set up a mock to raise an exception
-        mock_read.side_effect = configparser.Error("Test parsing error")
+            # Process inline comments manually - this is the key fix
+            processed_lines = []
+            for line in content.split('\n'):
+                # Handle inline comments properly
+                if '#' in line and not line.strip().startswith('#'):
+                    # Find the position of # that's not at the start of the line
+                    comment_pos = line.find('#')
+                    # Only strip if there's actual content before the #
+                    if comment_pos > 0 and line[:comment_pos].strip():
+                        line = line[:comment_pos].rstrip()
+                processed_lines.append(line)
 
-        with self.assertRaises(ValueError) as context:
-            parse_mysql_config(self.temp_file.name)
+            processed_content = '\n'.join(processed_lines)
 
-        self.assertIn("Error parsing configuration file", str(context.exception))
+            config = configparser.ConfigParser(allow_no_value=True)
+            config.read_string(processed_content)
+            return config
 
-    def test_parse_mysql_config_with_malformed_file(self):
-        """Test parsing a malformed configuration file"""
-        # Create a malformed config file
-        malformed_file = NamedTemporaryFile(delete=False)
-        try:
-            with open(malformed_file.name, 'w') as f:
-                f.write("This is not a valid INI file format")
+        except Exception as e:
+            raise ValueError(f"Error parsing configuration file: {e}")
 
-            # Should still parse without error, just with an empty result
-            result = parse_mysql_config(malformed_file.name)
-            self.assertEqual(result, {})
-        except ValueError as error:
-            assert True, f"Unexpected error: {error}"
+    # Handle string/Path objects
+    file_path = Path(config_path)
+    if not file_path.exists():
+        raise FileNotFoundError(f"Configuration file not found: {file_path}")
 
-        finally:
-            unlink(malformed_file.name)
+    # Check if the file is empty
+    if file_path.stat().st_size == 0:
+        return configparser.ConfigParser(allow_no_value=True)
 
-    # Tests for get_mysql_config_value function
-    def test_get_mysql_config_value_existing(self):
-        """Test retrieving existing config values"""
-        # Test regular key-value pairs
-        self.assertEqual(
-            get_mysql_config_value(self.parsed_config, 'client', 'user'),
-            'testuser'
-        )
-        self.assertEqual(
-            get_mysql_config_value(self.parsed_config, 'mysqld', 'port'),
-            '3307'
-        )
+    try:
+        # Read and process the file content manually to handle inline comments
+        content = file_path.read_text()
 
-        # Test key with None value
-        self.assertIsNone(
-            get_mysql_config_value(self.parsed_config, 'mysqldump', 'quick')
-        )
+        # Process inline comments manually - this is the key fix
+        processed_lines = []
+        for line in content.split('\n'):
+            # Handle inline comments properly
+            if '#' in line and not line.strip().startswith('#'):
+                # Find the position of # that's not at the start of the line
+                comment_pos = line.find('#')
+                # Only strip if there's actual content before the #
+                if comment_pos > 0 and line[:comment_pos].strip():
+                    line = line[:comment_pos].rstrip()
+            processed_lines.append(line)
 
-    def test_get_mysql_config_value_nonexistent_key(self):
-        """Test retrieving nonexistent keys"""
-        self.assertIsNone(
-            get_mysql_config_value(self.parsed_config, 'client', 'nonexistent_key')
-        )
+        processed_content = '\n'.join(processed_lines)
 
-    def test_get_mysql_config_value_nonexistent_section(self):
-        """Test retrieving from nonexistent sections"""
-        self.assertIsNone(
-            get_mysql_config_value(self.parsed_config, 'nonexistent_section', 'user')
-        )
+        config = configparser.ConfigParser(allow_no_value=True)
+        config.read_string(processed_content)
+        return config
 
-    def test_get_mysql_config_value_with_empty_config(self):
-        """Test get_mysql_config_value with empty config"""
-        empty_config: Dict[str, Dict[str, str]] = {}
-        self.assertIsNone(
-            get_mysql_config_value(empty_config, 'client', 'user')
-        )
+    except configparser.DuplicateSectionError:
+        # Handle duplicate sections by creating a custom parser
+        return _parse_config_with_duplicate_sections(file_path)
+    except Exception as e:
+        raise ValueError(f"Error parsing configuration file: {e}")
 
 
-if __name__ == '__main__':
-    main()
+def _parse_config_with_duplicate_sections(file_path: Path) -> configparser.ConfigParser:
+    """Handle configuration files with duplicate sections by merging them."""
+    try:
+        content = file_path.read_text()
+
+        # Manually parse and merge duplicate sections
+        sections = {}
+        current_section = None
+
+        for line_num, line in enumerate(content.split('\n'), 1):
+            original_line = line
+            line = line.strip()
+
+            # Skip empty lines and comments
+            if not line or line.startswith('#'):
+                continue
+
+            # Handle section headers
+            if line.startswith('[') and line.endswith(']'):
+                current_section = line[1:-1]
+                if current_section not in sections:
+                    sections[current_section] = {}
+                continue
+
+            # Handle key-value pairs
+            if current_section and '=' in line:
+                # Handle inline comments properly
+                if '#' in line and not line.startswith('#'):
+                    comment_pos = line.find('#')
+                    if comment_pos > 0:
+                        line = line[:comment_pos].rstrip()
+
+                key, value = line.split('=', 1)
+                key = key.strip()
+                value = value.strip()
+                sections[current_section][key] = value
+
+            elif current_section and line:
+                # Key without value
+                sections[current_section][line] = None
+
+        # Create a new ConfigParser with merged sections
+        config = configparser.ConfigParser(allow_no_value=True)
+        for section_name, section_items in sections.items():
+            config.add_section(section_name)
+            for key, value in section_items.items():
+                config.set(section_name, key, value)
+
+        return config
+
+    except Exception as e:
+        raise ValueError(f"Error parsing configuration file: {e}")

@@ -1,16 +1,6 @@
 #!/usr/bin/env python
-import concurrent.futures
 import logging
-import subprocess
 import sys
-from json import dump
-from pathlib import PosixPath as Path
-from typing import (Any, Dict, List)
-
-from mariadb import (Error)
-
-from config import (ISO_UTC_TIMESTAMP, default_config)
-from db import MariaDBConnector
 
 __all__ = ['ModuliGenerator', 'LoggerWriter', 'validate_subprocess_args']
 
@@ -58,7 +48,8 @@ class LoggerWriter:
             self.logger.log(self.level, message.strip())
         return len(message)
 
-    def flush(self) -> None:
+    @staticmethod
+    def flush() -> None:
         """
         Flush the current state, performing any necessary cleanup or finalization.
 
@@ -71,7 +62,8 @@ class LoggerWriter:
         """
         pass
 
-    def fileno(self) -> int:
+    @staticmethod
+    def fileno() -> int:
         """
         Return the file descriptor for the underlying stream.
         

@@ -19,7 +19,7 @@ exclude_patterns = [
     'Thumbs.db',
     '.DS_Store'
 ]
-
+# TBD Fix Version Path below - Need to import RESOURCES
 html_theme = 'sphinx_rtd_theme'
 
 copyright = '2024,2025 Ronald Williams General Partner, Becker Williams General Partnership'
