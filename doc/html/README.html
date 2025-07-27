@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>SSH2 Moduli Generator &mdash; Moduli Generator documentation</title>
+    <title>SSH2 Moduli Generator554 &mdash; Moduli Generator documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3"/>
     <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7"/>
 
@@ -44,7 +44,7 @@
                 <p class="caption" role="heading"><span class="caption-text">Documentation:</span></p>
                 <ul class="current">
                     <li class="toctree-l1 current"><a class="current reference internal" href="#">SSH2 Moduli
-                        Generator</a>
+                        Generator554</a>
                         <ul>
                             <li class="toctree-l2"><a class="reference internal" href="#features">Features</a>
                                 <ul>
@@ -109,7 +109,7 @@
                 <div role="navigation" aria-label="Page navigation">
                     <ul class="wy-breadcrumbs">
                         <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-                        <li class="breadcrumb-item active">SSH2 Moduli Generator</li>
+                        <li class="breadcrumb-item active">SSH2 Moduli Generator554</li>
                         <li class="wy-breadcrumbs-aside">
                             <a href="_sources/README.rst.txt" rel="nofollow"> View page source</a>
                         </li>
@@ -119,9 +119,9 @@
                 <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
                     <div itemprop="articleBody">
 
-                        <section id="ssh2-moduli-generator">
-                            <h1>SSH2 Moduli Generator<a class="headerlink" href="#ssh2-moduli-generator"
-                                                        title="Link to this heading"></a></h1>
+                        <section id="ssh2-moduli-generator554">
+                            <h1>SSH2 Moduli Generator554<a class="headerlink" href="#ssh2-moduli-generator554"
+                                                           title="Link to this heading"></a></h1>
                             <a class="reference external image-reference" href="https://www.python.org/downloads/"><img
                                     alt="https://img.shields.io/badge/python-3.12+-blue.svg"
                                     src="https://img.shields.io/badge/python-3.12+-blue.svg"/>
@@ -375,7 +375,7 @@ Database<span class="w"> </span>schema<span class="w"> </span>installed<span cla
                                         class="w"> </span><span class="k">USER</span><span class="w"> </span><span
                                         class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span
                                         class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span
-                                        class="s1">&#39;moduli_generator&#39;</span><span class="o">@</span><span
+                                        class="s1">&#39;mg_test_user&#39;</span><span class="o">@</span><span
                                         class="s1">&#39;%&#39;</span>
 <span class="n">IDENTIFIED</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span
                                             class="s1">&#39;&lt;MODULI_GENERATOR_PASSWORD&gt;&#39;</span>
@@ -388,7 +388,7 @@ Database<span class="w"> </span>schema<span class="w"> </span>installed<span cla
                                             class="w"> </span><span class="k">ON</span><span class="w"> </span><span
                                             class="n">moduli_db</span><span class="p">.</span><span
                                             class="o">*</span><span class="w"> </span><span class="k">TO</span><span
-                                            class="w"> </span><span class="s1">&#39;moduli_generator&#39;</span><span
+                                            class="w"> </span><span class="s1">&#39;mg_test_user&#39;</span><span
                                             class="o">@</span><span class="s1">&#39;%&#39;</span><span
                                             class="w"> </span><span class="k">WITH</span><span class="w"> </span><span
                                             class="k">GRANT</span><span class="w"> </span><span
@@ -564,24 +564,8 @@ Database<span class="w"> </span>schema<span class="w"> </span>installed<span cla
                                             class="w"> </span><span class="mi">6</span><span class="p">,</span><span
                                             class="w"> </span><span class="mi">100</span><span class="p">,</span><span
                                             class="w"> </span><span class="mi">2</span><span class="p">,</span><span
-                                            class="w"> </span><span class="s1">&#39;Becker Williams SSH moduli properties&#39;</span><span
+                                            class="w"> </span><span class="s1">&#39;SSH2 Moduli Generator Secure Profile&#39;</span><span
                                             class="p">);</span>
-
-<span class="c1">-- Insert moduli using the configuration</span>
-<span class="o">#</span><span class="w"> </span><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span
-                                            class="w"> </span><span class="n">moduli_db</span><span
-                                            class="p">.</span><span class="n">moduli</span><span class="w"> </span><span
-                                            class="p">(</span><span class="k">timestamp</span><span
-                                            class="p">,</span><span class="w"> </span><span
-                                            class="n">config_id</span><span class="p">,</span><span
-                                            class="w"> </span><span class="k">size</span><span class="p">,</span><span
-                                            class="w"> </span><span class="n">modulus</span><span class="p">)</span>
-<span class="o">#</span><span class="w"> </span><span class="k">VALUES</span><span class="w"> </span><span
-                                            class="p">(</span><span class="k">TIMESTAMP</span><span
-                                            class="p">,</span><span class="w"> </span><span class="mi">1</span><span
-                                            class="p">,</span><span class="w"> </span><span
-                                            class="n">KEYSIZE</span><span class="p">,</span><span
-                                            class="w"> </span><span class="n">MODULUS</span><span class="p">)</span>
 </pre>
                                 </div>
                             </div>

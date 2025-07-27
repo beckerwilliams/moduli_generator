@@ -38,6 +38,7 @@ dependencies = [
 	"toml>=0.10.2",
 	"mariadb (==1.1.13)",
 	"configparser>=7.2.0",
+	"black (>=25.0,<26.0.0)"
 ]
 
 [project.optional-dependencies]
@@ -63,3 +64,7 @@ Homepage = "https://github.com/beckerwilliams/moduli_generator"
 Documentation = "https://github.com/beckerwilliams/moduli_generator/blob/main/README.rst"
 Repository = "https://github.com/beckerwilliams/moduli_generator.git"
 Issues = "https://github.com/beckerwilliams/moduli_generator/issues"
+
+[tool.poetry]
+packages = [{ include = "moduli_generator", from = "." }]
+

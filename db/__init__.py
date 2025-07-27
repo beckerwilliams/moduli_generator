@@ -1,12 +1,11 @@
 from contextlib import contextmanager
 from pathlib import PosixPath as Path
 from typing import Any, Dict, List, Optional
-from config import ISO_UTC_TIMESTAMP
 
 from mariadb import (ConnectionPool, Error)  # Add this import
 from typing_extensions import ContextManager
 
-from config import (ModuliConfig, default_config, is_valid_identifier_sql)
+from config import ISO_UTC_TIMESTAMP, ModuliConfig, default_config, is_valid_identifier_sql
 
 __all__ = [
     "MariaDBConnector",
@@ -21,8 +20,8 @@ def parse_mysql_config(mysql_cnf) -> Dict[str, Dict[str, str]]:
 
     :param mysql_cnf: Path to config file (str or Path) or file-like object
     :return: Dictionary with sections and key-value pairs
-    :raises ValueError: If configuration file has parsing errors
-    :raises FileNotFoundError: If file doesn't exist
+    :raises ValueError: If the configuration file has parsing errors
+    :raises FileNotFoundError: If the file doesn't exist
     """
     import configparser
     from pathlib import Path
@@ -43,21 +42,21 @@ def parse_mysql_config(mysql_cnf) -> Dict[str, Dict[str, str]]:
             # File-like object (already open file)
             config.read_file(mysql_cnf)
         elif hasattr(mysql_cnf, 'name'):
-            # File object with name attribute
+            # File object with a name attribute
             config.read(mysql_cnf.name)
         else:
-            # String path - check if file exists first
+            # String path - check if the file exists first
             path_obj = Path(mysql_cnf)
             if not path_obj.exists():
                 raise FileNotFoundError(f"Configuration file not found: {mysql_cnf}")
 
-            # Check if file is empty
+            # Check if the file is empty
             if path_obj.stat().st_size == 0:
                 return {}
 
             config.read(str(path_obj))
 
-        # Convert to dictionary and clean up comments
+        # Convert to dictionary and cleanup comments
         result = {}
         for section_name in config.sections():
             result[section_name] = {}
@@ -91,14 +90,14 @@ def get_mysql_config_value(cnf: Dict[str, Dict[str, str]],
                            key: str,
                            default: Any = None) -> Any:
     """
-    Get a specific value from parsed MySQL config dictionary.
+    Get a specific value from the parsed MySQL config dictionary.
 
     :param cnf: Parsed config dictionary from parse_mysql_config
     :param section: Section name
     :param key: Key name
     :param default: Default value if not found
     :return: Config value or default
-    :raises TypeError: If parameters are not of correct type
+    :raises TypeError: If parameters are not of the correct type
     """
     # Type validation - None config should raise TypeError
     if cnf is None:
@@ -318,7 +317,6 @@ class MariaDBConnector:
                 port=int(mysql_cnf["port"]),
                 user=mysql_cnf["user"],
                 password=mysql_cnf["password"],
-                database=mysql_cnf["database"]
             )
             self.logger.info(f"Connection pool created with size: 10")
 
@@ -409,16 +407,35 @@ class MariaDBConnector:
             with self.get_connection() as connection:
                 with self.transaction(connection):
                     with connection.cursor() as cursor:
+                        # Log the query for debugging
+                        self.logger.debug(f"Executing query: {query}")
                         if params:
+                            self.logger.debug(f"With parameters: {params}")
                             cursor.execute(query, params)
                         else:
                             cursor.execute(query)
-                        affected_rows = cursor.rowcount
-                        self.logger.debug(f"Query affected {affected_rows} rows")
-                        return affected_rows
+                    affected_rows = cursor.rowcount
+                    self.logger.debug(f"Query affected {affected_rows} rows")
+                    return affected_rows
 
         except Error as err:
+            # Enhanced error handling with specific privilege error detection
+            error_msg = str(err).lower()
             self.logger.error(f"Error executing update query: {err}")
+            self.logger.error(f"Query was: {query}")
+            if params:
+                self.logger.error(f"Parameters were: {params}")
+
+        if "create user privilege" in error_msg:
+            self.logger.error("Database user lacks CREATE USER privilege")
+            raise RuntimeError(
+                f"Insufficient database privileges: "
+                "The current user needs CREATE USER privilege for this operation."
+                "Contact your database administrator.")
+        elif "access denied" in error_msg:
+            self.logger.error("Database access denied - check user permissions")
+            raise RuntimeError(f"Database access denied: {err}")
+        else:
             raise RuntimeError(f"Database update failed: {err}")
 
     def execute_batch(self, queries: List[str], params_list: Optional[List[tuple]] = None) -> bool:
@@ -596,27 +613,29 @@ class MariaDBConnector:
         :rtype: int
         """
         try:
+            # Validate table name to prevent SQL injection
+            if not is_valid_identifier_sql(table_name):
+                raise RuntimeError(f"Invalid table name: {table_name}")
+
             with self.get_connection() as connection:
                 with self.transaction(connection):
                     with connection.cursor() as cursor:
+                        # Build the query with proper escaping
                         if where_clause:
-                            query = f"DELETE FROM %s WHERE %s"
+                            # Note: table names cannot be parameterized, but we validate them
+                            query = f"DELETE FROM {table_name} WHERE %s"
+                            params_list = tuple(where_clause)
+                            cursor.execute(query, params_list)
                         else:
-                            query = f"DELETE FROM %s"
+                            query = f"DELETE FROM {table_name}"
+                            cursor.execute(query)
 
-                    parameter_list = (
-                        table_name,
-                        where_clause
-                    )
-                    cursor.execute(query, parameter_list)
                     rows_affected = cursor.rowcount
-
-                    self.logger.debug(f"Moduli Consumed from DB: {rows_affected}")
-                    print(f"Successfully deleted {rows_affected} rows from table: {table_name}")
+                    self.logger.debug(f"Deleted {rows_affected} rows from {table_name}")
                     return rows_affected
 
         except Error as e:
-            print(f"Error deleting from table {table_name}: {e}")
+            self.logger.error(f"Error deleting from table {table_name}: {e}")
             raise RuntimeError(f"Error deleting from table {table_name}: {e}")
 
     def export_screened_moduli(self, screened_moduli: dict) -> int:
@@ -678,14 +697,14 @@ class MariaDBConnector:
             for key_length in self.key_lengths:
                 sizes_and_counts[key_length - 1] = self.records_per_keylength
 
-            # Write moduli file directly using the database connection
+            # Write a moduli file directly using the database connection
             total_records = 0
 
             # Validate identifiers
             if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.view_name)):
                 raise RuntimeError("Invalid database or view name")
 
-            with open(output_file, 'w') as f:
+            with (open(output_file, 'w') as f):
                 # Write header
                 timestamp = ISO_UTC_TIMESTAMP(compress=True)
                 f.write(f"# SSH moduli file generated by moduli_generator at {timestamp}\n")
@@ -697,7 +716,7 @@ class MariaDBConnector:
                     # Query moduli for this size
                     query = f"""
                         SELECT modulus, size, generator, created_at
-                        FROM {self.db_name}.{self.view_name}
+                        FROM {'.'.join((self.db_name, self.view_name))}
                         WHERE size = %s
                         ORDER BY RAND()
                         LIMIT %s
@@ -708,7 +727,11 @@ class MariaDBConnector:
                     for record in records:
                         # Format as SSH moduli format
                         # timestamp_str = record['created_at'].strftime('%Y%m%d%H%M%S')
-                        line = f'{record_['created_at']} 2 6 100 {record['size']} {record['generator']} {record['modulus']}\n'
+                        timestamp = record['created_at']
+                        size = record['size']
+                        generator = record['generator']
+                        modulus = record['modulus']
+                        line = ' '.join(({timestamp}, '2', '6', '100', {size}, {generator}, {''.join((modulus, '\n'))}))
                         # line = f"{timestamp_str} 2 6 100 {record['size']} {record['generator']} {record['modulus']}\n"
                         f.write(line)
                         total_records += 1
@@ -814,16 +837,3 @@ class MariaDBConnector:
                     early_stats_query,
                     params_list
                 )[0]['MIN(timestamp)'])
-
-            late_stats_query = f'SELECT MAX(timestamp) FROM {table} where size = %s'
-            params_list = (key_length,)
-            stats[key_length]['late_stats'].append(
-                self.execute_select(
-                    late_stats_query, params_list
-                )[0]['MAX(timestamp)'])
-
-        return stats
-
-    def show_stats(self):
-        """Show statistics for moduli in the database - alias for stats method."""
-        return self.stats()

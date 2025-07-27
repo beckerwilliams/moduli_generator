@@ -35,8 +35,8 @@ def main(config: ModuliConfig = None):
     try:
         (ModuliGenerator(config)
          .generate_moduli()
-         .store_moduli()
-         .write_moduli_file())
+         .store_moduli())
+        # .write_moduli_file())
 
     except ValueError as err:
         logger.error(f'Moduli Generation Failed: {err}')

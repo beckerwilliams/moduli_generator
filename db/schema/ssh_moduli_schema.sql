@@ -43,8 +43,5 @@ CREATE INDEX idx_timestamp ON moduli_db.moduli(timestamp);
 
 -- Insert configuration
 INSERT INTO moduli_db.mod_fl_consts (config_id, type, tests, trials, generator, description)
-VALUES (1, '2', 6, 100, 2, 'Becker Williams SSH moduli properties');
+VALUES (1, '2', 6, 100, 2, 'SSH2 Moduli Generator Secure Profile');
 
--- Insert moduli using the configuration
-# INSERT INTO moduli_db.moduli (timestamp, config_id, size, modulus)
-# VALUES (TIMESTAMP, 1, KEYSIZE, MODULUS)
