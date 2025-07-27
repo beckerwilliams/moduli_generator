@@ -7,6 +7,17 @@
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/dist" />
       <excludeFolder url="file://$MODULE_DIR$/.moduli_assembly" />
+      <excludeFolder url="file://$MODULE_DIR$/doc/html/_sources/stash" />
+      <excludeFolder url="file://$MODULE_DIR$/doc/html/_static" />
+      <excludeFolder url="file://$MODULE_DIR$/doc/html/stash" />
+      <excludeFolder url="file://$MODULE_DIR$/.idea/dataSources" />
+      <excludeFolder url="file://$MODULE_DIR$/_build" />
+      <excludeFolder url="file://$MODULE_DIR$/_static" />
+      <excludeFolder url="file://$MODULE_DIR$/_template" />
+      <excludeFolder url="file://$MODULE_DIR$/_templates" />
+      <excludeFolder url="file://$MODULE_DIR$/htmlcov" />
+      <excludeFolder url="file://$MODULE_DIR$/src/doc/html/_static" />
+      <excludeFolder url="file://$MODULE_DIR$/stash" />
     </content>
     <orderEntry type="jdk" jdkName="Poetry (moduli_generator) (3)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

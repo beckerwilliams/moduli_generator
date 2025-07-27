@@ -32,13 +32,32 @@ classifiers = [
 	"Natural Language :: English",
 	"Typing :: Typed"
 ]
-
-requires-python = ">=3.11"
+requires-python = ">=3.11,<4.0"
 dependencies = [
-	"toml>=0.10.2",
 	"mariadb (==1.1.13)",
+	"toml>=0.10.2",
 	"configparser>=7.2.0",
-	"black (>=25.0,<26.0.0)"
+	"black (>=25.0,<26.0.0)",
+	"poetry-core (>=2.0.0,<3.0.0)",
+	"typing-extensions (>=4.14.1,<5.0.0)",
+	"sphinx-rtd-theme (>=3.0.2,<4.0.0)",
+	"pytest (>=8.4.1,<9.0.0)"
+]
+packages = [
+	{ include = "moduli_generator" },
+	{ include = "db" },
+	{ include = "config" },
+	{ include = "test" },
+	{ include = "changelog_generator" }
+]
+include = [
+	"data/**/*.sql",
+	"data/**/*.conf",
+	"data/**/*.sh",
+	"data/**/*.json",
+	"doc/**/*",
+	"**/*.md",
+	"**/*.rst"
 ]
 
 [project.optional-dependencies]
@@ -46,6 +65,7 @@ dev = [
 	"sphinx>=7.2.6",
 	"sphinxcontrib-jquery>=4.1",
 	"sphinx-rtd-theme>=3.0.2",
+	"myst-parser>=2.0.0",
 	"pytest>=8.4.1",
 	"pytest-cov>=4.0.0",
 	"pytest-mock>=3.12.0",
@@ -65,6 +85,8 @@ Documentation = "https://github.com/beckerwilliams/moduli_generator/blob/main/RE
 Repository = "https://github.com/beckerwilliams/moduli_generator.git"
 Issues = "https://github.com/beckerwilliams/moduli_generator/issues"
 
-[tool.poetry]
-packages = [{ include = "moduli_generator", from = "." }]
-
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+[project.group.dev.dependencies]
+sphinx = "^8.2.3"

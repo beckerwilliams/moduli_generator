@@ -109,7 +109,7 @@ class TestRestartMain:
 
         # Verify
         assert result == 1
-        mock_logger.error.assert_called_once_with('Moduli Generation Failed: Invalid key length')
+        mock_logger.error.assert_called_once_with('Moduli Restart Failed: Invalid key length')
 
     @pytest.mark.unit
     @patch('moduli_generator.restart.ModuliGenerator')
@@ -133,7 +133,7 @@ class TestRestartMain:
 
         # Verify
         assert result == 2
-        mock_logger.error.assert_called_once_with('Moduli Generation Failed: Database connection failed')
+        mock_logger.error.assert_called_once_with('Moduli Restart Failed: Database connection failed')
 
     @pytest.mark.unit
     @patch('moduli_generator.restart.ModuliGenerator')
@@ -158,7 +158,7 @@ class TestRestartMain:
 
         # Verify
         assert result == 1
-        mock_logger.error.assert_called_once_with('Moduli Generation Failed: Storage validation failed')
+        mock_logger.error.assert_called_once_with('Moduli Restart Failed: Storage validation failed')
 
     @pytest.mark.unit
     @patch('moduli_generator.restart.ModuliGenerator')
@@ -183,7 +183,7 @@ class TestRestartMain:
 
         # Verify
         assert result == 2
-        mock_logger.error.assert_called_once_with('Moduli Generation Failed: File system error')
+        mock_logger.error.assert_called_once_with('Moduli Restart Failed: File system error')
 
 
 class TestRestartLoggingAndTiming:
@@ -220,7 +220,7 @@ class TestRestartLoggingAndTiming:
         # Verify timing and logging
         assert result == 0
         mock_logger.info.assert_any_call(
-            f'Starting Moduli Generation at {start_time}, with [4096, 8192] as moduli key-lengths')
+            f'Starting Moduli Restart at {start_time}, with [4096, 8192] as moduli key-lengths')
         mock_logger.info.assert_any_call('Moduli Generation Complete. Time taken: 150 seconds')
         mock_logger.info.assert_any_call('Moduli Generation Complete')
 
@@ -399,7 +399,7 @@ class TestRestartIntegrationScenarios:
         assert mock_logger.name == 'moduli_generator.restart'
         mock_logger.debug.assert_called_once()
         mock_logger.info.assert_any_call(
-            f'Starting Moduli Generation at {start_time}, with [3072, 4096, 8192] as moduli key-lengths')
+            f'Starting Moduli Restart at {start_time}, with [3072, 4096, 8192] as moduli key-lengths')
         mock_moduli_generator.assert_called_once_with(mock_config)
         mock_generator_instance.restart_moduli.assert_called_once()
         mock_generator_instance.store_moduli.assert_called_once()
@@ -425,7 +425,7 @@ class TestRestartIntegrationScenarios:
 
         result = main()
         assert result == 1
-        mock_logger.error.assert_called_with('Moduli Generation Failed: Test error')
+        mock_logger.error.assert_called_with('Moduli Restart Failed: Test error')
 
         # Reset mocks for next test
         mock_logger.reset_mock()
@@ -434,4 +434,4 @@ class TestRestartIntegrationScenarios:
         mock_generator_instance.restart_moduli.side_effect = RuntimeError("System error")
         result = main()
         assert result == 2
-        mock_logger.error.assert_called_with('Moduli Generation Failed: System error')
+        mock_logger.error.assert_called_with('Moduli Restart Failed: System error')

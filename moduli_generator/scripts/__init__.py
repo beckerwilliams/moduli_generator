@@ -587,13 +587,13 @@ class MariaDBConnector:
             # Validate identifiers
             if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.view_name)):
                 raise RuntimeError("Invalid database or view name")
-
+            table = '.'.join((self.db_name, self.table_name))
             query = f"""
-                SELECT modulus, size, generator, created_at
-                FROM {self.db_name}.{self.view_name}
-                WHERE size = ?
+                SELECT modulus, size, timestamp
+                FROM {table}
+                WHERE size = %s
                 ORDER BY created_at DESC
-                LIMIT ?
+                LIMIT %s
             """
 
             results = self.execute_select(query, (size, limit))
@@ -638,23 +638,30 @@ class MariaDBConnector:
                         continue
 
                     # Query moduli for this size
+                    table = '.'.join((self.db_name, self.table_name))
                     query = f"""
-                        SELECT modulus, size, generator, created_at
-                        FROM {self.db_name}.{self.view_name}
-                        WHERE size = ?
+                        SELECT modulus, size, timestamp
+                        FROM {table}
+                        WHERE size = %s
                         ORDER BY RAND()
-                        LIMIT ?
+                        LIMIT %s
                     """
 
                     records = self.execute_select(query, (size, count))
 
                     for record in records:
                         # Format as SSH moduli format
-                        timestamp = record['created_at']
                         size = record['size']
                         generator = record['generator']
-                        modulus = record['modulus']
-                        line = f"{timestamp} 2 6 100 {size} {generator} {modulus}\n"
+                        line = record['modulus']
+                        ' '.join((
+                            record['timestamp]'],
+                            '2', '6', '100',
+                            record['size'],
+                            '2',
+                            record['modulus']
+                        ))
+                        # line = f"{timestamp} 2 6 100 {size} {generator} {modulus}\n"
                         f.write(line)
                         total_records += 1
 
@@ -701,12 +708,13 @@ class MariaDBConnector:
         try:
             for size in moduli_query_sizes:
                 # Count query to check available records
+                table = '.'.join((self.db_name, self.table_name))
                 count_query = f"""
                                       SELECT COUNT(*)
-                                      FROM {self.db_name}.{self.view_name}
-                                      WHERE size = ?
+                                      FROM {table}
+                                      WHERE size = %s
                                       """
-                result = self.execute_select(count_query, (size,))
+                result = self.execute_select(count_query, tuple(size))
                 count = result[0]['COUNT(*)']
                 status.append(count)
 

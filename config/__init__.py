@@ -268,6 +268,7 @@ class ModuliConfig:
 
         # Default moduli output files
         self.moduli_file_pfx = DEFAULT_MODULI_PREFIX
+        self.moduli_file = self.moduli_home / DEFAULT_MODULI_FILE
 
         # Delete on successful Write Flag
         self.delete_records_on_moduli_write = DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE

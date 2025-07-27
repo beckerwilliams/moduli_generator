@@ -66,11 +66,6 @@ def main(config: ModuliConfig = default_config, output_file=None):
         logger.info(f'{keysize}: {status[keysize]}')
         print(f'{keysize}: {status[keysize]}')
 
-    status2 = db.stats2()
-    status_file2 = status_file.parent / status_file.name.replace('MG_STATUS_', 'MG_STATUS2_')
-    with status_file2.open('w') as of:
-        dump(status2, of, indent=4)
-
 
 if __name__ == "__main__":
     exit(main())
