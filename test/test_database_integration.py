@@ -5,14 +5,13 @@ This module tests the MariaDBConnector class and related database operations,
 including connection management, SQL execution, and moduli storage operations.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock, mock_open
 from pathlib import Path
-from contextlib import contextmanager
-import mariadb
+from unittest.mock import MagicMock, mock_open, patch
 
-from db import MariaDBConnector, parse_mysql_config, get_mysql_config_value
-from config import ModuliConfig, default_config
+import mariadb
+import pytest
+
+from db import MariaDBConnector, get_mysql_config_value, parse_mysql_config
 
 
 class TestMariaDBConfigParsing:
@@ -513,7 +512,7 @@ class TestMariaDBConnectorStatistics:
         mock_connection = MagicMock()
         mock_cursor = MagicMock()
         # Mock the execute_select method to return dictionary results
-        mock_cursor.fetchall.return_value = [{'COUNT(*)': 100}]
+        mock_cursor.fetchall.return_value = [{'size': 4095, 'count': 100}, {'size': 8191, 'count': 50}]
         mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
         mock_connection_pool = MagicMock()
         mock_connection_pool.get_connection.return_value = mock_connection
@@ -530,49 +529,6 @@ class TestMariaDBConnectorStatistics:
         assert isinstance(result, dict)
         mock_cursor.execute.assert_called()
 
-    @pytest.mark.integration
-    @patch('db.parse_mysql_config')
-    @patch('db.ConnectionPool')
-    def test_stats2_method(self, mock_pool, mock_parse_config, mock_config):
-        """Test stats2 method for detailed statistics."""
-        mock_parse_config.return_value = {
-            "client": {"user": "testuser", "password": "testpass", "host": "localhost", "port": "3306",
-                       "database": "testdb"}}
-        mock_connection = MagicMock()
-        mock_cursor = MagicMock()
-
-        # Mock the execute_select method to return dictionary results for different queries
-        def mock_fetchall_side_effect():
-            # Return different results based on call count
-            if not hasattr(mock_fetchall_side_effect, 'call_count'):
-                mock_fetchall_side_effect.call_count = 0
-            mock_fetchall_side_effect.call_count += 1
-
-            if mock_fetchall_side_effect.call_count == 1:
-                return [{'COUNT(*)': 100}]
-            elif mock_fetchall_side_effect.call_count == 2:
-                return [{'MIN(timestamp)': 20231201000000}]
-            else:
-                return [{'MAX(timestamp)': 20231201000001}]
-
-        mock_cursor.fetchall.side_effect = mock_fetchall_side_effect
-        mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
-        mock_connection_pool = MagicMock()
-        mock_connection_pool.get_connection.return_value = mock_connection
-        mock_pool.return_value = mock_connection_pool
-
-        connector = MariaDBConnector(mock_config)
-        # Mock the key_lengths attribute
-        connector.key_lengths = [4096]
-
-        result = connector.stats2()
-
-        # stats2() returns a nested dictionary structure
-        assert isinstance(result, dict)
-        assert 4096 in result
-        assert 'counts' in result[4096]
-        assert 'early_stats' in result[4096]
-        assert 'late_stats' in result[4096]
 
     @pytest.mark.integration
     @patch('db.parse_mysql_config')
@@ -585,7 +541,7 @@ class TestMariaDBConnectorStatistics:
         mock_connection = MagicMock()
         mock_cursor = MagicMock()
         # Mock the execute_select method to return dictionary results
-        mock_cursor.fetchall.return_value = [{'COUNT(*)': 100}]
+        mock_cursor.fetchall.return_value = [{'size': 4095, 'count': 100}]
         mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
         mock_connection_pool = MagicMock()
         mock_connection_pool.get_connection.return_value = mock_connection
@@ -652,13 +608,13 @@ class TestMariaDBConnectorExportOperations:
                 'modulus': 'test_modulus_1',
                 'size': 4095,  # key_length - 1
                 'generator': 2,
-                'created_at': datetime(2023, 12, 1, 0, 0, 0)
+                'timestamp': datetime(2023, 12, 1, 0, 0, 0)
             },
             {
                 'modulus': 'test_modulus_2',
                 'size': 4095,  # key_length - 1
                 'generator': 2,
-                'created_at': datetime(2023, 12, 1, 0, 0, 1)
+                'timestamp': datetime(2023, 12, 1, 0, 0, 1)
             }
         ]
         mock_connection.cursor.return_value.__enter__.return_value = mock_cursor

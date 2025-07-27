@@ -11,6 +11,8 @@
       <excludeFolder url="file://$MODULE_DIR$/doc/html/_static" />
       <excludeFolder url="file://$MODULE_DIR$/doc/html/stash" />
       <excludeFolder url="file://$MODULE_DIR$/.idea/dataSources" />
+      <excludeFolder url="file://$MODULE_DIR$/MG_TEST" />
+      <excludeFolder url="file://$MODULE_DIR$/SUN_MODULI_DIR" />
       <excludeFolder url="file://$MODULE_DIR$/_build" />
       <excludeFolder url="file://$MODULE_DIR$/_static" />
       <excludeFolder url="file://$MODULE_DIR$/_template" />
