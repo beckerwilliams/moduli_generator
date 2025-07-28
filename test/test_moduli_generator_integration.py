@@ -13,6 +13,7 @@ import logging
 from datetime import datetime
 
 from moduli_generator import ModuliGenerator
+from moduli_generator.validators import validate_subprocess_args
 from config import ModuliConfig, default_config
 from db import MariaDBConnector
 

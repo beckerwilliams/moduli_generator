@@ -600,34 +600,6 @@
 
                                     <dl class="py method">
                                         <dt class="sig sig-object py">
-                                            <span class="sig-name descname"><span
-                                                    class="pre">show_stats</span></span><span class="sig-paren">(</span><span
-                                                class="sig-paren">)</span> <span class="sig-return"><span
-                                                class="sig-return-icon">&#x2192;</span> <span
-                                                class="sig-return-typehint"><span class="pre">Dict</span><span
-                                                class="p"><span class="pre">[</span></span><span
-                                                class="pre">str</span><span class="p"><span
-                                                class="pre">,</span></span><span class="w"> </span><span
-                                                class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a
-                                                class="reference internal"
-                                                href="_modules/db/__init__.html#MariaDBConnector.show_stats"><span
-                                                class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-                                        <dd><p>Alias for stats() method.</p>
-                                            <dl class="field-list simple">
-                                                <dt class="field-odd">Returns<span class="colon">:</span></dt>
-                                                <dd class="field-odd"><p>A dictionary containing sizes as keys and their
-                                                    respective counts or calculated
-                                                    values as values.</p>
-                                                </dd>
-                                                <dt class="field-even">Return type<span class="colon">:</span></dt>
-                                                <dd class="field-even"><p>Dict[str, str]</p>
-                                                </dd>
-                                            </dl>
-                                        </dd>
-                                    </dl>
-
-                                    <dl class="py method">
-                                        <dt class="sig sig-object py">
                                             <span class="sig-name descname"><span class="pre">sql</span></span><span
                                                 class="sig-paren">(</span><em class="sig-param"><span class="n"><span
                                                 class="pre">query</span></span><span class="p"><span
@@ -699,66 +671,24 @@
                                                 class="p"><span class="pre">[</span></span><span
                                                 class="pre">str</span><span class="p"><span
                                                 class="pre">,</span></span><span class="w"> </span><span
-                                                class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a
+                                                class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a
                                                 class="reference internal"
                                                 href="_modules/db/__init__.html#MariaDBConnector.stats"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-                                        <dd><p>Generates statistics about moduli files by querying the database for each
-                                            key size.
-                                            It calculates the number of available records per key size and potential SSH
-                                            moduli
-                                            files based on the configured records per key length.</p>
+                                        <dd><p>Returns all modulus counts by keysize using a single SQL query.</p>
+                                            <p>The iteration over the counts occurs completely within the SQL query
+                                                of the moduli_db.moduli table using GROUP BY aggregation.</p>
                                             <dl class="field-list simple">
-                                                <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-                                                <dd class="field-odd"><p><strong>self</strong> – An instance of the
-                                                    class containing the method.</p>
-                                                </dd>
-                                                <dt class="field-even">Raises<span class="colon">:</span></dt>
-                                                <dd class="field-even"><p><strong>RuntimeError</strong> – If the
-                                                    database query fails during execution.</p>
-                                                </dd>
                                                 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-                                                <dd class="field-odd"><p>A dictionary containing sizes as keys and their
-                                                    respective counts or calculated
-                                                    values as values. The keys represent moduli query sizes, while the
-                                                    values indicate
-                                                    counts or moduli file statistics.</p>
+                                                <dd class="field-odd"><p>A dictionary with keysize as keys and counts as
+                                                    values</p>
                                                 </dd>
                                                 <dt class="field-even">Return type<span class="colon">:</span></dt>
-                                                <dd class="field-even"><p>Dict[str, str]</p>
+                                                <dd class="field-even"><p>Dict[str, int]</p>
                                                 </dd>
-                                            </dl>
-                                        </dd>
-                                    </dl>
-
-                                    <dl class="py method">
-                                        <dt class="sig sig-object py">
-                                            <span class="sig-name descname"><span class="pre">stats2</span></span><span
-                                                class="sig-paren">(</span><span class="sig-paren">)</span> <span
-                                                class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
-                                                class="sig-return-typehint"><span class="pre">Dict</span><span
-                                                class="p"><span class="pre">[</span></span><span
-                                                class="pre">str</span><span class="p"><span
-                                                class="pre">,</span></span><span class="w"> </span><span
-                                                class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a
-                                                class="reference internal"
-                                                href="_modules/db/__init__.html#MariaDBConnector.stats2"><span
-                                                class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-                                        <dd>
-                                            <dl>
-                                                <dt>We want</dt>
-                                                <dd><p>Counts by key size
-                                                    Number of potential SSH moduli files based on the configured records
-                                                    per key length.
-                                                    Earliest timestamp for each key size
-                                                    Latest timestamp for each key size</p>
-                                                    <dl class="simple">
-                                                        <dt>To do we need to</dt>
-                                                        <dd><p>Collect Counts by key size (Done)
-                                                            Collect earliest timestamp for each key size (tbd)
-                                                            Collect latest timestamp for each key size (tbd)</p>
-                                                        </dd>
-                                                    </dl>
+                                                <dt class="field-odd">Raises<span class="colon">:</span></dt>
+                                                <dd class="field-odd"><p><strong>RuntimeError</strong> – If the database
+                                                    query fails</p>
                                                 </dd>
                                             </dl>
                                         </dd>
@@ -887,16 +817,18 @@
                                     <span class="sig-prename descclassname"><span class="pre">db.__init__.</span></span><span
                                         class="sig-name descname"><span
                                         class="pre">parse_mysql_config</span></span><span class="sig-paren">(</span><em
-                                        class="sig-param"><span class="n"><span class="pre">mysql_cnf</span></span></em><span
-                                        class="sig-paren">)</span> <span class="sig-return"><span
-                                        class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span
-                                        class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span
-                                        class="pre">str</span><span class="p"><span class="pre">,</span></span><span
-                                        class="w"> </span><span class="pre">Dict</span><span class="p"><span
-                                        class="pre">[</span></span><span class="pre">str</span><span class="p"><span
-                                        class="pre">,</span></span><span class="w"> </span><span
-                                        class="pre">str</span><span class="p"><span class="pre">]</span></span><span
-                                        class="p"><span class="pre">]</span></span></span></span><a
+                                        class="sig-param"><span class="n"><span class="pre">mysql_cnf</span></span><span
+                                        class="p"><span class="pre">:</span></span><span class="w"> </span><span
+                                        class="n"><span class="pre">PosixPath</span></span></em><span class="sig-paren">)</span>
+                                    <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                            class="sig-return-typehint"><span class="pre">Dict</span><span
+                                            class="p"><span class="pre">[</span></span><span class="pre">str</span><span
+                                            class="p"><span class="pre">,</span></span><span class="w"> </span><span
+                                            class="pre">Dict</span><span class="p"><span
+                                            class="pre">[</span></span><span class="pre">str</span><span class="p"><span
+                                            class="pre">,</span></span><span class="w"> </span><span
+                                            class="pre">str</span><span class="p"><span class="pre">]</span></span><span
+                                            class="p"><span class="pre">]</span></span></span></span><a
                                         class="reference internal"
                                         href="_modules/db/__init__.html#parse_mysql_config"><span class="viewcode-link"><span
                                         class="pre">[source]</span></span></a></dt>

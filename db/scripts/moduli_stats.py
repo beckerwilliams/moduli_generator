@@ -53,7 +53,6 @@ def main(config: ModuliConfig = default_config, output_file=None):
 
     # Get the records and save to the specified file
     status = db.stats()
-    # tbd - remove line below
     with status_file.open('w') as of:
         dump(status, of, indent=4)
 

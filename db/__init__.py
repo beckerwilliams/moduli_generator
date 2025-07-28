@@ -31,6 +31,10 @@ def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
     if mysql_cnf is None or mysql_cnf == "":
         return {}
 
+    # Convert to the Path object if it's a string
+    if isinstance(mysql_cnf, str):
+        mysql_cnf = Path(mysql_cnf)
+
     # Handle different input types
     config = configparser.ConfigParser(
         allow_no_value=True,
@@ -43,18 +47,13 @@ def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
     import unittest.mock
     is_mocked = isinstance(builtins.open, unittest.mock.MagicMock)
 
-    # Check if mysql_cnf is a file-like object (has read method)
-    is_file_like = hasattr(mysql_cnf, 'read')
-
     try:
-        if is_file_like:
+        # Check if input is a file-like object (has read method)
+        if hasattr(mysql_cnf, 'read'):
             # Handle file-like objects (StringIO, etc.)
             config.read_file(mysql_cnf)
         else:
-            # Convert to the Path object if it's a string
-            if isinstance(mysql_cnf, str):
-                mysql_cnf = Path(mysql_cnf)
-
+            # Handle Path objects
             # For real files, check if the file exists first
             if not is_mocked:
                 if not mysql_cnf.exists():
@@ -89,12 +88,12 @@ def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
 
         return result
 
-    except configparser.DuplicateSectionError as err:
-        raise ValueError(f"Error parsing configuration file: {err}")
-    except configparser.ParsingError as err:
-        raise ValueError(f"Error parsing configuration file: {err}")
-    except configparser.Error as err:
-        raise ValueError(f"Error parsing configuration file: {err}")
+    except configparser.DuplicateSectionError as e:
+        raise ValueError(f"Error parsing configuration file: {e}")
+    except configparser.ParsingError as e:
+        raise ValueError(f"Error parsing configuration file: {e}")
+    except configparser.Error as e:
+        raise ValueError(f"Error parsing configuration file: {e}")
     except FileNotFoundError:
         # Re-raise FileNotFoundError as-is
         raise
@@ -104,10 +103,10 @@ def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
             return {}
         else:
             raise
-    except Exception as err:
-        if "already exists" in str(err).lower():
-            raise ValueError(f"Error parsing configuration file: {err}")
-        raise ValueError(f"Error parsing configuration file: {err}")
+    except Exception as e:
+        if "already exists" in str(e).lower():
+            raise ValueError(f"Error parsing configuration file: {e}")
+        raise ValueError(f"Error parsing configuration file: {e}")
 
 
 def get_mysql_config_value(cnf: Dict[str, Dict[str, str]],
@@ -810,7 +809,7 @@ class MariaDBConnector:
         try:
             # Validate identifiers
             if not is_valid_identifier_sql(self.db_name):
-                return 0
+                raise RuntimeError("Invalid database name")
 
             # Build the SQL query that does all counting within the query
             # table = f"{self.db_name}.moduli"
@@ -845,7 +844,9 @@ class MariaDBConnector:
 
     def show_stats(self) -> Dict[str, int]:
         """
-        Alias for stats method to match test expectations.
+        Alias for stats() method.
+        
+        Returns all modulus counts by keysize using a single SQL query.
         
         :return: A dictionary with keysize as keys and counts as values
         :rtype: Dict[str, int]

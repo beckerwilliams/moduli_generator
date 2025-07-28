@@ -10,8 +10,6 @@ from pathlib import PosixPath as Path
 from re import (compile, sub)
 from typing import Final
 
-# from .__version__ import version
-
 try:
     from importlib.metadata import version
 

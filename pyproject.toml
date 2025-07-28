@@ -6,7 +6,7 @@ authors = [
 ]
 license = { text = "MIT" }
 keywords = ["cryptography", "ssh", "moduli", "security"]
-version = "2.1.24"
+version = "2.1.28"
 readme = "README.rst"
 classifiers = [
 	"Development Status :: 4 - Beta",
@@ -24,7 +24,6 @@ classifiers = [
 	"Programming Language :: Python :: 3.12",
 	"Programming Language :: Python :: 3.13",
 	"Programming Language :: Python :: 3 :: Only",
-	"License :: OSI Approved :: MIT License",
 	"Operating System :: POSIX :: Linux",
 	"Operating System :: Unix",
 	"Operating System :: MacOS",
@@ -42,13 +41,6 @@ dependencies = [
 	"typing-extensions (>=4.14.1,<5.0.0)",
 	"sphinx-rtd-theme (>=3.0.2,<4.0.0)",
 	"pytest (>=8.4.1,<9.0.0)"
-]
-packages = [
-	{ include = "moduli_generator" },
-	{ include = "db" },
-	{ include = "config" },
-	{ include = "test" },
-	{ include = "changelog_generator" }
 ]
 include = [
 	"data/**/*.sql",
@@ -78,12 +70,22 @@ moduli_stats = "db.scripts.moduli_stats:main"
 changelog = "changelog_generator.scripts.print:main"
 install_schema = "db.scripts.install_schema:main"
 build_docs = "moduli_generator.scripts.build_docs:main"
+cli = "moduli_generator.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/beckerwilliams/moduli_generator"
 Documentation = "https://github.com/beckerwilliams/moduli_generator/blob/main/README.rst"
 Repository = "https://github.com/beckerwilliams/moduli_generator.git"
 Issues = "https://github.com/beckerwilliams/moduli_generator/issues"
+
+[tool.poetry]
+packages = [
+	{ include = "moduli_generator" },
+	{ include = "db" },
+	{ include = "config" },
+	{ include = "test" },
+	{ include = "changelog_generator" }
+]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

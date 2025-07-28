@@ -6,15 +6,44 @@ from json import dump
 from pathlib import PosixPath as Path
 from typing import (Any, Dict, List)
 
-from mariadb import (Error)
+# Try to import mariadb components, but make them optional
+try:
+    from mariadb import Error as MariaDBError
+
+    MARIADB_AVAILABLE = True
+except ImportError:
+    # Create a dummy exception class when mariadb is not available
+    class MariaDBError(Exception):
+        pass
+
+
+    MARIADB_AVAILABLE = False
 
 from config import (ISO_UTC_TIMESTAMP, default_config)
-from db import MariaDBConnector
-from moduli_generator.logger_writer import LoggerWriter
-from moduli_generator.validators import (validate_subprocess_args)
+
+# Import MariaDBConnector conditionally
+try:
+    from db import MariaDBConnector
+
+    DB_AVAILABLE = True
+except ImportError:
+    # Create a dummy connector when db module is not available
+    class MariaDBConnector:
+        def __init__(self, config):
+            pass
+
+        def export_screened_moduli(self, moduli):
+            raise RuntimeError("MariaDB functionality is not available. Please install mariadb package.")
+
+        def write_moduli_file(self):
+            raise RuntimeError("MariaDB functionality is not available. Please install mariadb package.")
+
+
+    DB_AVAILABLE = False
+from moduli_generator.validators import validate_subprocess_args
 
 # Constants
-MODULI_FIELD_COUNT = 7  # Expected number of fields in moduli file format
+SSH2_MODULI_FILE_FIELD_COUNT = 7  # Expected number of fields in moduli file format
 
 __all__ = ['ModuliGenerator']
 
@@ -89,6 +118,10 @@ class ModuliGenerator:
         :rtype: MariaDBConnector
         """
         if self._db is None:
+            if not MARIADB_AVAILABLE:
+                self.logger.warning("MariaDB package is not available. Database functionality will be limited. "
+                                    "To enable full database features, please install the mariadb package: "
+                                    "pip install mariadb")
             self._db = MariaDBConnector(self.config)
         return self._db
 
@@ -323,7 +356,7 @@ class ModuliGenerator:
                             continue
 
                         parts = line.split()
-                        if len(parts) == MODULI_FIELD_COUNT:
+                        if len(parts) == SSH2_MODULI_FILE_FIELD_COUNT:
                             moduli_entry = {
                                 'timestamp': parts[0],  # TIMESTAMP
                                 # 'type': parts[1],         # Constant, Stored in moduli_db.mod_fl_consts
@@ -448,7 +481,7 @@ class ModuliGenerator:
             # for file in moduli_files:
             #     file.unlink()
 
-        except Error as err:
+        except MariaDBError as err:
             self.logger.error(f'Error storing moduli: {err}')
 
         self.logger.info(f'Moduli Stored in MariaDB database: {len(screened_moduli)}')
@@ -459,7 +492,7 @@ class ModuliGenerator:
         """
         Writes the moduli file using the database interface.
 
-        This method retrieves installers necessary for the moduli file from the
+        This method retrieves the installers necessary for the moduli file from the
         database and then writes it to the appropriate location using
         the database interface.
 
