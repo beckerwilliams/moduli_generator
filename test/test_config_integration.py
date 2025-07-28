@@ -5,13 +5,13 @@ This module tests the argument parsing and configuration creation functionality,
 including CLI argument processing, validation, and ModuliConfig object creation.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
-from argparse import Namespace
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
+import pytest
+
+from config import default_config
 from config.arg_parser import _moduli_generator_argparser, local_config
-from config import ModuliConfig, default_config, is_valid_identifier_sql
 
 
 class TestModuliGeneratorArgParser:

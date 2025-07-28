@@ -66,7 +66,7 @@
                 <p class="caption" role="heading"><span class="caption-text">Legal</span></p>
                 <ul>
                     <li class="toctree-l1"><a class="reference internal" href="COPYRIGHT.html">Copyright</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="LICENSE.html">MIT Licensegn</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="LICENSE.html">MIT License</a></li>
                 </ul>
 
             </div>
@@ -99,54 +99,16 @@
                                                 title="Link to this heading"></a></h1>
                             <p>Configuration module for the moduli generator project.
                                 Centralizes all default configuration values.</p>
-                            <dl class="py function">
-                                <dt class="sig sig-object py">
-                                    <span class="sig-prename descclassname"><span
-                                            class="pre">config.__init__.</span></span><span
-                                        class="sig-name descname"><span class="pre">ISO_UTC_TIMESTAMP</span></span><span
-                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
-                                        class="pre">compress</span></span><span class="p"><span
-                                        class="pre">:</span></span><span class="w"> </span><span class="n"><span
-                                        class="pre">bool</span></span><span class="w"> </span><span class="o"><span
-                                        class="pre">=</span></span><span class="w"> </span><span
-                                        class="default_value"><span class="pre">False</span></span></em><span
-                                        class="sig-paren">)</span> <span class="sig-return"><span
-                                        class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span
-                                        class="pre">str</span></span></span><a class="reference internal"
-                                                                               href="_modules/config/__init__.html#ISO_UTC_TIMESTAMP"><span
-                                        class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-                                <dd><p>Generates a UTC timestamp in ISO 8601 format. Optionally, the output can be
-                                    compressed
-                                    to remove non-numeric characters.</p>
-                                    <dl class="field-list simple">
-                                        <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-                                        <dd class="field-odd"><p><strong>compress</strong> (<em>bool</em>) – Specifies
-                                            whether the timestamp should be compressed by removing
-                                            non-numeric characters.</p>
-                                        </dd>
-                                        <dt class="field-even">Returns<span class="colon">:</span></dt>
-                                        <dd class="field-even"><p>The generated UTC timestamp as a string. If <cite>compress</cite>
-                                            is True, the
-                                            timestamp will only contain numeric characters.</p>
-                                        </dd>
-                                        <dt class="field-odd">Return type<span class="colon">:</span></dt>
-                                        <dd class="field-odd"><p>str</p>
-                                        </dd>
-                                    </dl>
-                                </dd>
-                            </dl>
-
                             <dl class="py class">
                                 <dt class="sig sig-object py">
                                     <em class="property"><span class="k"><span class="pre">class</span></span><span
                                             class="w"> </span></em><span class="sig-prename descclassname"><span
-                                        class="pre">config.__init__.</span></span><span class="sig-name descname"><span
+                                        class="pre">config.</span></span><span class="sig-name descname"><span
                                         class="pre">ModuliConfig</span></span><span class="sig-paren">(</span><em
                                         class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span
                                         class="o"><span class="pre">=</span></span><span class="default_value"><span
                                         class="pre">None</span></span></em><span class="sig-paren">)</span><a
-                                        class="reference internal"
-                                        href="_modules/config/__init__.html#ModuliConfig"><span
+                                        class="reference internal" href="_modules/config.html#ModuliConfig"><span
                                         class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                 <dd><p>Represents a configuration structure for moduli assembly, encompassing paths,
                                     logs, database configurations, and default settings.</p>
@@ -213,7 +175,7 @@
                                             <span class="sig-name descname"><span class="pre">ensure_directories</span></span><span
                                                 class="sig-paren">(</span><span class="sig-paren">)</span><a
                                                 class="reference internal"
-                                                href="_modules/config/__init__.html#ModuliConfig.ensure_directories"><span
+                                                href="_modules/config.html#ModuliConfig.ensure_directories"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                         <dd><p>Ensures that a set of directories (base, candidates, moduli, and log
                                             directories) exist.
@@ -238,7 +200,7 @@
                                                 class="sig-paren">(</span><em class="sig-param"><span class="n"><span
                                                 class="pre">name</span></span></em><span class="sig-paren">)</span><a
                                                 class="reference internal"
-                                                href="_modules/config/__init__.html#ModuliConfig.get_log_file"><span
+                                                href="_modules/config.html#ModuliConfig.get_log_file"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                         <dd><p>Retrieve the log file path, either by name or default log file path.</p>
                                             <p>This method determines whether a specific log file name is provided. If a
@@ -271,7 +233,7 @@
                                             <span class="sig-name descname"><span
                                                     class="pre">get_logger</span></span><span class="sig-paren">(</span><span
                                                 class="sig-paren">)</span><a class="reference internal"
-                                                                             href="_modules/config/__init__.html#ModuliConfig.get_logger"><span
+                                                                             href="_modules/config.html#ModuliConfig.get_logger"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                         <dd><p>Initializes and returns a logger instance configured for file-based
                                             logging.</p>
@@ -313,7 +275,7 @@
                                                 class="sig-paren">(</span><em class="sig-param"><span class="n"><span
                                                 class="pre">base_dir</span></span></em><span
                                                 class="sig-paren">)</span><a class="reference internal"
-                                                                             href="_modules/config/__init__.html#ModuliConfig.with_base_dir"><span
+                                                                             href="_modules/config.html#ModuliConfig.with_base_dir"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                         <dd><p>Creates a new instance of ModuliConfig with the given base directory.</p>
                                             <p>This static method provides a convenience to instantiate the ModuliConfig
@@ -341,34 +303,23 @@
 
                             <dl class="py function">
                                 <dt class="sig sig-object py">
-                                    <span class="sig-prename descclassname"><span
-                                            class="pre">config.__init__.</span></span><span
-                                        class="sig-name descname"><span
-                                        class="pre">is_valid_identifier_sql</span></span><span
-                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
-                                        class="pre">identifier</span></span><span class="p"><span
-                                        class="pre">:</span></span><span class="w"> </span><span class="n"><span
-                                        class="pre">str</span></span></em><span class="sig-paren">)</span> <span
+                                    <span class="sig-prename descclassname"><span class="pre">config.</span></span><span
+                                        class="sig-name descname"><span class="pre">iso_utc_time</span></span><span
+                                        class="sig-paren">(</span><span class="sig-paren">)</span> <span
                                         class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
-                                        class="sig-return-typehint"><span class="pre">bool</span></span></span><a
-                                        class="reference internal"
-                                        href="_modules/config/__init__.html#is_valid_identifier_sql"><span
+                                        class="sig-return-typehint"><span class="pre">datetime</span></span></span><a
+                                        class="reference internal" href="_modules/config.html#iso_utc_time"><span
                                         class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-                                <dd><p>Determines if the given string is a valid identifier following specific
-                                    rules. Valid identifiers must either be unquoted strings containing only
-                                    alphanumeric characters, underscores, and dollar signs, or quoted strings
-                                    wrapped in backticks with proper pairing. Additionally, identifiers must not
-                                    exceed 64 characters.</p>
+                                <dd><p>Generates and returns the current time in UTC format, stripped of timezone
+                                    information. This function uses the UTC timezone to fetch the current time
+                                    but removes the timezone information from the resulting datetime object.</p>
                                     <dl class="field-list simple">
-                                        <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-                                        <dd class="field-odd"><p><strong>identifier</strong> (<em>str</em>) – The
-                                            identifier string to validate.</p>
+                                        <dt class="field-odd">Returns<span class="colon">:</span></dt>
+                                        <dd class="field-odd"><p>The current UTC time as a timezone-naive datetime
+                                            object.</p>
                                         </dd>
-                                        <dt class="field-even">Returns<span class="colon">:</span></dt>
-                                        <dd class="field-even"><p>True if the identifier is valid, otherwise False.</p>
-                                        </dd>
-                                        <dt class="field-odd">Return type<span class="colon">:</span></dt>
-                                        <dd class="field-odd"><p>Bool</p>
+                                        <dt class="field-even">Return type<span class="colon">:</span></dt>
+                                        <dd class="field-even"><p>datetime</p>
                                         </dd>
                                     </dl>
                                 </dd>
@@ -376,8 +327,43 @@
 
                             <dl class="py function">
                                 <dt class="sig sig-object py">
-                                    <span class="sig-prename descclassname"><span
-                                            class="pre">config.__init__.</span></span><span
+                                    <span class="sig-prename descclassname"><span class="pre">config.</span></span><span
+                                        class="sig-name descname"><span class="pre">iso_utc_timestamp</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">compress</span></span><span class="p"><span
+                                        class="pre">:</span></span><span class="w"> </span><span class="n"><span
+                                        class="pre">bool</span></span><span class="w"> </span><span class="o"><span
+                                        class="pre">=</span></span><span class="w"> </span><span
+                                        class="default_value"><span class="pre">False</span></span></em><span
+                                        class="sig-paren">)</span> <span class="sig-return"><span
+                                        class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span
+                                        class="pre">str</span></span></span><a class="reference internal"
+                                                                               href="_modules/config.html#iso_utc_timestamp"><span
+                                        class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                <dd><p>Generates a UTC timestamp in ISO 8601 format. Optionally, the output can be
+                                    compressed
+                                    to remove non-numeric characters.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters<span class="colon">:</span></dt>
+                                        <dd class="field-odd"><p><strong>compress</strong> (<em>bool</em>) – Specifies
+                                            whether the timestamp should be compressed by removing
+                                            non-numeric characters.</p>
+                                        </dd>
+                                        <dt class="field-even">Returns<span class="colon">:</span></dt>
+                                        <dd class="field-even"><p>The generated UTC timestamp as a string. If <cite>compress</cite>
+                                            is True, the
+                                            timestamp will only contain numeric characters.</p>
+                                        </dd>
+                                        <dt class="field-odd">Return type<span class="colon">:</span></dt>
+                                        <dd class="field-odd"><p>str</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py">
+                                    <span class="sig-prename descclassname"><span class="pre">config.</span></span><span
                                         class="sig-name descname"><span
                                         class="pre">strip_punction_from_datetime_str</span></span><span
                                         class="sig-paren">(</span><em class="sig-param"><span class="n"><span
@@ -387,7 +373,7 @@
                                         class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
                                         class="sig-return-typehint"><span class="pre">str</span></span></span><a
                                         class="reference internal"
-                                        href="_modules/config/__init__.html#strip_punction_from_datetime_str"><span
+                                        href="_modules/config.html#strip_punction_from_datetime_str"><span
                                         class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                 <dd><p>Compresses a datetime object into a compact string format by removing non-numeric
                                     characters from its ISO 8601 format string.</p>

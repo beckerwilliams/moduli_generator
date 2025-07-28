@@ -2,8 +2,8 @@
 module db
 =========
 
-.. automodule:: db.__init__
+
+.. automodule:: db
     :members:
     :private-members:
     :no-index:
-

@@ -2,7 +2,7 @@
 module moduli_generator
 =======================
 
-.. automodule:: moduli_generator.__init__
+.. automodule:: moduli_generator
     :members:
     :private-members:
     :no-index:

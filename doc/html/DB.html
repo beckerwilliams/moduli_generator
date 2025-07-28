@@ -66,7 +66,7 @@
                 <p class="caption" role="heading"><span class="caption-text">Legal</span></p>
                 <ul>
                     <li class="toctree-l1"><a class="reference internal" href="COPYRIGHT.html">Copyright</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="LICENSE.html">MIT Licensegn</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="LICENSE.html">MIT License</a></li>
                 </ul>
 
             </div>
@@ -100,14 +100,12 @@
                                 <dt class="sig sig-object py">
                                     <em class="property"><span class="k"><span class="pre">class</span></span><span
                                             class="w"> </span></em><span class="sig-prename descclassname"><span
-                                        class="pre">db.__init__.</span></span><span class="sig-name descname"><span
-                                        class="pre">MariaDBConnector</span></span><span class="sig-paren">(</span><em
-                                        class="sig-param"><span class="n"><span class="pre">config:</span> <span
-                                        class="pre">~config.ModuliConfig</span> <span class="pre">=</span> <span
-                                        class="pre">&lt;config.ModuliConfig</span> <span
+                                        class="pre">db.</span></span><span class="sig-name descname"><span class="pre">MariaDBConnector</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">config:</span> <span class="pre">~config.ModuliConfig</span> <span
+                                        class="pre">=</span> <span class="pre">&lt;config.ModuliConfig</span> <span
                                         class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a
-                                        class="reference internal"
-                                        href="_modules/db/__init__.html#MariaDBConnector"><span
+                                        class="reference internal" href="_modules/db.html#MariaDBConnector"><span
                                         class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                 <dd><p>Provides a connection pool and management functions for interacting with a
                                     MariaDB database.</p>
@@ -169,7 +167,7 @@
                                                 class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
                                                 class="sig-return-typehint"><span class="pre">int</span></span></span><a
                                                 class="reference internal"
-                                                href="_modules/db/__init__.html#MariaDBConnector._add_without_transaction"><span
+                                                href="_modules/db.html#MariaDBConnector._add_without_transaction"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                         <dd><p>Inserts a new record into the database table without wrapping the
                                             operation
@@ -216,8 +214,7 @@
                                                 class="pre">str</span></span></em><span class="sig-paren">)</span> <span
                                                 class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
                                                 class="sig-return-typehint"><span class="pre">int</span></span></span><a
-                                                class="reference internal"
-                                                href="_modules/db/__init__.html#MariaDBConnector.add"><span
+                                                class="reference internal" href="_modules/db.html#MariaDBConnector.add"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                         <dd><p>Inserts a record into a specified database table. The record includes
                                             details such
@@ -262,7 +259,7 @@
                                             <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
                                                     class="sig-return-typehint"><span
                                                     class="pre">bool</span></span></span><a class="reference internal"
-                                                                                            href="_modules/db/__init__.html#MariaDBConnector.add_batch"><span
+                                                                                            href="_modules/db.html#MariaDBConnector.add_batch"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                         <dd><p>Add a batch of records to the specified table within the database.</p>
                                             <p>This method validates the database and table names, prepares the SQL
@@ -305,7 +302,7 @@
                                                 class="sig-return-icon">&#x2192;</span> <span
                                                 class="sig-return-typehint"><span class="pre">int</span></span></span><a
                                                 class="reference internal"
-                                                href="_modules/db/__init__.html#MariaDBConnector.delete_records"><span
+                                                href="_modules/db.html#MariaDBConnector.delete_records"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                         <dd><p>Deletes records from the specified table in the database, with an
                                             optional
@@ -360,7 +357,7 @@
                                             <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
                                                     class="sig-return-typehint"><span
                                                     class="pre">bool</span></span></span><a class="reference internal"
-                                                                                            href="_modules/db/__init__.html#MariaDBConnector.execute_batch"><span
+                                                                                            href="_modules/db.html#MariaDBConnector.execute_batch"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                         <dd><p>Execute multiple SQL queries in a batch with optional parameters.</p>
                                             <p>This method allows execution of a series of SQL queries in a batch,
@@ -418,7 +415,7 @@
                                                     class="pre">Dict</span><span class="p"><span
                                                     class="pre">]</span></span></span></span><a
                                                 class="reference internal"
-                                                href="_modules/db/__init__.html#MariaDBConnector.execute_select"><span
+                                                href="_modules/db.html#MariaDBConnector.execute_select"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                         <dd><p>Executes a SELECT SQL query and returns the results.</p>
                                             <p>This method takes an SQL query and optional parameters, executes the
@@ -468,7 +465,7 @@
                                             <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
                                                     class="sig-return-typehint"><span
                                                     class="pre">int</span></span></span><a class="reference internal"
-                                                                                           href="_modules/db/__init__.html#MariaDBConnector.execute_update"><span
+                                                                                           href="_modules/db.html#MariaDBConnector.execute_update"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                         <dd><p>Executes an update query on the database and returns the number of rows
                                             affected. The
@@ -511,7 +508,7 @@
                                             <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
                                                     class="sig-return-typehint"><span
                                                     class="pre">int</span></span></span><a class="reference internal"
-                                                                                           href="_modules/db/__init__.html#MariaDBConnector.export_screened_moduli"><span
+                                                                                           href="_modules/db.html#MariaDBConnector.export_screened_moduli"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                         <dd><p>Stores screened moduli installers from the given dictionary into the
                                             storage.</p>
@@ -550,7 +547,7 @@
                                             <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
                                                     class="sig-return-typehint"><span class="pre">ContextManager</span></span></span><a
                                                 class="reference internal"
-                                                href="_modules/db/__init__.html#MariaDBConnector.file_writer"><span
+                                                href="_modules/db.html#MariaDBConnector.file_writer"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                         <dd><p>Context manager for safely opening a file for writing.</p>
                                             <p>When used, this context manager ensures that the specified file is opened
@@ -581,7 +578,7 @@
                                                 class="sig-return-typehint"><span
                                                 class="pre">ContextManager</span></span></span><a
                                                 class="reference internal"
-                                                href="_modules/db/__init__.html#MariaDBConnector.get_connection"><span
+                                                href="_modules/db.html#MariaDBConnector.get_connection"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                         <dd><p>Provides a context manager for safely getting and managing a connection
                                             from the connection pool. Ensures the connection is properly closed and
@@ -593,6 +590,38 @@
                                                 </dd>
                                                 <dt class="field-even">Return type<span class="colon">:</span></dt>
                                                 <dd class="field-even"><p>Connection</p>
+                                                </dd>
+                                            </dl>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="py method">
+                                        <dt class="sig sig-object py">
+                                            <span class="sig-name descname"><span
+                                                    class="pre">show_stats</span></span><span class="sig-paren">(</span><span
+                                                class="sig-paren">)</span> <span class="sig-return"><span
+                                                class="sig-return-icon">&#x2192;</span> <span
+                                                class="sig-return-typehint"><span class="pre">Dict</span><span
+                                                class="p"><span class="pre">[</span></span><span
+                                                class="pre">str</span><span class="p"><span
+                                                class="pre">,</span></span><span class="w"> </span><span
+                                                class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a
+                                                class="reference internal"
+                                                href="_modules/db.html#MariaDBConnector.show_stats"><span
+                                                class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                        <dd><p>Alias for stats() method.</p>
+                                            <p>Returns all modulus counts by keysize using a single SQL query.</p>
+                                            <dl class="field-list simple">
+                                                <dt class="field-odd">Returns<span class="colon">:</span></dt>
+                                                <dd class="field-odd"><p>A dictionary with keysize as keys and counts as
+                                                    values</p>
+                                                </dd>
+                                                <dt class="field-even">Return type<span class="colon">:</span></dt>
+                                                <dd class="field-even"><p>Dict[str, int]</p>
+                                                </dd>
+                                                <dt class="field-odd">Raises<span class="colon">:</span></dt>
+                                                <dd class="field-odd"><p><strong>RuntimeError</strong> – If the database
+                                                    query fails</p>
                                                 </dd>
                                             </dl>
                                         </dd>
@@ -624,7 +653,7 @@
                                                 class="p"><span class="pre">]</span></span><span class="w"> </span><span
                                                 class="p"><span class="pre">|</span></span><span class="w"> </span><span
                                                 class="pre">None</span></span></span><a class="reference internal"
-                                                                                        href="_modules/db/__init__.html#MariaDBConnector.sql"><span
+                                                                                        href="_modules/db.html#MariaDBConnector.sql"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                         <dd><p>Executes an SQL query with optional parameters and returns the results or
                                             affected rows depending on the fetch flag.</p>
@@ -673,7 +702,7 @@
                                                 class="pre">,</span></span><span class="w"> </span><span
                                                 class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a
                                                 class="reference internal"
-                                                href="_modules/db/__init__.html#MariaDBConnector.stats"><span
+                                                href="_modules/db.html#MariaDBConnector.stats"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                         <dd><p>Returns all modulus counts by keysize using a single SQL query.</p>
                                             <p>The iteration over the counts occurs completely within the SQL query
@@ -709,7 +738,7 @@
                                                 class="sig-return-typehint"><span
                                                 class="pre">ContextManager</span></span></span><a
                                                 class="reference internal"
-                                                href="_modules/db/__init__.html#MariaDBConnector.transaction"><span
+                                                href="_modules/db.html#MariaDBConnector.transaction"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                         <dd><p>Provides a context manager for handling database transactions. It ensures
                                             that the
@@ -741,7 +770,7 @@
                                                 class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
                                                 class="sig-return-typehint"><span
                                                 class="pre">None</span></span></span><a class="reference internal"
-                                                                                        href="_modules/db/__init__.html#MariaDBConnector.write_moduli_file"><span
+                                                                                        href="_modules/db.html#MariaDBConnector.write_moduli_file"><span
                                                 class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                         <dd><p>Writes the moduli file using the database interface.</p>
                                             <p>This method retrieves the installers necessary for the moduli file from
@@ -761,7 +790,7 @@
 
                             <dl class="py function">
                                 <dt class="sig sig-object py">
-                                    <span class="sig-prename descclassname"><span class="pre">db.__init__.</span></span><span
+                                    <span class="sig-prename descclassname"><span class="pre">db.</span></span><span
                                         class="sig-name descname"><span class="pre">get_mysql_config_value</span></span><span
                                         class="sig-paren">(</span><em class="sig-param"><span class="n"><span
                                         class="pre">cnf</span></span><span class="p"><span
@@ -787,7 +816,7 @@
                                         class="sig-paren">)</span> <span class="sig-return"><span
                                         class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span
                                         class="pre">Any</span></span></span><a class="reference internal"
-                                                                               href="_modules/db/__init__.html#get_mysql_config_value"><span
+                                                                               href="_modules/db.html#get_mysql_config_value"><span
                                         class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                 <dd><p>Get a specific value from the parsed MySQL config dictionary.</p>
                                     <dl class="field-list simple">
@@ -814,7 +843,40 @@
 
                             <dl class="py function">
                                 <dt class="sig sig-object py">
-                                    <span class="sig-prename descclassname"><span class="pre">db.__init__.</span></span><span
+                                    <span class="sig-prename descclassname"><span class="pre">db.</span></span><span
+                                        class="sig-name descname"><span
+                                        class="pre">is_valid_identifier_sql</span></span><span
+                                        class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                        class="pre">identifier</span></span><span class="p"><span
+                                        class="pre">:</span></span><span class="w"> </span><span class="n"><span
+                                        class="pre">str</span></span></em><span class="sig-paren">)</span> <span
+                                        class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
+                                        class="sig-return-typehint"><span class="pre">bool</span></span></span><a
+                                        class="reference internal" href="_modules/db.html#is_valid_identifier_sql"><span
+                                        class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                <dd><p>Determines if the given string is a valid identifier following specific
+                                    rules. Valid identifiers must either be unquoted strings containing only
+                                    alphanumeric characters, underscores, and dollar signs, or quoted strings
+                                    wrapped in backticks with proper pairing. Additionally, identifiers must not
+                                    exceed 64 characters.</p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Parameters<span class="colon">:</span></dt>
+                                        <dd class="field-odd"><p><strong>identifier</strong> (<em>str</em>) – The
+                                            identifier string to validate.</p>
+                                        </dd>
+                                        <dt class="field-even">Returns<span class="colon">:</span></dt>
+                                        <dd class="field-even"><p>True if the identifier is valid, otherwise False.</p>
+                                        </dd>
+                                        <dt class="field-odd">Return type<span class="colon">:</span></dt>
+                                        <dd class="field-odd"><p>Bool</p>
+                                        </dd>
+                                    </dl>
+                                </dd>
+                            </dl>
+
+                            <dl class="py function">
+                                <dt class="sig sig-object py">
+                                    <span class="sig-prename descclassname"><span class="pre">db.</span></span><span
                                         class="sig-name descname"><span
                                         class="pre">parse_mysql_config</span></span><span class="sig-paren">(</span><em
                                         class="sig-param"><span class="n"><span class="pre">mysql_cnf</span></span><span
@@ -829,9 +891,8 @@
                                             class="pre">,</span></span><span class="w"> </span><span
                                             class="pre">str</span><span class="p"><span class="pre">]</span></span><span
                                             class="p"><span class="pre">]</span></span></span></span><a
-                                        class="reference internal"
-                                        href="_modules/db/__init__.html#parse_mysql_config"><span class="viewcode-link"><span
-                                        class="pre">[source]</span></span></a></dt>
+                                        class="reference internal" href="_modules/db.html#parse_mysql_config"><span
+                                        class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
                                 <dd><p>Parse MySQL/MariaDB configuration file and return a dictionary structure.</p>
                                     <dl class="field-list simple">
                                         <dt class="field-odd">Parameters<span class="colon">:</span></dt>

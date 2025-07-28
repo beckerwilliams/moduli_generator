@@ -39,13 +39,10 @@
             <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
                 <p class="caption" role="heading"><span class="caption-text">Documentation:</span></p>
                 <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../EXAMPLE_INSTALL_SESSION.html">Boostrap
-                        Dev Installer</a></li>
-                    <li class="toctree-l1"><a class="reference internal"
-                                              href="../EXAMPLE_INSTALL_SESSION.html#requirements">Requirements</a></li>
-                    <li class="toctree-l1"><a class="reference internal"
-                                              href="../EXAMPLE_INSTALL_SESSION.html#configure">Configure</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../MARIADB.html">MariaDB</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../README.html">SSH2 Moduli
+                        Generator554</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../README.html#configure-mariadb">Configure
+                        MariaDB</a></li>
                 </ul>
                 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
                 <ul>
@@ -53,7 +50,6 @@
                     <li class="toctree-l1"><a class="reference internal" href="../DB.html">module db</a></li>
                     <li class="toctree-l1"><a class="reference internal" href="../MODULI_GENERATOR.html">module
                         moduli_generator</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../TEST.html">module test</a></li>
                 </ul>
                 <p class="caption" role="heading"><span class="caption-text">Contributing:</span></p>
                 <ul>
@@ -67,18 +63,7 @@
                 <p class="caption" role="heading"><span class="caption-text">Legal</span></p>
                 <ul>
                     <li class="toctree-l1"><a class="reference internal" href="../COPYRIGHT.html">Copyright</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../LICENSE.html">MIT License</a></li>
-                </ul>
-                <p class="caption" role="heading"><span class="caption-text">Leftovers</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../DATABASE_INTEGRATION.html">Database
-                        Integration</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../MARIADB.html">MariaDB</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../CHANGELOG_GENERATOR.html">module
-                        changelog_generator</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../README.html">SSH2 Moduli Generator</a>
-                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../LICENSE.html">MIT Licensegn</a></li>
                 </ul>
 
             </div>
@@ -131,8 +116,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span
                                 class="kn">import</span> <span class="n">Final</span>
 
-<span class="c1"># from .__version__ import version</span>
-
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span
                                 class="w"> </span><span class="kn">import</span> <span class="n">version</span>
@@ -161,9 +144,9 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;ModuliConfig&#39;</span><span class="p">,</span>
     <span class="s1">&#39;default_config&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;ISO_UTC_TIMESTAMP&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;iso_utc_timestamp&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;iso_utc_time&#39;</span><span class="p">,</span>
     <span class="s1">&#39;strip_punction_from_datetime_str&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;is_valid_identifier_sql&#39;</span><span class="p">,</span>
     <span class="s1">&#39;DEFAULT_MARIADB&#39;</span><span class="p">,</span>
     <span class="s1">&#39;DEFAULT_MARIADB_CNF&#39;</span><span class="p">,</span>
     <span class="s1">&#39;DEFAULT_KEY_LENGTHS&#39;</span><span class="p">,</span>
@@ -241,33 +224,26 @@
 
 <span class="c1">#  ref: https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl</span>
 
-<div class="viewcode-block" id="ISO_UTC_TIMESTAMP">
-<a class="viewcode-back" href="../stash/CONFIG.html#config.ISO_UTC_TIMESTAMP">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">ISO_UTC_TIMESTAMP</span><span class="p">(</span><span
+<div class="viewcode-block" id="iso_utc_timestamp">
+<a class="viewcode-back" href="../CONFIG.html#config.iso_utc_timestamp">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">iso_utc_timestamp</span><span class="p">(</span><span
         class="n">compress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span
-        class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span
-        class="nb">str</span><span class="p">,</span> <span class="n">datetime</span><span class="p">):</span>
+        class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span
+        class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Generate an ISO 8601 UTC timestamp.</span>
+<span class="sd">    Generates a UTC timestamp in ISO 8601 format. Optionally, the output can be compressed</span>
+<span class="sd">    to remove non-numeric characters.</span>
 
-<span class="sd">    This function generates a current timestamp in ISO 8601 format</span>
-<span class="sd">    based on UTC time. The timestamp can be returned as either a</span>
-<span class="sd">    compact numeric string or a fully formatted ISO string.</span>
-
-<span class="sd">    :param compress: A flag to indicate whether the resulting timestamp</span>
-<span class="sd">        should be compressed to include only numeric characters.</span>
-<span class="sd">    :return: Returns the generated ISO UTC timestamp as a string. If</span>
-<span class="sd">        `compress` is True, the returned string contains only numeric</span>
-<span class="sd">        characters representing the timestamp. If `compress` is False,</span>
-<span class="sd">        the returned string is the full ISO 8601 formatted timestamp.</span>
+<span class="sd">    :param compress: Specifies whether the timestamp should be compressed by removing</span>
+<span class="sd">        non-numeric characters.</span>
+<span class="sd">    :type compress: bool</span>
+<span class="sd">    :return: The generated UTC timestamp as a string. If `compress` is True, the</span>
+<span class="sd">        timestamp will only contain numeric characters.</span>
 <span class="sd">    :rtype: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span
-        class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">UTC</span><span
-        class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span
-        class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span
-        class="p">()</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">iso_utc_time</span><span
+        class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">compress</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span
         class="s1">&#39;[^0-9]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span
@@ -277,11 +253,30 @@
 
 
 
+<div class="viewcode-block" id="iso_utc_time">
+<a class="viewcode-back" href="../CONFIG.html#config.iso_utc_time">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">iso_utc_time</span><span class="p">()</span> <span
+        class="o">-&gt;</span> <span class="n">datetime</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates and returns the current time in UTC format, stripped of timezone</span>
+<span class="sd">    information. This function uses the UTC timezone to fetch the current time</span>
+<span class="sd">    but removes the timezone information from the resulting datetime object.</span>
+
+<span class="sd">    :return: The current UTC time as a timezone-naive datetime object.</span>
+<span class="sd">    :rtype: datetime</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span
+        class="p">(</span><span class="n">UTC</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span
+        class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="kc">None</span><span
+        class="p">)</span></div>
+
+
+
 <span class="c1"># The Product: a Complete ssh-moduli file</span>
 <span class="n">DEFAULT_MODULI_FILE</span><span class="p">:</span> <span class="n">Final</span><span
                                 class="p">[</span><span class="nb">str</span><span class="p">]</span> <span
                                 class="o">=</span> <span class="sa">f</span><span
-                                class="s1">&#39;ssh-moduli_</span><span class="si">{</span><span class="n">ISO_UTC_TIMESTAMP</span><span
+                                class="s1">&#39;ssh-moduli_</span><span class="si">{</span><span class="n">iso_utc_timestamp</span><span
                                 class="p">(</span><span class="n">compress</span><span class="o">=</span><span
                                 class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
 
@@ -291,7 +286,7 @@
 
 <span class="c1"># For Date Formats Sans Punctuation</span>
 <div class="viewcode-block" id="strip_punction_from_datetime_str">
-<a class="viewcode-back" href="../stash/CONFIG.html#config.strip_punction_from_datetime_str">[docs]</a>
+<a class="viewcode-back" href="../CONFIG.html#config.strip_punction_from_datetime_str">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">strip_punction_from_datetime_str</span><span
         class="p">(</span><span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span><span
         class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -312,65 +307,47 @@
 
 
 
-<div class="viewcode-block" id="is_valid_identifier_sql">
-<a class="viewcode-back" href="../stash/CONFIG.html#config.is_valid_identifier_sql">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">is_valid_identifier_sql</span><span
-        class="p">(</span><span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span><span
-        class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Determines if the given string is a valid identifier following specific</span>
-<span class="sd">    rules. Valid identifiers must either be unquoted strings containing only</span>
-<span class="sd">    alphanumeric characters, underscores, and dollar signs, or quoted strings</span>
-<span class="sd">    wrapped in backticks with proper pairing. Additionally, identifiers must not</span>
-<span class="sd">    exceed 64 characters.</span>
-
-<span class="sd">    :param identifier: The identifier string to validate.</span>
-<span class="sd">    :type identifier: str</span>
-<span class="sd">    :return: True if the identifier is valid, otherwise False.</span>
-<span class="sd">    :rtype: Bool</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">identifier</span> <span
-        class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span
-        class="n">identifier</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="c1"># Check for empty string or too long identifier</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">identifier</span><span
-        class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span
-        class="nb">len</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span> <span
-        class="o">&gt;</span> <span class="mi">64</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="c1"># If the identifier is quoted with backticks, we need different validation</span>
-    <span class="k">if</span> <span class="n">identifier</span><span class="o">.</span><span class="n">startswith</span><span
-        class="p">(</span><span class="s1">&#39;`&#39;</span><span class="p">)</span> <span class="ow">and</span> <span
-        class="n">identifier</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span
-        class="s1">&#39;`&#39;</span><span class="p">):</span>
-        <span class="c1"># For quoted identifiers, make sure the backticks are properly paired</span>
-        <span class="c1"># and that the identifier isn&#39;t just empty backticks</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span
-        class="n">identifier</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span>
-
-    <span class="c1"># For unquoted identifiers, check that they only contain valid characters</span>
-    <span class="n">valid_pattern</span> <span class="o">=</span> <span class="nb">compile</span><span
-        class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[a-zA-Z0-9_$]+$&#39;</span><span
-        class="p">)</span>
-
-    <span class="c1"># Validate the pattern</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">valid_pattern</span><span
-        class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">identifier</span><span
-        class="p">):</span>
-        <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="c1"># MariaDB reserved words could be added here to make the validation stricter</span>
-    <span class="c1"># For a complete solution, a list of reserved words should be checked</span>
-
-    <span class="k">return</span> <span class="kc">True</span></div>
-
+<span class="c1"># def is_valid_identifier_sql(identifier: str) -&gt; bool:</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     Determines if the given string is a valid identifier following specific</span>
+<span class="c1">#     rules. Valid identifiers must either be unquoted strings containing only</span>
+<span class="c1">#     alphanumeric characters, underscores, and dollar signs, or quoted strings</span>
+<span class="c1">#     wrapped in backticks with proper pairing. Additionally, identifiers must not</span>
+<span class="c1">#     exceed 64 characters.</span>
+<span class="c1">#</span>
+<span class="c1">#     :param identifier: The identifier string to validate.</span>
+<span class="c1">#     :type identifier: str</span>
+<span class="c1">#     :return: True if the identifier is valid, otherwise False.</span>
+<span class="c1">#     :rtype: Bool</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     if not identifier or not isinstance(identifier, str):</span>
+<span class="c1">#         return False</span>
+<span class="c1">#</span>
+<span class="c1">#     # Check for empty string or too long identifier</span>
+<span class="c1">#     if len(identifier) == 0 or len(identifier) &gt; 64:</span>
+<span class="c1">#         return False</span>
+<span class="c1">#</span>
+<span class="c1">#     # If the identifier is quoted with backticks, we need different validation</span>
+<span class="c1">#     if identifier.startswith(&#39;`&#39;) and identifier.endswith(&#39;`&#39;):</span>
+<span class="c1">#         # For quoted identifiers, make sure the backticks are properly paired</span>
+<span class="c1">#         # and that the identifier isn&#39;t just empty backticks</span>
+<span class="c1">#         return len(identifier) &gt; 2</span>
+<span class="c1">#</span>
+<span class="c1">#     # For unquoted identifiers, check that they only contain valid characters</span>
+<span class="c1">#     valid_pattern = compile(r&#39;^[a-zA-Z0-9_$]+$&#39;)</span>
+<span class="c1">#</span>
+<span class="c1">#     # Validate the pattern</span>
+<span class="c1">#     if not valid_pattern.match(identifier):</span>
+<span class="c1">#         return False</span>
+<span class="c1">#</span>
+<span class="c1">#     # MariaDB reserved words could be added here to make the validation stricter</span>
+<span class="c1">#     # For a complete solution, a list of reserved words should be checked</span>
+<span class="c1">#</span>
+<span class="c1">#     return True</span>
 
 
 <div class="viewcode-block" id="ModuliConfig">
-<a class="viewcode-back" href="../stash/CONFIG.html#config.ModuliConfig">[docs]</a>
+<a class="viewcode-back" href="../CONFIG.html#config.ModuliConfig">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ModuliConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Represents a configuration structure for moduli assembly, encompassing paths,</span>
@@ -499,6 +476,9 @@
         <span class="c1"># Default moduli output files</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">moduli_file_pfx</span> <span
         class="o">=</span> <span class="n">DEFAULT_MODULI_PREFIX</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">moduli_file</span> <span class="o">=</span> <span
+        class="bp">self</span><span class="o">.</span><span class="n">moduli_home</span> <span class="o">/</span> <span
+        class="n">DEFAULT_MODULI_FILE</span>
 
         <span class="c1"># Delete on successful Write Flag</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delete_records_on_moduli_write</span> <span
@@ -509,7 +489,7 @@
         class="o">=</span> <span class="n">version</span>
 
 <div class="viewcode-block" id="ModuliConfig.ensure_directories">
-<a class="viewcode-back" href="../stash/CONFIG.html#config.ModuliConfig.ensure_directories">[docs]</a>
+<a class="viewcode-back" href="../CONFIG.html#config.ModuliConfig.ensure_directories">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">ensure_directories</span><span class="p">(</span><span
         class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -535,7 +515,7 @@
 
 
 <div class="viewcode-block" id="ModuliConfig.get_logger">
-<a class="viewcode-back" href="../stash/CONFIG.html#config.ModuliConfig.get_logger">[docs]</a>
+<a class="viewcode-back" href="../CONFIG.html#config.ModuliConfig.get_logger">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_logger</span><span class="p">(</span><span
         class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -593,7 +573,7 @@
 
 
 <div class="viewcode-block" id="ModuliConfig.get_log_file">
-<a class="viewcode-back" href="../stash/CONFIG.html#config.ModuliConfig.get_log_file">[docs]</a>
+<a class="viewcode-back" href="../CONFIG.html#config.ModuliConfig.get_log_file">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_log_file</span><span class="p">(</span><span
         class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -620,7 +600,7 @@
 
 
 <div class="viewcode-block" id="ModuliConfig.with_base_dir">
-<a class="viewcode-back" href="../stash/CONFIG.html#config.ModuliConfig.with_base_dir">[docs]</a>
+<a class="viewcode-back" href="../CONFIG.html#config.ModuliConfig.with_base_dir">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">with_base_dir</span><span class="p">(</span><span
         class="n">base_dir</span><span class="p">):</span>

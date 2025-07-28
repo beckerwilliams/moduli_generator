@@ -7,7 +7,7 @@ from datetime import (UTC, datetime)
 from logging import (DEBUG, basicConfig, getLogger)
 from os import environ as osenv
 from pathlib import PosixPath as Path
-from re import (compile, sub)
+from re import (sub)
 from typing import Final
 
 try:
@@ -30,9 +30,9 @@ version = __version__
 __all__ = [
     'ModuliConfig',
     'default_config',
-    'ISO_UTC_TIMESTAMP',
+    'iso_utc_timestamp',
+    'iso_utc_time',
     'strip_punction_from_datetime_str',
-    'is_valid_identifier_sql',
     'DEFAULT_MARIADB',
     'DEFAULT_MARIADB_CNF',
     'DEFAULT_KEY_LENGTHS',
@@ -71,7 +71,7 @@ DEFAULT_MODULI_RECORDS_PER_KEYLENGTH: Final[int] = 20
 
 #  ref: https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl
 
-def ISO_UTC_TIMESTAMP(compress: bool = False) -> str:
+def iso_utc_timestamp(compress: bool = False) -> str:
     """
     Generates a UTC timestamp in ISO 8601 format. Optionally, the output can be compressed
     to remove non-numeric characters.
@@ -84,7 +84,7 @@ def ISO_UTC_TIMESTAMP(compress: bool = False) -> str:
     :rtype: str
     """
 
-    timestamp = datetime.now(UTC).replace(tzinfo=None).isoformat()
+    timestamp = iso_utc_time().isoformat()
     if compress:
         return sub(r'[^0-9]', '', timestamp)
     else:
@@ -104,7 +104,7 @@ def iso_utc_time() -> datetime:
 
 
 # The Product: a Complete ssh-moduli file
-DEFAULT_MODULI_FILE: Final[str] = f'ssh-moduli_{ISO_UTC_TIMESTAMP(compress=True)}'
+DEFAULT_MODULI_FILE: Final[str] = f'ssh-moduli_{iso_utc_timestamp(compress=True)}'
 
 
 ##################################################################################
@@ -125,43 +125,43 @@ def strip_punction_from_datetime_str(timestamp: datetime) -> str:
     return sub(r'[^0-9]', '', timestamp.isoformat())
 
 
-def is_valid_identifier_sql(identifier: str) -> bool:
-    """
-    Determines if the given string is a valid identifier following specific
-    rules. Valid identifiers must either be unquoted strings containing only
-    alphanumeric characters, underscores, and dollar signs, or quoted strings
-    wrapped in backticks with proper pairing. Additionally, identifiers must not
-    exceed 64 characters.
-
-    :param identifier: The identifier string to validate.
-    :type identifier: str
-    :return: True if the identifier is valid, otherwise False.
-    :rtype: Bool
-    """
-    if not identifier or not isinstance(identifier, str):
-        return False
-
-    # Check for empty string or too long identifier
-    if len(identifier) == 0 or len(identifier) > 64:
-        return False
-
-    # If the identifier is quoted with backticks, we need different validation
-    if identifier.startswith('`') and identifier.endswith('`'):
-        # For quoted identifiers, make sure the backticks are properly paired
-        # and that the identifier isn't just empty backticks
-        return len(identifier) > 2
-
-    # For unquoted identifiers, check that they only contain valid characters
-    valid_pattern = compile(r'^[a-zA-Z0-9_$]+$')
-
-    # Validate the pattern
-    if not valid_pattern.match(identifier):
-        return False
-
-    # MariaDB reserved words could be added here to make the validation stricter
-    # For a complete solution, a list of reserved words should be checked
-
-    return True
+# def is_valid_identifier_sql(identifier: str) -> bool:
+#     """
+#     Determines if the given string is a valid identifier following specific
+#     rules. Valid identifiers must either be unquoted strings containing only
+#     alphanumeric characters, underscores, and dollar signs, or quoted strings
+#     wrapped in backticks with proper pairing. Additionally, identifiers must not
+#     exceed 64 characters.
+#
+#     :param identifier: The identifier string to validate.
+#     :type identifier: str
+#     :return: True if the identifier is valid, otherwise False.
+#     :rtype: Bool
+#     """
+#     if not identifier or not isinstance(identifier, str):
+#         return False
+#
+#     # Check for empty string or too long identifier
+#     if len(identifier) == 0 or len(identifier) > 64:
+#         return False
+#
+#     # If the identifier is quoted with backticks, we need different validation
+#     if identifier.startswith('`') and identifier.endswith('`'):
+#         # For quoted identifiers, make sure the backticks are properly paired
+#         # and that the identifier isn't just empty backticks
+#         return len(identifier) > 2
+#
+#     # For unquoted identifiers, check that they only contain valid characters
+#     valid_pattern = compile(r'^[a-zA-Z0-9_$]+$')
+#
+#     # Validate the pattern
+#     if not valid_pattern.match(identifier):
+#         return False
+#
+#     # MariaDB reserved words could be added here to make the validation stricter
+#     # For a complete solution, a list of reserved words should be checked
+#
+#     return True
 
 
 class ModuliConfig:

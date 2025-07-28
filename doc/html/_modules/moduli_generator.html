@@ -39,13 +39,10 @@
             <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
                 <p class="caption" role="heading"><span class="caption-text">Documentation:</span></p>
                 <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../EXAMPLE_INSTALL_SESSION.html">Boostrap
-                        Dev Installer</a></li>
-                    <li class="toctree-l1"><a class="reference internal"
-                                              href="../EXAMPLE_INSTALL_SESSION.html#requirements">Requirements</a></li>
-                    <li class="toctree-l1"><a class="reference internal"
-                                              href="../EXAMPLE_INSTALL_SESSION.html#configure">Configure</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../MARIADB.html">MariaDB</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../README.html">SSH2 Moduli
+                        Generator554</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../README.html#configure-mariadb">Configure
+                        MariaDB</a></li>
                 </ul>
                 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
                 <ul>
@@ -53,7 +50,6 @@
                     <li class="toctree-l1"><a class="reference internal" href="../DB.html">module db</a></li>
                     <li class="toctree-l1"><a class="reference internal" href="../MODULI_GENERATOR.html">module
                         moduli_generator</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../TEST.html">module test</a></li>
                 </ul>
                 <p class="caption" role="heading"><span class="caption-text">Contributing:</span></p>
                 <ul>
@@ -67,18 +63,7 @@
                 <p class="caption" role="heading"><span class="caption-text">Legal</span></p>
                 <ul>
                     <li class="toctree-l1"><a class="reference internal" href="../COPYRIGHT.html">Copyright</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../LICENSE.html">MIT License</a></li>
-                </ul>
-                <p class="caption" role="heading"><span class="caption-text">Leftovers</span></p>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../DATABASE_INTEGRATION.html">Database
-                        Integration</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../MARIADB.html">MariaDB</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../CHANGELOG_GENERATOR.html">module
-                        changelog_generator</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../README.html">SSH2 Moduli Generator</a>
-                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../LICENSE.html">MIT Licensegn</a></li>
                 </ul>
 
             </div>
@@ -122,31 +107,67 @@
                                 class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span
                                 class="p">)</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">mariadb</span><span class="w"> </span><span
-                                class="kn">import</span> <span class="p">(</span><span class="n">Error</span><span
-                                class="p">)</span>
+<span class="c1"># Try to import mariadb components, but make them optional</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">mariadb</span><span class="w"> </span><span
+                                class="kn">import</span> <span class="n">Error</span> <span class="k">as</span> <span
+                                class="n">MariaDBError</span>
+
+    <span class="n">MARIADB_AVAILABLE</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="c1"># Create a dummy exception class when mariadb is not available</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">MariaDBError</span><span
+                                class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+
+    <span class="n">MARIADB_AVAILABLE</span> <span class="o">=</span> <span class="kc">False</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">config</span><span class="w"> </span><span
                                 class="kn">import</span> <span class="p">(</span><span
-                                class="n">ISO_UTC_TIMESTAMP</span><span class="p">,</span> <span class="n">default_config</span><span
+                                class="n">iso_utc_timestamp</span><span class="p">,</span> <span class="n">default_config</span><span
                                 class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">db</span><span class="w"> </span><span class="kn">import</span> <span
-                                class="n">MariaDBConnector</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">moduli_generator.logger_writer</span><span
-                                class="w"> </span><span class="kn">import</span> <span class="n">LoggerWriter</span>
+
+<span class="c1"># Import MariaDBConnector conditionally</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">db</span><span class="w"> </span><span
+                                class="kn">import</span> <span class="n">MariaDBConnector</span>
+
+    <span class="n">DB_AVAILABLE</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="c1"># Create a dummy connector when db module is not available</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">MariaDBConnector</span><span class="p">:</span>
+        <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span
+                                class="bp">self</span><span class="p">,</span> <span class="n">config</span><span
+                                class="p">):</span>
+            <span class="k">pass</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">export_screened_moduli</span><span class="p">(</span><span
+                                class="bp">self</span><span class="p">,</span> <span class="n">moduli</span><span
+                                class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;MariaDB functionality is not available. Please install mariadb package.&quot;</span><span
+                                class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">write_moduli_file</span><span
+                                class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;MariaDB functionality is not available. Please install mariadb package.&quot;</span><span
+                                class="p">)</span>
+
+
+    <span class="n">DB_AVAILABLE</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">moduli_generator.validators</span><span
-                                class="w"> </span><span class="kn">import</span> <span class="p">(</span><span
-                                class="n">validate_subprocess_args</span><span class="p">)</span>
+                                class="w"> </span><span class="kn">import</span> <span class="n">validate_subprocess_args</span>
 
 <span class="c1"># Constants</span>
-<span class="n">MODULI_FIELD_COUNT</span> <span class="o">=</span> <span class="mi">7</span>  <span class="c1"># Expected number of fields in moduli file format</span>
+<span class="n">SSH2_MODULI_FILE_FIELD_COUNT</span> <span class="o">=</span> <span class="mi">7</span>  <span
+                                class="c1"># Expected number of fields in moduli file format</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ModuliGenerator&#39;</span><span
                                 class="p">]</span>
 
 
 <div class="viewcode-block" id="ModuliGenerator">
-<a class="viewcode-back" href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator">[docs]</a>
+<a class="viewcode-back" href="../MODULI_GENERATOR.html#moduli_generator.ModuliGenerator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ModuliGenerator</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handles the generation, screening, and management of cryptographic modulus files</span>
@@ -243,6 +264,12 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span
         class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">MARIADB_AVAILABLE</span><span
+        class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span
+        class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;MariaDB package is not available. Database functionality will be limited. &quot;</span>
+                                    <span class="s2">&quot;To enable full database features, please install the mariadb package: &quot;</span>
+                                    <span class="s2">&quot;pip install mariadb&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span
         class="o">=</span> <span class="n">MariaDBConnector</span><span class="p">(</span><span
         class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
@@ -264,8 +291,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span>
 
 <div class="viewcode-block" id="ModuliGenerator._run_subprocess_with_logging">
-<a class="viewcode-back"
-   href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._run_subprocess_with_logging">[docs]</a>
+<a class="viewcode-back" href="../MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._run_subprocess_with_logging">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_run_subprocess_with_logging</span><span
         class="p">(</span><span class="n">command</span><span class="p">,</span>
@@ -336,8 +362,7 @@
 
 
 <div class="viewcode-block" id="ModuliGenerator._generate_candidates_static">
-<a class="viewcode-back"
-   href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._generate_candidates_static">[docs]</a>
+<a class="viewcode-back" href="../MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._generate_candidates_static">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_candidates_static</span><span
         class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">key_length</span><span
@@ -363,7 +388,7 @@
         class="o">.</span><span class="n">candidates_dir</span> <span class="o">/</span> <span class="sa">f</span><span
         class="s1">&#39;candidates_</span><span class="si">{</span><span class="n">key_length</span><span
         class="si">}</span><span class="s1">_</span><span class="si">{</span><span
-        class="n">ISO_UTC_TIMESTAMP</span><span class="p">(</span><span class="n">compress</span><span
+        class="n">iso_utc_timestamp</span><span class="p">(</span><span class="n">compress</span><span
         class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
         <span class="n">logger</span> <span class="o">=</span> <span class="n">config</span><span
         class="o">.</span><span class="n">get_logger</span><span class="p">()</span>
@@ -414,8 +439,7 @@
 
 
 <div class="viewcode-block" id="ModuliGenerator._screen_candidates_static">
-<a class="viewcode-back"
-   href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._screen_candidates_static">[docs]</a>
+<a class="viewcode-back" href="../MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._screen_candidates_static">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_screen_candidates_static</span><span
         class="p">(</span><span class="n">config</span><span class="p">,</span> <span
@@ -511,7 +535,8 @@
 
 
 <div class="viewcode-block" id="ModuliGenerator._generate_candidates">
-<a class="viewcode-back" href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._generate_candidates">[docs]</a>
+<a class="viewcode-back"
+   href="../MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._generate_candidates">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_candidates</span><span
         class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key_length</span><span
         class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span
@@ -552,7 +577,7 @@
 
 
 <div class="viewcode-block" id="ModuliGenerator._screen_candidates">
-<a class="viewcode-back" href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._screen_candidates">[docs]</a>
+<a class="viewcode-back" href="../MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._screen_candidates">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_screen_candidates</span><span class="p">(</span><span
         class="bp">self</span><span class="p">,</span> <span class="n">candidates_file</span><span
         class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span
@@ -592,7 +617,7 @@
 
 
 <div class="viewcode-block" id="ModuliGenerator._parse_moduli_files">
-<a class="viewcode-back" href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._parse_moduli_files">[docs]</a>
+<a class="viewcode-back" href="../MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._parse_moduli_files">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_parse_moduli_files</span><span
         class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span
         class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span
@@ -632,7 +657,7 @@
                         <span class="n">parts</span> <span class="o">=</span> <span class="n">line</span><span
         class="o">.</span><span class="n">split</span><span class="p">()</span>
                         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span
-        class="p">)</span> <span class="o">==</span> <span class="n">MODULI_FIELD_COUNT</span><span class="p">:</span>
+        class="p">)</span> <span class="o">==</span> <span class="n">SSH2_MODULI_FILE_FIELD_COUNT</span><span class="p">:</span>
                             <span class="n">moduli_entry</span> <span class="o">=</span> <span class="p">{</span>
                                 <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="n">parts</span><span
         class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c1"># TIMESTAMP</span>
@@ -663,7 +688,7 @@
 
 
 <div class="viewcode-block" id="ModuliGenerator._list_moduli_files">
-<a class="viewcode-back" href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._list_moduli_files">[docs]</a>
+<a class="viewcode-back" href="../MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._list_moduli_files">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_list_moduli_files</span><span class="p">(</span><span
         class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span
         class="p">[</span><span class="n">Path</span><span class="p">]:</span>
@@ -685,8 +710,7 @@
 
 
 <div class="viewcode-block" id="ModuliGenerator.generate_moduli">
-<a class="viewcode-back"
-   href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.generate_moduli">[docs]</a>
+<a class="viewcode-back" href="../MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.generate_moduli">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">generate_moduli</span><span
         class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span
         class="s1">&#39;ModuliGenerator&#39;</span><span class="p">:</span>
@@ -782,7 +806,7 @@
 
 
 <div class="viewcode-block" id="ModuliGenerator.save_moduli">
-<a class="viewcode-back" href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.save_moduli">[docs]</a>
+<a class="viewcode-back" href="../MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.save_moduli">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">save_moduli</span><span class="p">(</span><span
         class="bp">self</span><span class="p">,</span> <span class="n">moduli_file_dir</span><span
         class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="kc">None</span><span
@@ -808,7 +832,7 @@
 
         <span class="n">moduli_json</span> <span class="o">=</span> <span class="n">moduli_file_dir</span> <span
         class="o">/</span> <span class="sa">f</span><span class="s1">&#39;screened_moduli_</span><span
-        class="si">{</span><span class="n">ISO_UTC_TIMESTAMP</span><span class="p">(</span><span
+        class="si">{</span><span class="n">iso_utc_timestamp</span><span class="p">(</span><span
         class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="s1">.json&#39;</span>
         <span class="k">with</span> <span class="n">moduli_json</span><span class="o">.</span><span
         class="n">open</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span
@@ -829,7 +853,7 @@
 
 
 <div class="viewcode-block" id="ModuliGenerator.store_moduli">
-<a class="viewcode-back" href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.store_moduli">[docs]</a>
+<a class="viewcode-back" href="../MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.store_moduli">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">store_moduli</span><span class="p">(</span><span
         class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ModuliGenerator&#39;</span><span
         class="p">:</span>
@@ -855,7 +879,7 @@
             <span class="c1"># for file in moduli_files:</span>
             <span class="c1">#     file.unlink()</span>
 
-        <span class="k">except</span> <span class="n">Error</span> <span class="k">as</span> <span
+        <span class="k">except</span> <span class="n">MariaDBError</span> <span class="k">as</span> <span
         class="n">err</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span
         class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error storing moduli: </span><span
@@ -872,15 +896,14 @@
 
 
 <div class="viewcode-block" id="ModuliGenerator.write_moduli_file">
-<a class="viewcode-back"
-   href="../stash/MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.write_moduli_file">[docs]</a>
+<a class="viewcode-back" href="../MODULI_GENERATOR.html#moduli_generator.ModuliGenerator.write_moduli_file">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">write_moduli_file</span><span
         class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span
         class="s1">&#39;ModuliGenerator&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Writes the moduli file using the database interface.</span>
 
-<span class="sd">        This method retrieves installers necessary for the moduli file from the</span>
+<span class="sd">        This method retrieves the installers necessary for the moduli file from the</span>
 <span class="sd">        database and then writes it to the appropriate location using</span>
 <span class="sd">        the database interface.</span>
 

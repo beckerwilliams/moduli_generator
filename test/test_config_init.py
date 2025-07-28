@@ -4,30 +4,24 @@ Comprehensive tests for config/__init__.py module.
 Tests all functions and methods to achieve 95% test coverage.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock, mock_open
-from datetime import datetime, UTC
-from pathlib import Path
-import tempfile
-import shutil
 import os
+import shutil
+import tempfile
+from datetime import datetime
 from logging import Logger
+from pathlib import Path
+from unittest.mock import MagicMock, patch
 
-from config import (
-    ISO_UTC_TIMESTAMP,
-    strip_punction_from_datetime_str,
-    is_valid_identifier_sql,
-    ModuliConfig,
-    default_config
-)
+from config import (ModuliConfig, default_config, iso_utc_timestamp, strip_punction_from_datetime_str)
+from db import is_valid_identifier_sql
 
 
 class TestISOUTCTimestamp:
-    """Test cases for ISO_UTC_TIMESTAMP function."""
+    """Test cases for iso_utc_timestamp function."""
 
     def test_iso_utc_timestamp_uncompressed(self):
-        """Test ISO_UTC_TIMESTAMP returns proper ISO format when compress=False."""
-        result = ISO_UTC_TIMESTAMP(compress=False)
+        """Test iso_utc_timestamp returns proper ISO format when compress=False."""
+        result = iso_utc_timestamp(compress=False)
 
         # Should be a valid ISO format string
         assert isinstance(result, str)
@@ -38,8 +32,8 @@ class TestISOUTCTimestamp:
         datetime.fromisoformat(result)
 
     def test_iso_utc_timestamp_compressed(self):
-        """Test ISO_UTC_TIMESTAMP returns numeric string when compress=True."""
-        result = ISO_UTC_TIMESTAMP(compress=True)
+        """Test iso_utc_timestamp returns numeric string when compress=True."""
+        result = iso_utc_timestamp(compress=True)
 
         # Should be a string containing only digits
         assert isinstance(result, str)
@@ -47,8 +41,8 @@ class TestISOUTCTimestamp:
         assert len(result) >= 14  # At least YYYYMMDDHHMMSS
 
     def test_iso_utc_timestamp_default_parameter(self):
-        """Test ISO_UTC_TIMESTAMP default parameter behavior."""
-        result = ISO_UTC_TIMESTAMP()
+        """Test iso_utc_timestamp default parameter behavior."""
+        result = iso_utc_timestamp()
 
         # Default should be uncompressed
         assert isinstance(result, str)
@@ -57,17 +51,17 @@ class TestISOUTCTimestamp:
 
     @patch('config.datetime')
     def test_iso_utc_timestamp_mocked_time(self, mock_datetime):
-        """Test ISO_UTC_TIMESTAMP with mocked datetime."""
+        """Test iso_utc_timestamp with mocked datetime."""
         # Mock datetime to return a specific time
         mock_dt = MagicMock()
         mock_dt.replace.return_value.isoformat.return_value = '2023-01-01T12:00:00'
         mock_datetime.now.return_value = mock_dt
 
-        result = ISO_UTC_TIMESTAMP(compress=False)
+        result = iso_utc_timestamp(compress=False)
         assert result == '2023-01-01T12:00:00'
 
         # Test compressed version
-        result_compressed = ISO_UTC_TIMESTAMP(compress=True)
+        result_compressed = iso_utc_timestamp(compress=True)
         assert result_compressed == '20230101120000'
 
 
@@ -414,19 +408,19 @@ class TestModuleIntegration:
         from config import (
             ModuliConfig,
             default_config,
-            ISO_UTC_TIMESTAMP,
+            iso_utc_timestamp,
             strip_punction_from_datetime_str,
-            is_valid_identifier_sql,
             DEFAULT_MARIADB,
             DEFAULT_MARIADB_CNF,
             DEFAULT_KEY_LENGTHS,
             TEST_MARIADB
         )
+        from db import is_valid_identifier_sql
 
         # All imports should succeed without error
         assert ModuliConfig is not None
         assert default_config is not None
-        assert ISO_UTC_TIMESTAMP is not None
+        assert iso_utc_timestamp is not None
         assert strip_punction_from_datetime_str is not None
         assert is_valid_identifier_sql is not None
         assert DEFAULT_MARIADB is not None

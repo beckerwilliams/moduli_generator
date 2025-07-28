@@ -4,7 +4,7 @@ from logging import (DEBUG, basicConfig, getLogger)
 from pathlib import PosixPath as Path
 from sys import exit
 
-from config import (ISO_UTC_TIMESTAMP, ModuliConfig, default_config)
+from config import (ModuliConfig, default_config, iso_utc_timestamp)
 from db import MariaDBConnector
 
 
@@ -47,7 +47,7 @@ def main(config: ModuliConfig = default_config, output_file=None):
     logger.debug(f'MariaDB Connector Initialized: {config}')
 
     if output_file is None:
-        status_file = Path.home() / f'MG_STATUS_{ISO_UTC_TIMESTAMP(compress=True)}.txt'
+        status_file = Path.home() / f'MG_STATUS_{iso_utc_timestamp(compress=True)}.txt'
     else:
         status_file = Path(args.output_file)
 

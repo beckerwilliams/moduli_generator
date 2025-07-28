@@ -19,7 +19,7 @@ except ImportError:
 
     MARIADB_AVAILABLE = False
 
-from config import (ISO_UTC_TIMESTAMP, default_config)
+from config import (iso_utc_timestamp, default_config)
 
 # Import MariaDBConnector conditionally
 try:
@@ -202,7 +202,7 @@ class ModuliGenerator:
         :return: Path to the generated moduli candidate file.
         :rtype: Path
         """
-        candidates_file = config.candidates_dir / f'candidates_{key_length}_{ISO_UTC_TIMESTAMP(compress=True)}'
+        candidates_file = config.candidates_dir / f'candidates_{key_length}_{iso_utc_timestamp(compress=True)}'
         logger = config.get_logger()
 
         # nice_value and key_length(s) CAN Be User provided Variables. We need to make sure they're safe.
@@ -452,7 +452,7 @@ class ModuliGenerator:
         if not moduli_file_dir:
             moduli_file_dir = self.config.moduli_home
 
-        moduli_json = moduli_file_dir / f'screened_moduli_{ISO_UTC_TIMESTAMP(True)}.json'
+        moduli_json = moduli_file_dir / f'screened_moduli_{iso_utc_timestamp(True)}.json'
         with moduli_json.open('w') as f:
             # with open(moduli_json, 'w') as f:
             dump(self._parse_moduli_files(), f, indent=2)

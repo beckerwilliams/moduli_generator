@@ -2,7 +2,7 @@
 module config
 =============
 
-.. automodule:: config.__init__
+.. automodule:: config
     :members:
     :private-members:
     :no-index:

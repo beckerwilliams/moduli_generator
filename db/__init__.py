@@ -1,21 +1,60 @@
 import configparser
-import re
 from contextlib import contextmanager
 from pathlib import PosixPath as Path
+from re import compile, sub
 from socket import getfqdn
 from typing import Any, Dict, List, Optional
 
 from mariadb import (ConnectionPool, Error)  # Add this import
 from typing_extensions import ContextManager
 
-from config import ISO_UTC_TIMESTAMP, ModuliConfig, default_config, is_valid_identifier_sql, \
-    strip_punction_from_datetime_str
+from config import (ModuliConfig, default_config, iso_utc_timestamp, strip_punction_from_datetime_str)
 
 __all__ = [
     "MariaDBConnector",
     "parse_mysql_config",
     "get_mysql_config_value",
+    "is_valid_identifier_sql"
 ]
+
+
+def is_valid_identifier_sql(identifier: str) -> bool:
+    """
+    Determines if the given string is a valid identifier following specific
+    rules. Valid identifiers must either be unquoted strings containing only
+    alphanumeric characters, underscores, and dollar signs, or quoted strings
+    wrapped in backticks with proper pairing. Additionally, identifiers must not
+    exceed 64 characters.
+
+    :param identifier: The identifier string to validate.
+    :type identifier: str
+    :return: True if the identifier is valid, otherwise False.
+    :rtype: Bool
+    """
+    if not identifier or not isinstance(identifier, str):
+        return False
+
+    # Check for empty string or too long identifier
+    if len(identifier) == 0 or len(identifier) > 64:
+        return False
+
+    # If the identifier is quoted with backticks, we need different validation
+    if identifier.startswith('`') and identifier.endswith('`'):
+        # For quoted identifiers, make sure the backticks are properly paired
+        # and that the identifier isn't just empty backticks
+        return len(identifier) > 2
+
+    # For unquoted identifiers, check that they only contain valid characters
+    valid_pattern = compile(r'^[a-zA-Z0-9_$]+$')
+
+    # Validate the pattern
+    if not valid_pattern.match(identifier):
+        return False
+
+    # MariaDB reserved words could be added here to make the validation stricter
+    # For a complete solution, a list of reserved words should be checked
+
+    return True
 
 
 def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
@@ -81,7 +120,7 @@ def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
             for key, value in config.items(section_name):
                 if value is not None:
                     # Strip inline comments (everything after # including whitespace before it)
-                    cleaned_value = re.sub(r'\s*#.*$', '', value).strip()
+                    cleaned_value = sub(r'\s*#.*$', '', value).strip()
                     result[section_name][key] = cleaned_value
                 else:
                     result[section_name][key] = None
@@ -734,7 +773,7 @@ class MariaDBConnector:
             hostname = getfqdn()
             with open(output_file, 'w') as f:
                 # Write header
-                local_timestamp = ISO_UTC_TIMESTAMP(compress=False) + "Z"
+                local_timestamp = iso_utc_timestamp(compress=False) + "Z"
                 f.write(f'# {hostname}::ModuliGenerator: ssh2 moduli generated at {local_timestamp}\n')
 
                 # Build a single SQL query to get all records for all key sizes

@@ -1,6 +1,7 @@
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser, Namespace
 
-from config import (ModuliConfig, default_config, is_valid_identifier_sql)
+from config import (ModuliConfig, default_config)
+from db import is_valid_identifier_sql
 
 __all__ = ['local_config']
 
