@@ -20,6 +20,10 @@
       <excludeFolder url="file://$MODULE_DIR$/htmlcov" />
       <excludeFolder url="file://$MODULE_DIR$/src/doc/html/_static" />
       <excludeFolder url="file://$MODULE_DIR$/stash" />
+      <excludeFolder url="file://$MODULE_DIR$/doc/html/_modules/config" />
+      <excludeFolder url="file://$MODULE_DIR$/doc/html/_modules/db" />
+      <excludeFolder url="file://$MODULE_DIR$/doc/html/_modules/moduli_generator" />
+      <excludeFolder url="file://$MODULE_DIR$/doc/html/_modules/test" />
     </content>
     <orderEntry type="jdk" jdkName="Poetry (moduli_generator) (3)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

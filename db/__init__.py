@@ -14,7 +14,8 @@ __all__ = [
     "MariaDBConnector",
     "parse_mysql_config",
     "get_mysql_config_value",
-    "is_valid_identifier_sql"
+    "is_valid_identifier_sql",
+    "Error"
 ]
 
 

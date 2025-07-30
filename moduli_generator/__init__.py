@@ -6,10 +6,8 @@ from logging import (DEBUG, INFO)
 from pathlib import PosixPath as Path
 from typing import (Any, Dict, List)
 
-from mariadb import Error as MariaDBError
-
 from config import (default_config, iso_utc_timestamp)
-from db import MariaDBConnector
+from db import (MariaDBConnector)
 from moduli_generator.validators import validate_subprocess_args
 
 # Constants
@@ -321,8 +319,8 @@ class ModuliGenerator:
         generated_moduli = {}
 
         # with concurrent.futures.ProcessPoolExecutor() as executor: - TBD
-        #  Testint ThreadPool vs ProcessPool executor
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        #  Testint ThreadPool vs. ProcessPool executor
+        with concurrent.futures.ProcessPoolExecutor() as executor:
             # First, generate candidates
             candidate_futures = []
             for length in self.config.key_lengths:
@@ -395,12 +393,13 @@ class ModuliGenerator:
 
         # tbd - Verify Successful DB Load prior to Deletion
         try:
-            self.db.export_screened_moduli(screened_moduli)
+            # self.db.export_screened_moduli(screened_moduli)
 
-            # # DELETE source moduli files once storage is verified
-            # moduli_files = self._list_moduli_files()
-            # for file in moduli_files:
-            #     file.unlink()
+            # Cleanup lefover moduli files
+            moduli_files = self._list_moduli_files()
+            if len(moduli_files) and not self.config.preserve_moduli_after_dbstore:
+                for file in moduli_files:
+                    file.unlink()
 
         except MariaDBError as err:
             self.logger.error(f'Error storing moduli: {err}')
@@ -429,15 +428,26 @@ class ModuliGenerator:
         return self
 
     def restart_screening(self) -> 'ModuliGenerator':
+        """
+        Restarts the screening process for candidates grouped by their respective lengths
+        and generates moduli files for each key length. This method processes candidates
+        from the specified directory, screens them using a thread pool executor, and returns
+        an updated instance of the ModuliGenerator.
+
+        :return: The current instance of ModuliGenerator for method chaining.
+        :rtype: ModuliGenerator
+        """
 
         def _get_restart_candidates_by_length() -> List[Path]:
             """
-            Retrieves a list of restart candidates based on existing candidate index files
-            in the specified directory. It processes each index file by replacing the file
-            extension to generate candidate names.
+            Retrieves a mapping of restart candidates grouped by their length. The function
+            iterates through directories and file patterns specified in the configuration
+            to build a dictionary. Each key in the dictionary represents a unique length,
+            and the value is a list of paths to the corresponding candidate files.
 
-            :return: A list of candidate names derived from index files.
-            :rtype: List[Path]
+            :return: A dictionary where the keys are lengths (int) and the values are
+                lists of Path objects representing restart candidate files.
+            :rtype: dict[int, List[Path]]
             """
             results = {}
             for idx in self.config.candidates_dir.glob(self.config.candidate_idx_pattern):
@@ -450,22 +460,28 @@ class ModuliGenerator:
 
         candidates_by_length = _get_restart_candidates_by_length()
 
-        with concurrent.futures.ProcessPoolExecutor() as executor:
-            # Then screen candidates
-            screening_futures = []
-            for length, candidate_files in candidates_by_length.items():
-                for candidate_file in candidate_files:
-                    future = executor.submit(self._screen_candidates_static, self.config, candidate_file)
-                    screening_futures.append((future, length))
+        if len(candidates_by_length) != 0:
 
-            # Process completed screening futures
-            generated_moduli = {}
-            for future, length in screening_futures:
-                moduli_file = future.result()
-                if length not in generated_moduli:
-                    generated_moduli[length] = []
-                generated_moduli[length].append(moduli_file)
-            self.logger.info(f'Produced {len(screening_futures)} files of screened moduli\n'
-                             f'for key-lengths:' + f'{self.config.key_lengths}')
+            with concurrent.futures.ProcessPoolExecutor() as executor:
+                """
+                TBD - Testint ThreadPool vs ProcessPool executor"""
+                # Then screen candidates
+                screening_futures = []
+                for length, candidate_files in candidates_by_length.items():
+                    for candidate_file in candidate_files:
+                        future = executor.submit(self._screen_candidates_static, self.config, candidate_file)
+                        screening_futures.append((future, length))
+
+                # Process completed screening futures
+                generated_moduli = {}
+                for future, length in screening_futures:
+                    moduli_file = future.result()
+                    if length not in generated_moduli:
+                        generated_moduli[length] = []
+                    generated_moduli[length].append(moduli_file)
+                self.logger.info(f'Produced {len(screening_futures)} files of screened moduli\n'
+                                 f'for key-lengths:' + f'{self.config.key_lengths}')
+        else:
+            self.logger.info(f'No Unscreened Candidates Found for Restart')
 
         return self

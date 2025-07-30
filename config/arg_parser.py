@@ -1,4 +1,4 @@
-from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser, Namespace
+from argparse import (ArgumentDefaultsHelpFormatter, ArgumentParser, Namespace)
 
 from config import (ModuliConfig, default_config)
 from db import is_valid_identifier_sql
@@ -27,53 +27,61 @@ def _moduli_generator_argparser() -> Namespace:
         "--candidates-dir",
         type=str,
         default=str(default_config.candidates_dir.relative_to(default_config.moduli_home)),
-        help="Directory to store candidate moduli (relative to moduli-home)"
-    )
-    parser.add_argument("--delete-records-on-moduli-write",
-                        action='store_true',
-                        help="Delete records from DB written to moduli file")
-    parser.add_argument("--key-lengths",
-                        type=int,
-                        nargs="+",
-                        default=default_config.key_lengths,
-                        help="Space-separated list of key lengths to generate moduli for"
-                        )
-    parser.add_argument("--log-dir",
-                        type=str,
-                        default=str(default_config.log_dir.relative_to(default_config.moduli_home)),
-                        help="Directory to store log files (relative to moduli_home)"
-                        )
-    parser.add_argument("--mariadb-cnf",
-                        type=str,
-                        default=str(default_config.mariadb_cnf.relative_to(default_config.moduli_home)),
-                        help="Path to MariaDB configuration file (relative to moduli_home)"
-                        )
-    parser.add_argument("--moduli-dir",
-                        type=str,
-                        default=str(default_config.moduli_dir.relative_to(default_config.moduli_home)),
-                        help="Directory to store generated moduli (relative to moduli_home)"
-                        )
-    parser.add_argument("--moduli-home",
-                        type=str,
-                        default=str(default_config.moduli_home),
-                        help="Base directory for moduli generation and storage"
-                        )
-    parser.add_argument("--moduli-db",
-                        type=str,
-                        default=default_config.db_name,
-                        help="Name of the database to create and Initialize")
-    # Add a nice_value argument that might be missing
-    parser.add_argument("--nice-value",
-                        type=int,
-                        default=default_config.nice_value,
-                        help="Process nice value for CPU intensive operations"
-                        )
-    parser.add_argument("--records-per-keylength",
-                        type=int,
-                        default=default_config.records_per_keylength,
-                        help="Number of moduli per key-length to capture in each produced moduli file"
-                        )
+        help="Directory to store candidate moduli (relative to moduli-home)")
 
+    parser.add_argument(
+        "--key-lengths",
+        type=int,
+        nargs="+",
+        default=default_config.key_lengths,
+        help="Space-separated list of key lengths to generate moduli for"
+    )
+    parser.add_argument(
+        "--log-dir",
+        type=str,
+        default=str(default_config.log_dir.relative_to(default_config.moduli_home)),
+        help="Directory to store log files (relative to moduli_home)"
+    )
+    parser.add_argument(
+        "--mariadb-cnf",
+        type=str,
+        default=str(default_config.mariadb_cnf.relative_to(default_config.moduli_home)),
+        help="Path to MariaDB configuration file (relative to moduli_home)"
+    )
+    parser.add_argument(
+        "--moduli-dir",
+        type=str,
+        default=str(default_config.moduli_dir.relative_to(default_config.moduli_home)),
+        help="Directory to store generated moduli (relative to moduli_home)"
+    )
+    parser.add_argument(
+        "--moduli-home",
+        type=str,
+        default=str(default_config.moduli_home),
+        help="Base directory for moduli generation and storage"
+    )
+    parser.add_argument(
+        "--moduli-db",
+        type=str,
+        default=default_config.db_name,
+        help="Name of the database to create and Initialize")
+    # Add a nice_value argument that might be missing
+    parser.add_argument(
+        "--nice-value",
+        type=int,
+        default=default_config.nice_value,
+        help="Process nice value for CPU intensive operations"
+    )
+    parser.add_argument(
+        "--records-per-keylength",
+        type=int,
+        default=default_config.records_per_keylength,
+        help="Number of moduli per key-length to capture in each produced moduli file"
+    )
+    parser.add_argument(
+        "--preserve-moduli-after-dbstore",
+        action='store_true',
+        help="Delete records from DB written to moduli file")
     return parser.parse_args()
 
 
@@ -112,7 +120,7 @@ def local_config(args: Namespace = None) -> ModuliConfig:
     config.log_dir = config.moduli_home / args.log_dir
     config.mariadb_cnf = config.moduli_home / args.mariadb_cnf
     config.records_per_keylength = args.records_per_keylength
-    config.delete_records_on_moduli_write = args.delete_records_on_moduli_write
+    config.preserve_moduli_after_dbstore = args.preserve_moduli_after_dbstore
 
     config.ensure_directories()
     config.key_lengths = tuple(args.key_lengths)

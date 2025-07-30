@@ -61,14 +61,13 @@ DEFAULT_MARIADB: Final[str] = 'moduli_db'
 DEFAULT_MARIADB_TABLE: Final[str] = 'moduli'
 DEFAULT_MARIADB_VIEW: Final[str] = 'moduli_view'
 # Flag to Delete Records from Moduli DB after successfully extracting and writing a complete ssh / moduli file
-DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE: Final[bool] = False  # tbd - set to TRUE before Production Release
+DEFAULT_PRESERVE_MODULI_AFTER_DBSTORE: Final[bool] = True
 # Screened Moduli File Pattern
 DEFAULT_MODULI_FILENAME_PATTERN: Final[str] = r'moduli_????_*'
 DEFAULT_CANDIDATE_IDX_FILENAME_PATTERN: Final[str] = r'.candidates_????_????????????????????'
 DEFAULT_MODULI_PREFIX: Final[str] = f'ssh-moduli_'
 # The number of moduli per key-length to capture in each produced moduli file
 DEFAULT_MODULI_RECORDS_PER_KEYLENGTH: Final[int] = 20
-
 
 #  ref: https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl
 
@@ -232,7 +231,7 @@ class ModuliConfig:
         self.moduli_file = self.moduli_home / DEFAULT_MODULI_FILE
 
         # Delete on successful Write Flag
-        self.delete_records_on_moduli_write = DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE
+        self.preserve_moduli_after_dbstore = DEFAULT_PRESERVE_MODULI_AFTER_DBSTORE
 
         # Set Project Version Number
         self.version = version

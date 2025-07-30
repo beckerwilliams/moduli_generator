@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from datetime import UTC, datetime
 from sys import exit
 
 # Import the default configuration
