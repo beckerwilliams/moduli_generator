@@ -8,7 +8,8 @@ from typing import Any, Dict, List, Optional
 from mariadb import (ConnectionPool, Error)  # Add this import
 from typing_extensions import ContextManager
 
-from config import (ModuliConfig, default_config, iso_utc_timestamp, strip_punction_from_datetime_str)
+from config import (DEFAULT_KEY_LENGTHS, ModuliConfig, default_config, iso_utc_timestamp,
+                    strip_punction_from_datetime_str)
 
 __all__ = [
     "MariaDBConnector",
@@ -779,10 +780,13 @@ class MariaDBConnector:
 
                 # Build a single SQL query to get all records for all key sizes
                 # Create a CASE statement for LIMIT per size based on records_per_keylength
-                table = '.'.join((self.db_name, self.view_name))
+                # tbd - TEST CHANGE to use moduli_db `table` instead of `view`
+                table = '.'.join((self.db_name, self.table_name))
 
                 # Convert key_lengths to the actual sizes (subtract 1 as done in the original code)
-                size_params = [key_length - 1 for key_length in self.key_lengths]
+                # Using DEFAULT_KEY_LENGTHS as we output RECORDS_PER_MODULI_FILE for each
+                # of (3072 4096 6144, 7680, 8192)
+                size_params = [key_length - 1 for key_length in DEFAULT_KEY_LENGTHS]
                 size_placeholders = ','.join(['%s'] * len(size_params))  # We need 1 less than the requested size
 
                 # Use a window function with ROW_NUMBER to limit records per size
@@ -805,6 +809,7 @@ class MariaDBConnector:
                 current_size = None
                 size_count = 0
 
+                # move written_records to moduli_db.archived_moduli, delete from .moduli
                 for record in records:
                     # Track records per size for logging
                     if current_size != record['size']:
@@ -819,7 +824,7 @@ class MariaDBConnector:
                         '2', '6', '100',  # type # tests # trials
                         str(record['size']),  # size
                         '2',  # generator
-                        str(record['modulus']) + '\n'  # Modulus
+                        str(record['modulus']) + '\n'  # Modulus<eol>
                     ))
                     f.write(line)
                     total_records += 1
@@ -893,3 +898,157 @@ class MariaDBConnector:
         :raises RuntimeError: If the database query fails
         """
         return self.stats()
+
+    def verify_schema(self) -> Dict[str, Any]:
+        """
+        Verify that the actual DB schema exists and is properly installed.
+        
+        Checks for the existence and proper configuration of:
+        - Database (moduli_db)
+        - Tables (mod_fl_consts, moduli, moduli_archive)
+        - Views (moduli_view)
+        - Indexes (idx_size, idx_timestamp, idx_size_archive, idx_timestamp_archive)
+        - Foreign key constraints
+        - Required configuration data
+        
+        :return: Dictionary containing verification results with status and details
+        :rtype: Dict[str, Any]
+        :raises RuntimeError: If critical schema verification fails
+        """
+        verification_results = {
+            'database_exists': False,
+            'tables': {},
+            'views': {},
+            'indexes': {},
+            'foreign_keys': {},
+            'configuration_data': False,
+            'overall_status': 'FAILED',
+            'errors': [],
+            'warnings': []
+        }
+
+        try:
+            # Check database existence
+            db_query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = %s"
+            db_result = self.execute_select(db_query, (self.db_name,))
+            verification_results['database_exists'] = len(db_result) > 0
+
+            if not verification_results['database_exists']:
+                verification_results['errors'].append(f"Database '{self.db_name}' does not exist")
+                return verification_results
+
+            # Check tables
+            expected_tables = ['mod_fl_consts', 'moduli', 'moduli_archive']
+            table_query = """
+                          SELECT TABLE_NAME, TABLE_TYPE
+                          FROM INFORMATION_SCHEMA.TABLES
+                          WHERE TABLE_SCHEMA = %s
+                            AND TABLE_NAME IN (%s, %s, %s) \
+                          """
+            table_results = self.execute_select(table_query, (self.db_name, *expected_tables))
+
+            for table in expected_tables:
+                table_exists = any(row['TABLE_NAME'] == table for row in table_results)
+                verification_results['tables'][table] = table_exists
+                if not table_exists:
+                    verification_results['errors'].append(f"Table '{self.db_name}.{table}' does not exist")
+
+            # Check views
+            view_query = """
+                         SELECT TABLE_NAME
+                         FROM INFORMATION_SCHEMA.VIEWS
+                         WHERE TABLE_SCHEMA = %s
+                           AND TABLE_NAME = %s \
+                         """
+            view_result = self.execute_select(view_query, (self.db_name, 'moduli_view'))
+            verification_results['views']['moduli_view'] = len(view_result) > 0
+
+            if not verification_results['views']['moduli_view']:
+                verification_results['errors'].append(f"View '{self.db_name}.moduli_view' does not exist")
+
+            # Check indexes
+            expected_indexes = {
+                'idx_size': 'moduli',
+                'idx_timestamp': 'moduli',
+                'idx_size_archive': 'moduli_archive',
+                'idx_timestamp_archive': 'moduli_archive'
+            }
+
+            index_query = """
+                          SELECT INDEX_NAME, TABLE_NAME
+                          FROM INFORMATION_SCHEMA.STATISTICS
+                          WHERE TABLE_SCHEMA = %s
+                            AND INDEX_NAME IN (%s, %s, %s, %s) \
+                          """
+            index_results = self.execute_select(index_query, (self.db_name, *expected_indexes.keys()))
+
+            for index_name, table_name in expected_indexes.items():
+                index_exists = any(
+                    row['INDEX_NAME'] == index_name and row['TABLE_NAME'] == table_name
+                    for row in index_results
+                )
+                verification_results['indexes'][index_name] = index_exists
+                if not index_exists:
+                    verification_results['warnings'].append(
+                        f"Index '{index_name}' on table '{table_name}' does not exist")
+
+            # Check foreign key constraints
+            fk_query = """
+                       SELECT CONSTRAINT_NAME, TABLE_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME
+                       FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+                       WHERE TABLE_SCHEMA = %s
+                         AND REFERENCED_TABLE_NAME IS NOT NULL \
+                       """
+            fk_results = self.execute_select(fk_query, (self.db_name,))
+
+            expected_fks = [
+                ('moduli', 'mod_fl_consts', 'config_id'),
+                ('moduli_archive', 'mod_fl_consts', 'config_id')
+            ]
+
+            for table, ref_table, ref_column in expected_fks:
+                fk_exists = any(
+                    row['TABLE_NAME'] == table and
+                    row['REFERENCED_TABLE_NAME'] == ref_table and
+                    row['REFERENCED_COLUMN_NAME'] == ref_column
+                    for row in fk_results
+                )
+                fk_key = f"{table} -> {ref_table}.{ref_column}"
+                verification_results['foreign_keys'][fk_key] = fk_exists
+                if not fk_exists:
+                    verification_results['errors'].append(f"Foreign key constraint '{fk_key}' does not exist")
+
+            # Check configuration data
+            if verification_results['tables'].get('mod_fl_consts', False):
+                config_query = f"SELECT COUNT(*) as count FROM {self.db_name}.mod_fl_consts"
+                config_result = self.execute_select(config_query)
+                verification_results['configuration_data'] = config_result[0]['count'] > 0
+
+                if not verification_results['configuration_data']:
+                    verification_results['warnings'].append("No configuration data found in mod_fl_consts table")
+
+            # Determine overall status
+            critical_errors = len(verification_results['errors'])
+            if critical_errors == 0:
+                if len(verification_results['warnings']) == 0:
+                    verification_results['overall_status'] = 'PASSED'
+                else:
+                    verification_results['overall_status'] = 'PASSED_WITH_WARNINGS'
+            else:
+                verification_results['overall_status'] = 'FAILED'
+
+            self.logger.info(f"Schema verification completed with status: {verification_results['overall_status']}")
+            if verification_results['errors']:
+                for error in verification_results['errors']:
+                    self.logger.error(f"Schema verification error: {error}")
+            if verification_results['warnings']:
+                for warning in verification_results['warnings']:
+                    self.logger.warning(f"Schema verification warning: {warning}")
+
+            return verification_results
+
+        except Exception as err:
+            verification_results['errors'].append(f"Schema verification failed with exception: {str(err)}")
+            verification_results['overall_status'] = 'ERROR'
+            self.logger.error(f"Schema verification exception: {err}")
+            raise RuntimeError(f"Schema verification failed: {err}")

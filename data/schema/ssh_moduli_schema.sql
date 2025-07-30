@@ -37,11 +37,30 @@ FROM
         JOIN
     moduli_db.mod_fl_consts c ON m.config_id = c.config_id;
 
+-- Archive table with identical schema to moduli table
+CREATE TABLE IF NOT EXISTS moduli_db.moduli_archive
+(
+    id           BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    timestamp    DATETIME         NOT NULL,
+    config_id    TINYINT UNSIGNED NOT NULL COMMENT 'Foreign key to moduli constants',
+    size         INT UNSIGNED     NOT NULL COMMENT 'Key size in bits',
+    modulus      TEXT             NOT NULL COMMENT 'Prime modulus value',
+    modulus_hash VARCHAR(128) GENERATED ALWAYS AS (SHA2(modulus, 512)) STORED COMMENT 'Hash of modulus for uniqueness check',
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (config_id) REFERENCES mod_fl_consts (config_id),
+    UNIQUE KEY (modulus_hash)
+);
+
 -- Indexes for commonly queried fields
 CREATE INDEX idx_size ON moduli_db.moduli(size);
 CREATE INDEX idx_timestamp ON moduli_db.moduli(timestamp);
 
--- Insert configuration
+-- Indexes for archive table (identical to main table)
+CREATE INDEX idx_size_archive ON moduli_db.moduli_archive (size);
+CREATE INDEX idx_timestamp_archive ON moduli_db.moduli_archive (timestamp);
+
+-- Insert configuration only if table is empty
 INSERT INTO moduli_db.mod_fl_consts (config_id, type, tests, trials, generator, description)
-VALUES (1, '2', 6, 100, 2, 'SSH2 Moduli Generator Secure Profile');
+SELECT 1, '2', 6, 100, 2, 'SSH2 Moduli Generator Secure Profile'
+WHERE NOT EXISTS (SELECT 1 FROM moduli_db.mod_fl_consts);
 

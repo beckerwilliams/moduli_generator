@@ -46,7 +46,6 @@ def main(config: ModuliConfig = None):
         # Stats and Cleanup
         duration = (iso_utc_time() - start_time).seconds
         logger.info(f'Moduli Generation Complete. Time taken: {int(duration)} seconds')
-        logger.info('Moduli Generation Complete')
         return 0
 
 
