@@ -4,14 +4,36 @@ Changelog
 
 This document tracks the changes made to the moduli_generator project.
 
-Version 2.1.23
-==============
+2025-07-28
+----------
+
+* **Refactoring**: Moved Validator Functions to their appropropriate modules, Refactored TEST Suite to accomodate changes
+
+2025-07-27
+----------
+
+* **Configuration**: Config - reset moduli_generator home default to ${HOME}/.moduli_generator
+**Database Improvements**:
+
+  * Config - refactored import of mariadb to accomodate lazy loading   - __init__.py   - db.__init__.py   - moduli_generator.__init__.py
+  * MariaDBConnector - .status2   - *Eliminated* - .status   - Refactored, optimizing by iterating over keysizes in SQL rather than Python   - Resulting implementation MUCH FASTER
+  * MariaDBConnector - .status2   - *Eliminated* - .status   - Refactored, optimizing by iterating over keysizes in SQL rather than Python   - Resulting implementation MUCH FASTER
+
+
+2025-07-26
+----------
+
+* **General**: Pyproject.toml - Removed final vestiges of tool.poetry. Using `project` instead to support `poetry` >2.1.0
 
 2025-07-25
 ----------
 
 * **Features**: Pyproject.toml - Refactored to align with PEP 621 - Including automatic versioning - Implemented PEP 440-compliant version
-* **General**: Including CHANGELOG.rst in git image
+**General**:
+
+  * Pyproject.toml - Removed final vestiges of tool.poetry. Using `project` instead to support `poetry` >2.1.0
+  * Including CHANGELOG.rst in git image
+
 * **Refactoring**: Config/__version__.py - Refactored to import version from importlib.metadata (for wheel installations)
 
 2025-07-23
@@ -159,40 +181,7 @@ Version 2.1.23
   * * MariadDBConnector: added:   * get_moduli - Retrieves Records from moduli_db, and writes out an /etc/ssh/moduli compatible file IF there are at least 'config.records_per_keylength' entries for each bitlength moduli * config.py   * Configuration object for all processes   * Refactored project constants to consolidate project configuration   * Supplies values for ModuliGenerator and MariaDBConnector * write_moduli_file.py   * Writes out a fresh moduli file to user's home directory (or file of their choice)
 
 
-2025-06-28
-----------
-
-* **Database Improvements**: Moduli_db_utilities.py:  * Refactored Cursor Operations to use Context Managers  * Refactored exception handling to raise RuntimeException rather than exit(1) cli.py  * Refactored checkpoint file handling in _screen_candididates() for clarity  class ModuliGenerator:  * Incorrectly indented return that limited function to ONE Modulus File - ** FIXED **
-
-2025-06-25
-----------
-
-**Database Improvements**:
-
-  * * Refactored generate_moduli in moduli_generator.__init__.py to Accomodate Multiple Requests for Key Length. * Storing screened moduli in mariadb mod_gen.screened_moduli * Program runs and completes successfully
-  * Successfully generating, screening, and storing moduli in MariaDB
-
-* **Milestones**: CHECKPOINT
-
-2025-06-24
-----------
-
-* **Database Improvements**: Refactored mysql ConfigParser INTO mariadb_connector, where it belongs. ;-} All mariadb_config functione tests complete successfully
-
-2025-06-23
-----------
-
-**Database Improvements**:
-
-  * Created function MariaDBConnector.add, adds individually identified and screened moduli
-  * Created Mariadb Connector Class - Operational as-is
-
-
 Project Information
 ===================
 
-* **Project**: moduli_generator
-* **Version**: 2.1.23
-* **Description**: Command Line Utility to build moduli for /usr/local/etc/ssh/moduli_file
-* **Author**: Ron Williams <becker.williams@gmail.com>
 * **License**: See LICENSE.rst

@@ -6,7 +6,7 @@ authors = [
 ]
 license = { text = "MIT" }
 keywords = ["cryptography", "ssh", "moduli", "security"]
-version = "2.1.28"
+version = "2.1.29"
 readme = "README.rst"
 classifiers = [
 	"Development Status :: 4 - Beta",
@@ -33,27 +33,16 @@ classifiers = [
 ]
 requires-python = ">=3.11,<4.0"
 dependencies = [
-	"mariadb (==1.1.13)",
-	"toml>=0.10.2",
+	"mariadb==1.1.13",
 	"configparser>=7.2.0",
-	"black (>=25.0,<26.0.0)",
+	"black>=25.0,<26.0.0",
+	"typing-extensions>=4.14.1,<5.0.0",
 	"poetry-core (>=2.0.0,<3.0.0)",
-	"typing-extensions (>=4.14.1,<5.0.0)",
-	"sphinx-rtd-theme (>=3.0.2,<4.0.0)",
-	"pytest (>=8.4.1,<9.0.0)"
-]
-include = [
-	"data/**/*.sql",
-	"data/**/*.conf",
-	"data/**/*.sh",
-	"data/**/*.json",
-	"doc/**/*",
-	"**/*.md",
-	"**/*.rst"
 ]
 
 [project.optional-dependencies]
 dev = [
+	"toml>=0.10.2",
 	"sphinx>=7.2.6",
 	"sphinxcontrib-jquery>=4.1",
 	"sphinx-rtd-theme>=3.0.2",
@@ -83,12 +72,32 @@ packages = [
 	{ include = "moduli_generator" },
 	{ include = "db" },
 	{ include = "config" },
-	{ include = "test" },
-	{ include = "changelog_generator" }
+	{ include = "test" }
 ]
+include = [
+	"data/**/*.sql",
+	"data/**/*.conf",
+	"data/**/*.sh",
+	"data/**/*.json",
+	"doc/**/*",
+	"**/*.md",
+	"**/*.rst"
+]
+
+[tool.poetry.group.dev.dependencies]
+configparser = "~=7.2.0"
+mariadb = "~=1.1.13"
+sphinx = ">=8.2.3"
+sphinxcontrib-jquery = ">=4.1"
+sphinx-rtd-theme = ">=3.0.2"
+myst-parser = ">=2.0.0"
+pytest = "~=8.4.1"
+pytest-cov = ">=4.0.0"
+pytest-mock = ">=3.12.0"
+pytest-asyncio = ">=0.23.0"
+toml = ">=0.10.2"
+
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
-[project.group.dev.dependencies]
-sphinx = "^8.2.3"

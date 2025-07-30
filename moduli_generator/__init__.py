@@ -1,45 +1,15 @@
 #!/usr/bin/env python
 import concurrent.futures
-import logging
 import subprocess
 from json import dump
+from logging import (DEBUG, INFO)
 from pathlib import PosixPath as Path
 from typing import (Any, Dict, List)
 
-# Try to import mariadb components, but make them optional
-try:
-    from mariadb import Error as MariaDBError
+from mariadb import Error as MariaDBError
 
-    MARIADB_AVAILABLE = True
-except ImportError:
-    # Create a dummy exception class when mariadb is not available
-    class MariaDBError(Exception):
-        pass
-
-
-    MARIADB_AVAILABLE = False
-
-from config import (iso_utc_timestamp, default_config)
-
-# Import MariaDBConnector conditionally
-try:
-    from db import MariaDBConnector
-
-    DB_AVAILABLE = True
-except ImportError:
-    # Create a dummy connector when db module is not available
-    class MariaDBConnector:
-        def __init__(self, config):
-            pass
-
-        def export_screened_moduli(self, moduli):
-            raise RuntimeError("MariaDB functionality is not available. Please install mariadb package.")
-
-        def write_moduli_file(self):
-            raise RuntimeError("MariaDB functionality is not available. Please install mariadb package.")
-
-
-    DB_AVAILABLE = False
+from config import (default_config, iso_utc_timestamp)
+from db import MariaDBConnector
 from moduli_generator.validators import validate_subprocess_args
 
 # Constants
@@ -118,10 +88,6 @@ class ModuliGenerator:
         :rtype: MariaDBConnector
         """
         if self._db is None:
-            if not MARIADB_AVAILABLE:
-                self.logger.warning("MariaDB package is not available. Database functionality will be limited. "
-                                    "To enable full database features, please install the mariadb package: "
-                                    "pip install mariadb")
             self._db = MariaDBConnector(self.config)
         return self._db
 
@@ -142,8 +108,8 @@ class ModuliGenerator:
     @staticmethod
     def _run_subprocess_with_logging(command,
                                      logger,
-                                     info_level=logging.INFO,
-                                     debug_level=logging.DEBUG
+                                     info_level=INFO,
+                                     debug_level=DEBUG
                                      ) -> subprocess.CompletedProcess:
         """
         Run a subprocess command and capture output for logging.
@@ -284,53 +250,6 @@ class ModuliGenerator:
 
         return screened_file
 
-    def _generate_candidates(self, key_length: int) -> Path:
-        """
-        Generates candidate cryptographic keys of a specified length.
-
-        This method internally uses a static method to generate candidate keys
-        based on the provided key length and configuration. Logs the result of
-        the operation and handles subprocess errors.
-
-        :param key_length: Length of the key in bits to be generated.
-        :type key_length: int
-        :return: Path to the generated candidate keys.
-        :rtype: Path
-        :raises subprocess.CalledProcessError: If the candidate generation fails.
-        """
-        try:
-            result = self._generate_candidates_static(self.config, key_length)
-            self.logger.info(f'Generated candidate file for {key_length} bits')
-
-        except subprocess.CalledProcessError as err:
-            self.logger.error(f'Candidate generation failed for {key_length}: {err}')
-            raise err
-
-        return result
-
-    def _screen_candidates(self, candidates_file: Path) -> Path:
-        """
-        Screens the provided candidates file by applying a static screening process defined in the configuration.
-
-        The method attempts to process the given candidates file using a static screening function.
-        If the process executes successfully, the screened result is logged and returned.
-        In case of failure, the error is logged and re-raised for further handling.
-
-        :param candidates_file: Path to the file containing the moduli candidates to be screened.
-        :type candidates_file: Path
-        :return: Path to the screened candidates file.
-        :rtype: Path
-        """
-        try:
-            result = self._screen_candidates_static(self.config, candidates_file)
-            self.logger.debug(f'Screened candidate files: {result}')
-
-        except subprocess.CalledProcessError as err:
-            self.logger.error(f'Screening failed for {candidates_file}: {err}')
-            raise err
-
-        return result
-
     def _parse_moduli_files(self) -> Dict[str, List[Dict[str, Any]]]:
         """
         Parses the moduli files to extract specific installers entries and formats them
@@ -401,7 +320,9 @@ class ModuliGenerator:
         """
         generated_moduli = {}
 
-        with concurrent.futures.ProcessPoolExecutor() as executor:
+        # with concurrent.futures.ProcessPoolExecutor() as executor: - TBD
+        #  Testint ThreadPool vs ProcessPool executor
+        with concurrent.futures.ThreadPoolExecutor() as executor:
             # First, generate candidates
             candidate_futures = []
             for length in self.config.key_lengths:
@@ -504,5 +425,47 @@ class ModuliGenerator:
 
         except RuntimeError as err:
             self.logger.info(err)
+
+        return self
+
+    def restart_screening(self) -> 'ModuliGenerator':
+
+        def _get_restart_candidates_by_length() -> List[Path]:
+            """
+            Retrieves a list of restart candidates based on existing candidate index files
+            in the specified directory. It processes each index file by replacing the file
+            extension to generate candidate names.
+
+            :return: A list of candidate names derived from index files.
+            :rtype: List[Path]
+            """
+            results = {}
+            for idx in self.config.candidates_dir.glob(self.config.candidate_idx_pattern):
+                candidate = Path(self.config.candidates_dir) / idx.name.replace('.candidates', 'candidates')
+                local_length = int(idx.name.split('_')[1])
+                if local_length not in results:
+                    results[local_length] = []
+                results[local_length].append(candidate)
+            return results
+
+        candidates_by_length = _get_restart_candidates_by_length()
+
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            # Then screen candidates
+            screening_futures = []
+            for length, candidate_files in candidates_by_length.items():
+                for candidate_file in candidate_files:
+                    future = executor.submit(self._screen_candidates_static, self.config, candidate_file)
+                    screening_futures.append((future, length))
+
+            # Process completed screening futures
+            generated_moduli = {}
+            for future, length in screening_futures:
+                moduli_file = future.result()
+                if length not in generated_moduli:
+                    generated_moduli[length] = []
+                generated_moduli[length].append(moduli_file)
+            self.logger.info(f'Produced {len(screening_futures)} files of screened moduli\n'
+                             f'for key-lengths:' + f'{self.config.key_lengths}')
 
         return self

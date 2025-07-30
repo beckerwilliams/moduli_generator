@@ -18,8 +18,8 @@ class TestCLIMain:
     @pytest.mark.unit
     @patch('moduli_generator.cli.ModuliGenerator')
     @patch('moduli_generator.cli.arg_parser')
-    @patch('moduli_generator.cli.datetime')
-    def test_main_success_with_default_config(self, mock_datetime, mock_arg_parser, mock_moduli_generator):
+    @patch('moduli_generator.cli.iso_utc_time')
+    def test_main_success_with_default_config(self, mock_iso_utc_time, mock_arg_parser, mock_moduli_generator):
         """Test main function success with default configuration."""
         # Setup mocks
         mock_config = MagicMock()
@@ -28,11 +28,10 @@ class TestCLIMain:
         mock_config.key_lengths = [4096, 8192]
         mock_arg_parser.local_config.return_value = mock_config
 
-        # Mock datetime for timing
+        # Mock iso_utc_time for timing
         start_time = datetime(2024, 1, 1, 12, 0, 0)
         end_time = datetime(2024, 1, 1, 12, 0, 30)  # 30 seconds later
-        mock_datetime.now.side_effect = [start_time, end_time]
-        mock_datetime.UTC = UTC
+        mock_iso_utc_time.side_effect = [start_time, end_time]
 
         # Mock ModuliGenerator chain
         mock_generator_instance = MagicMock()
@@ -55,8 +54,8 @@ class TestCLIMain:
 
     @pytest.mark.unit
     @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('moduli_generator.cli.datetime')
-    def test_main_success_with_provided_config(self, mock_datetime, mock_moduli_generator):
+    @patch('moduli_generator.cli.iso_utc_time')
+    def test_main_success_with_provided_config(self, mock_iso_utc_time, mock_moduli_generator):
         """Test main function success with provided configuration."""
         # Setup mocks
         mock_config = MagicMock()
@@ -64,11 +63,10 @@ class TestCLIMain:
         mock_config.get_logger.return_value = mock_logger
         mock_config.key_lengths = [3072]
 
-        # Mock datetime for timing
+        # Mock iso_utc_time for timing
         start_time = datetime(2024, 1, 1, 12, 0, 0)
         end_time = datetime(2024, 1, 1, 12, 1, 0)  # 60 seconds later
-        mock_datetime.now.side_effect = [start_time, end_time]
-        mock_datetime.UTC = UTC
+        mock_iso_utc_time.side_effect = [start_time, end_time]
 
         # Mock ModuliGenerator chain
         mock_generator_instance = MagicMock()
@@ -192,8 +190,8 @@ class TestCLILoggingAndTiming:
     @pytest.mark.unit
     @patch('moduli_generator.cli.ModuliGenerator')
     @patch('moduli_generator.cli.arg_parser')
-    @patch('moduli_generator.cli.datetime')
-    def test_main_timing_and_logging(self, mock_datetime, mock_arg_parser, mock_moduli_generator):
+    @patch('moduli_generator.cli.iso_utc_time')
+    def test_main_timing_and_logging(self, mock_iso_utc_time, mock_arg_parser, mock_moduli_generator):
         """Test main function timing and logging functionality."""
         # Setup mocks
         mock_config = MagicMock()

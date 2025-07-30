@@ -64,6 +64,7 @@ DEFAULT_MARIADB_VIEW: Final[str] = 'moduli_view'
 DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE: Final[bool] = False  # tbd - set to TRUE before Production Release
 # Screened Moduli File Pattern
 DEFAULT_MODULI_FILENAME_PATTERN: Final[str] = r'moduli_????_*'
+DEFAULT_CANDIDATE_IDX_FILENAME_PATTERN: Final[str] = r'.candidates_????_????????????????????'
 DEFAULT_MODULI_PREFIX: Final[str] = f'ssh-moduli_'
 # The number of moduli per key-length to capture in each produced moduli file
 DEFAULT_MODULI_RECORDS_PER_KEYLENGTH: Final[int] = 20
@@ -123,45 +124,6 @@ def strip_punction_from_datetime_str(timestamp: datetime) -> str:
     :rtype: str
     """
     return sub(r'[^0-9]', '', timestamp.isoformat())
-
-
-# def is_valid_identifier_sql(identifier: str) -> bool:
-#     """
-#     Determines if the given string is a valid identifier following specific
-#     rules. Valid identifiers must either be unquoted strings containing only
-#     alphanumeric characters, underscores, and dollar signs, or quoted strings
-#     wrapped in backticks with proper pairing. Additionally, identifiers must not
-#     exceed 64 characters.
-#
-#     :param identifier: The identifier string to validate.
-#     :type identifier: str
-#     :return: True if the identifier is valid, otherwise False.
-#     :rtype: Bool
-#     """
-#     if not identifier or not isinstance(identifier, str):
-#         return False
-#
-#     # Check for empty string or too long identifier
-#     if len(identifier) == 0 or len(identifier) > 64:
-#         return False
-#
-#     # If the identifier is quoted with backticks, we need different validation
-#     if identifier.startswith('`') and identifier.endswith('`'):
-#         # For quoted identifiers, make sure the backticks are properly paired
-#         # and that the identifier isn't just empty backticks
-#         return len(identifier) > 2
-#
-#     # For unquoted identifiers, check that they only contain valid characters
-#     valid_pattern = compile(r'^[a-zA-Z0-9_$]+$')
-#
-#     # Validate the pattern
-#     if not valid_pattern.match(identifier):
-#         return False
-#
-#     # MariaDB reserved words could be added here to make the validation stricter
-#     # For a complete solution, a list of reserved words should be checked
-#
-#     return True
 
 
 class ModuliConfig:
@@ -263,6 +225,7 @@ class ModuliConfig:
         # Default Mariadb Configuration
         self.mariadb_cnf = self.moduli_home / DEFAULT_MARIADB_CNF
         self.moduli_file_pattern = DEFAULT_MODULI_FILENAME_PATTERN
+        self.candidate_idx_pattern = DEFAULT_CANDIDATE_IDX_FILENAME_PATTERN
 
         # Default moduli output files
         self.moduli_file_pfx = DEFAULT_MODULI_PREFIX

@@ -63,7 +63,7 @@
                 <p class="caption" role="heading"><span class="caption-text">Legal</span></p>
                 <ul>
                     <li class="toctree-l1"><a class="reference internal" href="../COPYRIGHT.html">Copyright</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../LICENSE.html">MIT Licensegn</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../LICENSE.html">MIT License</a></li>
                 </ul>
 
             </div>
@@ -111,8 +111,7 @@
                                 class="kn">import</span> <span class="n">PosixPath</span> <span
                                 class="k">as</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">re</span><span class="w"> </span><span class="kn">import</span> <span
-                                class="p">(</span><span class="nb">compile</span><span class="p">,</span> <span
-                                class="n">sub</span><span class="p">)</span>
+                                class="p">(</span><span class="n">sub</span><span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span
                                 class="kn">import</span> <span class="n">Final</span>
 
@@ -212,6 +211,9 @@
                                 class="p">[</span><span class="nb">str</span><span class="p">]</span> <span
                                 class="o">=</span> <span class="sa">r</span><span
                                 class="s1">&#39;moduli_????_*&#39;</span>
+<span class="n">DEFAULT_CANDIDATE_IDX_FILENAME_PATTERN</span><span class="p">:</span> <span class="n">Final</span><span
+                                class="p">[</span><span class="nb">str</span><span class="p">]</span> <span
+                                class="o">=</span> <span class="sa">r</span><span class="s1">&#39;.candidates_????_????????????????????&#39;</span>
 <span class="n">DEFAULT_MODULI_PREFIX</span><span class="p">:</span> <span class="n">Final</span><span
                                 class="p">[</span><span class="nb">str</span><span class="p">]</span> <span
                                 class="o">=</span> <span class="sa">f</span><span
@@ -305,45 +307,6 @@
         class="p">,</span> <span class="n">timestamp</span><span class="o">.</span><span class="n">isoformat</span><span
         class="p">())</span></div>
 
-
-
-<span class="c1"># def is_valid_identifier_sql(identifier: str) -&gt; bool:</span>
-<span class="c1">#     &quot;&quot;&quot;</span>
-<span class="c1">#     Determines if the given string is a valid identifier following specific</span>
-<span class="c1">#     rules. Valid identifiers must either be unquoted strings containing only</span>
-<span class="c1">#     alphanumeric characters, underscores, and dollar signs, or quoted strings</span>
-<span class="c1">#     wrapped in backticks with proper pairing. Additionally, identifiers must not</span>
-<span class="c1">#     exceed 64 characters.</span>
-<span class="c1">#</span>
-<span class="c1">#     :param identifier: The identifier string to validate.</span>
-<span class="c1">#     :type identifier: str</span>
-<span class="c1">#     :return: True if the identifier is valid, otherwise False.</span>
-<span class="c1">#     :rtype: Bool</span>
-<span class="c1">#     &quot;&quot;&quot;</span>
-<span class="c1">#     if not identifier or not isinstance(identifier, str):</span>
-<span class="c1">#         return False</span>
-<span class="c1">#</span>
-<span class="c1">#     # Check for empty string or too long identifier</span>
-<span class="c1">#     if len(identifier) == 0 or len(identifier) &gt; 64:</span>
-<span class="c1">#         return False</span>
-<span class="c1">#</span>
-<span class="c1">#     # If the identifier is quoted with backticks, we need different validation</span>
-<span class="c1">#     if identifier.startswith(&#39;`&#39;) and identifier.endswith(&#39;`&#39;):</span>
-<span class="c1">#         # For quoted identifiers, make sure the backticks are properly paired</span>
-<span class="c1">#         # and that the identifier isn&#39;t just empty backticks</span>
-<span class="c1">#         return len(identifier) &gt; 2</span>
-<span class="c1">#</span>
-<span class="c1">#     # For unquoted identifiers, check that they only contain valid characters</span>
-<span class="c1">#     valid_pattern = compile(r&#39;^[a-zA-Z0-9_$]+$&#39;)</span>
-<span class="c1">#</span>
-<span class="c1">#     # Validate the pattern</span>
-<span class="c1">#     if not valid_pattern.match(identifier):</span>
-<span class="c1">#         return False</span>
-<span class="c1">#</span>
-<span class="c1">#     # MariaDB reserved words could be added here to make the validation stricter</span>
-<span class="c1">#     # For a complete solution, a list of reserved words should be checked</span>
-<span class="c1">#</span>
-<span class="c1">#     return True</span>
 
 
 <div class="viewcode-block" id="ModuliConfig">
@@ -472,6 +435,8 @@
         class="n">DEFAULT_MARIADB_CNF</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">moduli_file_pattern</span> <span
         class="o">=</span> <span class="n">DEFAULT_MODULI_FILENAME_PATTERN</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">candidate_idx_pattern</span> <span
+        class="o">=</span> <span class="n">DEFAULT_CANDIDATE_IDX_FILENAME_PATTERN</span>
 
         <span class="c1"># Default moduli output files</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">moduli_file_pfx</span> <span

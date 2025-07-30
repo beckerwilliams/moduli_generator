@@ -11,7 +11,7 @@
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
     <script src="../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html"/>
@@ -39,13 +39,10 @@
             <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
                 <p class="caption" role="heading"><span class="caption-text">Documentation:</span></p>
                 <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../EXAMPLE_INSTALL_SESSION.html">Boostrap
-                        Dev Installer</a></li>
-                    <li class="toctree-l1"><a class="reference internal"
-                                              href="../EXAMPLE_INSTALL_SESSION.html#requirements">Requirements</a></li>
-                    <li class="toctree-l1"><a class="reference internal"
-                                              href="../EXAMPLE_INSTALL_SESSION.html#configure">Configure</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../MARIADB.html">MariaDB</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../README.html">SSH2 Moduli
+                        Generator554</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../README.html#configure-mariadb">Configure
+                        MariaDB</a></li>
                 </ul>
                 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
                 <ul>
@@ -53,6 +50,9 @@
                     <li class="toctree-l1"><a class="reference internal" href="../DB.html">module db</a></li>
                     <li class="toctree-l1"><a class="reference internal" href="../MODULI_GENERATOR.html">module
                         moduli_generator</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../CHANGELOG_GENERATOR.html">module
+                        changelog_generator</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../TEST.html">module test</a></li>
                 </ul>
                 <p class="caption" role="heading"><span class="caption-text">Contributing:</span></p>
                 <ul>
@@ -68,16 +68,9 @@
                     <li class="toctree-l1"><a class="reference internal" href="../COPYRIGHT.html">Copyright</a></li>
                     <li class="toctree-l1"><a class="reference internal" href="../LICENSE.html">MIT License</a></li>
                 </ul>
-                <p class="caption" role="heading"><span class="caption-text">Leftovers</span></p>
+                <p class="caption" role="heading"><span class="caption-text">Development Tests</span></p>
                 <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../DATABASE_INTEGRATION.html">Database
-                        Integration</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../MARIADB.html">MariaDB</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../CHANGELOG.html">Changelog</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../CHANGELOG_GENERATOR.html">module
-                        changelog_generator</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../README.html">SSH2 Moduli Generator</a>
-                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../TEST.html">module test</a></li>
                 </ul>
 
             </div>
@@ -254,6 +247,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">project_info</span> <span class="o">=</span> <span
         class="bp">self</span><span class="o">.</span><span class="n">_load_project_info</span><span class="p">()</span>
 
+<div class="viewcode-block" id="ChangelogGenerator._load_project_info">
+<a class="viewcode-back" href="../CHANGELOG_GENERATOR.html#changelog_generator.ChangelogGenerator._load_project_info">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_load_project_info</span><span class="p">(</span><span
         class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Load project information from pyproject.toml.&quot;&quot;&quot;</span>
@@ -278,8 +273,11 @@
         class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span
         class="p">)</span>
 
-        <span class="k">return</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="p">{}</span></div>
 
+
+<div class="viewcode-block" id="ChangelogGenerator._get_git_commits">
+<a class="viewcode-back" href="../CHANGELOG_GENERATOR.html#changelog_generator.ChangelogGenerator._get_git_commits">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_git_commits</span><span
         class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_commits</span><span
         class="o">=</span><span class="mi">50</span><span class="p">):</span>
@@ -329,8 +327,11 @@
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error getting git commits: </span><span
         class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span
         class="p">)</span>
-            <span class="k">return</span> <span class="p">[]</span>
+            <span class="k">return</span> <span class="p">[]</span></div>
 
+
+<div class="viewcode-block" id="ChangelogGenerator._parse_commit_line">
+<a class="viewcode-back" href="../CHANGELOG_GENERATOR.html#changelog_generator.ChangelogGenerator._parse_commit_line">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_parse_commit_line</span><span class="p">(</span><span
         class="n">line</span><span class="p">):</span>
@@ -370,8 +371,12 @@
         class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">&#39;: </span><span
         class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span
         class="p">)</span>
-            <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
 
+
+<div class="viewcode-block" id="ChangelogGenerator._format_commit_message">
+<a class="viewcode-back"
+   href="../CHANGELOG_GENERATOR.html#changelog_generator.ChangelogGenerator._format_commit_message">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_format_commit_message</span><span
         class="p">(</span><span class="n">message</span><span class="p">):</span>
@@ -395,8 +400,12 @@
         class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span
         class="p">)</span>
 
-        <span class="k">return</span> <span class="n">message</span>
+        <span class="k">return</span> <span class="n">message</span></div>
 
+
+<div class="viewcode-block" id="ChangelogGenerator._group_commits_by_date">
+<a class="viewcode-back"
+   href="../CHANGELOG_GENERATOR.html#changelog_generator.ChangelogGenerator._group_commits_by_date">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_group_commits_by_date</span><span
         class="p">(</span><span class="n">commits</span><span class="p">):</span>
@@ -415,8 +424,11 @@
         class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">commit</span><span
         class="p">)</span>
 
-        <span class="k">return</span> <span class="n">grouped</span>
+        <span class="k">return</span> <span class="n">grouped</span></div>
 
+
+<div class="viewcode-block" id="ChangelogGenerator._generate_rst_header">
+<a class="viewcode-back" href="../CHANGELOG_GENERATOR.html#changelog_generator.ChangelogGenerator._generate_rst_header">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_rst_header</span><span
         class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span
@@ -452,8 +464,12 @@
         class="s1">&#39;version&#39;</span><span class="p">]</span><span class="si">}</span><span
         class="s2">&#39;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">header</span>
+        <span class="k">return</span> <span class="n">header</span></div>
 
+
+<div class="viewcode-block" id="ChangelogGenerator._generate_date_section">
+<a class="viewcode-back"
+   href="../CHANGELOG_GENERATOR.html#changelog_generator.ChangelogGenerator._generate_date_section">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_date_section</span><span
         class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">date_str</span><span
         class="p">,</span> <span class="n">commits</span><span class="p">):</span>
@@ -529,8 +545,12 @@
 
         <span class="n">section</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span
         class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">section</span>
+        <span class="k">return</span> <span class="n">section</span></div>
 
+
+<div class="viewcode-block" id="ChangelogGenerator._generate_project_info_section">
+<a class="viewcode-back"
+   href="../CHANGELOG_GENERATOR.html#changelog_generator.ChangelogGenerator._generate_project_info_section">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_generate_project_info_section</span><span
         class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate project information section.&quot;&quot;&quot;</span>
@@ -599,7 +619,8 @@
         <span class="n">section</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span
         class="s2">&quot;&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">section</span>
+        <span class="k">return</span> <span class="n">section</span></div>
+
 
 <div class="viewcode-block" id="ChangelogGenerator.generate_changelog">
 <a class="viewcode-back" href="../CHANGELOG_GENERATOR.html#changelog_generator.ChangelogGenerator.generate_changelog">[docs]</a>

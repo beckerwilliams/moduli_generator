@@ -18,6 +18,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html"/>
     <link rel="search" title="Search" href="search.html"/>
+    <link rel="next" title="module test" href="TEST.html"/>
+    <link rel="prev" title="module moduli_generator" href="MODULI_GENERATOR.html"/>
 </head>
 
 <body class="wy-body-for-nav">
@@ -47,11 +49,14 @@
                         MariaDB</a></li>
                 </ul>
                 <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
-                <ul>
+                <ul class="current">
                     <li class="toctree-l1"><a class="reference internal" href="CONFIG.html">module config</a></li>
                     <li class="toctree-l1"><a class="reference internal" href="DB.html">module db</a></li>
                     <li class="toctree-l1"><a class="reference internal" href="MODULI_GENERATOR.html">module
                         moduli_generator</a></li>
+                    <li class="toctree-l1 current"><a class="current reference internal" href="#">module
+                        changelog_generator</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="TEST.html">module test</a></li>
                 </ul>
                 <p class="caption" role="heading"><span class="caption-text">Contributing:</span></p>
                 <ul>
@@ -65,6 +70,10 @@
                 <ul>
                     <li class="toctree-l1"><a class="reference internal" href="COPYRIGHT.html">Copyright</a></li>
                     <li class="toctree-l1"><a class="reference internal" href="LICENSE.html">MIT License</a></li>
+                </ul>
+                <p class="caption" role="heading"><span class="caption-text">Development Tests</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="TEST.html">module test</a></li>
                 </ul>
 
             </div>
@@ -95,12 +104,206 @@
                         <section id="module-changelog-generator">
                             <h1>module changelog_generator<a class="headerlink" href="#module-changelog-generator"
                                                              title="Link to this heading"></a></h1>
+                            <p>Changelog Generator for the moduli_generator project</p>
+                            <p>This script generates a CHANGELOG.rst file from git commit history,
+                                organizing commits by date in reStructuredText format.</p>
+                            <dl class="py class">
+                                <dt class="sig sig-object py">
+                                    <em class="property"><span class="k"><span class="pre">class</span></span><span
+                                            class="w"> </span></em><span class="sig-prename descclassname"><span
+                                        class="pre">changelog_generator.</span></span><span
+                                        class="sig-name descname"><span
+                                        class="pre">ChangelogGenerator</span></span><span class="sig-paren">(</span><em
+                                        class="sig-param"><span class="n"><span
+                                        class="pre">project_root</span></span><span class="o"><span class="pre">=</span></span><span
+                                        class="default_value"><span class="pre">None</span></span></em><span
+                                        class="sig-paren">)</span><a class="reference internal"
+                                                                     href="_modules/changelog_generator.html#ChangelogGenerator"><span
+                                        class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                <dd><p>Generates a detailed changelog based on git commit history and project
+                                    metadata.</p>
+                                    <p>The ChangelogGenerator class is designed to parse git commit logs, extract
+                                        meaningful
+                                        information, categorize commits by their content, organize commits by date, and
+                                        generate a formatted changelog in reStructuredText (RST). Additionally, it
+                                        provides
+                                        project-specific information if available in the <cite>pyproject.toml</cite>.
+                                    </p>
+                                    <dl class="field-list simple">
+                                        <dt class="field-odd">Variables<span class="colon">:</span></dt>
+                                        <dd class="field-odd">
+                                            <ul class="simple">
+                                                <li><p><strong>project_root</strong> – The root directory of the project
+                                                    to be analyzed.</p></li>
+                                                <li><p><strong>project_info</strong> – Metadata about the project
+                                                    extracted from <cite>pyproject.toml</cite>.</p></li>
+                                            </ul>
+                                        </dd>
+                                    </dl>
+                                    <dl class="py method">
+                                        <dt class="sig sig-object py">
+                                            <em class="property"><span class="k"><span
+                                                    class="pre">static</span></span><span class="w"> </span></em><span
+                                                class="sig-name descname"><span
+                                                class="pre">_format_commit_message</span></span><span class="sig-paren">(</span><em
+                                                class="sig-param"><span class="n"><span
+                                                class="pre">message</span></span></em><span class="sig-paren">)</span><a
+                                                class="reference internal"
+                                                href="_modules/changelog_generator.html#ChangelogGenerator._format_commit_message"><span
+                                                class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                        <dd><p>Format commit message for changelog.</p>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="py method">
+                                        <dt class="sig sig-object py">
+                                            <span class="sig-name descname"><span
+                                                    class="pre">_generate_date_section</span></span><span
+                                                class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                                class="pre">date_str</span></span></em>, <em class="sig-param"><span
+                                                class="n"><span class="pre">commits</span></span></em><span
+                                                class="sig-paren">)</span><a class="reference internal"
+                                                                             href="_modules/changelog_generator.html#ChangelogGenerator._generate_date_section"><span
+                                                class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                        <dd><p>Generate an RST section for a specific date.</p>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="py method">
+                                        <dt class="sig sig-object py">
+                                            <span class="sig-name descname"><span class="pre">_generate_project_info_section</span></span><span
+                                                class="sig-paren">(</span><span class="sig-paren">)</span><a
+                                                class="reference internal"
+                                                href="_modules/changelog_generator.html#ChangelogGenerator._generate_project_info_section"><span
+                                                class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                        <dd><p>Generate project information section.</p>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="py method">
+                                        <dt class="sig sig-object py">
+                                            <span class="sig-name descname"><span
+                                                    class="pre">_generate_rst_header</span></span><span
+                                                class="sig-paren">(</span><span class="sig-paren">)</span><a
+                                                class="reference internal"
+                                                href="_modules/changelog_generator.html#ChangelogGenerator._generate_rst_header"><span
+                                                class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                        <dd><p>Generate the RST header section.</p>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="py method">
+                                        <dt class="sig sig-object py">
+                                            <span class="sig-name descname"><span
+                                                    class="pre">_get_git_commits</span></span><span
+                                                class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                                class="pre">max_commits</span></span><span class="o"><span
+                                                class="pre">=</span></span><span class="default_value"><span
+                                                class="pre">50</span></span></em><span class="sig-paren">)</span><a
+                                                class="reference internal"
+                                                href="_modules/changelog_generator.html#ChangelogGenerator._get_git_commits"><span
+                                                class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                        <dd><p>Get git commit history with dates and messages.</p>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="py method">
+                                        <dt class="sig sig-object py">
+                                            <em class="property"><span class="k"><span
+                                                    class="pre">static</span></span><span class="w"> </span></em><span
+                                                class="sig-name descname"><span
+                                                class="pre">_group_commits_by_date</span></span><span class="sig-paren">(</span><em
+                                                class="sig-param"><span class="n"><span
+                                                class="pre">commits</span></span></em><span class="sig-paren">)</span><a
+                                                class="reference internal"
+                                                href="_modules/changelog_generator.html#ChangelogGenerator._group_commits_by_date"><span
+                                                class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                        <dd><p>Group commits by date.</p>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="py method">
+                                        <dt class="sig sig-object py">
+                                            <span class="sig-name descname"><span class="pre">_load_project_info</span></span><span
+                                                class="sig-paren">(</span><span class="sig-paren">)</span><a
+                                                class="reference internal"
+                                                href="_modules/changelog_generator.html#ChangelogGenerator._load_project_info"><span
+                                                class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                        <dd><p>Load project information from pyproject.toml.</p>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="py method">
+                                        <dt class="sig sig-object py">
+                                            <em class="property"><span class="k"><span
+                                                    class="pre">static</span></span><span class="w"> </span></em><span
+                                                class="sig-name descname"><span
+                                                class="pre">_parse_commit_line</span></span><span
+                                                class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                                class="pre">line</span></span></em><span class="sig-paren">)</span><a
+                                                class="reference internal"
+                                                href="_modules/changelog_generator.html#ChangelogGenerator._parse_commit_line"><span
+                                                class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                        <dd><p>Parse a single commit line into components.</p>
+                                        </dd>
+                                    </dl>
+
+                                    <dl class="py method">
+                                        <dt class="sig sig-object py">
+                                            <span class="sig-name descname"><span class="pre">generate_changelog</span></span><span
+                                                class="sig-paren">(</span><em class="sig-param"><span class="n"><span
+                                                class="pre">output_file</span></span><span class="o"><span
+                                                class="pre">=</span></span><span class="default_value"><span
+                                                class="pre">'CHANGELOG.rst'</span></span></em>, <em
+                                                class="sig-param"><span class="n"><span
+                                                class="pre">max_commits</span></span><span class="o"><span
+                                                class="pre">=</span></span><span class="default_value"><span
+                                                class="pre">50</span></span></em><span class="sig-paren">)</span><a
+                                                class="reference internal"
+                                                href="_modules/changelog_generator.html#ChangelogGenerator.generate_changelog"><span
+                                                class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+                                        <dd><p>Generates a changelog file based on git commit history and saves it to
+                                            the
+                                            specified output file. The changelog is formatted in reStructuredText (RST)
+                                            format and includes grouped commit entries by date in descending order.</p>
+                                            <dl class="field-list simple">
+                                                <dt class="field-odd">Parameters<span class="colon">:</span></dt>
+                                                <dd class="field-odd">
+                                                    <ul class="simple">
+                                                        <li><p><strong>output_file</strong> (<em>str</em><em>, </em><em>optional</em>)
+                                                            – The name of the output changelog file with the default
+                                                            value “CHANGELOG.rst”.</p></li>
+                                                        <li><p><strong>max_commits</strong> (<em>int</em><em>, </em><em>optional</em>)
+                                                            – The maximum number of recent commits to include in the
+                                                            changelog, with a default value of 50.</p></li>
+                                                    </ul>
+                                                </dd>
+                                                <dt class="field-even">Returns<span class="colon">:</span></dt>
+                                                <dd class="field-even"><p>None</p>
+                                                </dd>
+                                                <dt class="field-odd">Return type<span class="colon">:</span></dt>
+                                                <dd class="field-odd"><p>None</p>
+                                                </dd>
+                                            </dl>
+                                        </dd>
+                                    </dl>
+
+                                </dd>
+                            </dl>
+
                         </section>
 
 
                     </div>
                 </div>
                 <footer>
+                    <div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+                        <a href="MODULI_GENERATOR.html" class="btn btn-neutral float-left"
+                           title="module moduli_generator" accesskey="p" rel="prev"><span
+                                class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+                        <a href="TEST.html" class="btn btn-neutral float-right" title="module test" accesskey="n"
+                           rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+                    </div>
 
                     <hr/>
 

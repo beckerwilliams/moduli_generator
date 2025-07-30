@@ -50,6 +50,9 @@
                     <li class="toctree-l1"><a class="reference internal" href="../DB.html">module db</a></li>
                     <li class="toctree-l1"><a class="reference internal" href="../MODULI_GENERATOR.html">module
                         moduli_generator</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../CHANGELOG_GENERATOR.html">module
+                        changelog_generator</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../TEST.html">module test</a></li>
                 </ul>
                 <p class="caption" role="heading"><span class="caption-text">Contributing:</span></p>
                 <ul>
@@ -63,7 +66,11 @@
                 <p class="caption" role="heading"><span class="caption-text">Legal</span></p>
                 <ul>
                     <li class="toctree-l1"><a class="reference internal" href="../COPYRIGHT.html">Copyright</a></li>
-                    <li class="toctree-l1"><a class="reference internal" href="../LICENSE.html">MIT Licensegn</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="../LICENSE.html">MIT License</a></li>
+                </ul>
+                <p class="caption" role="heading"><span class="caption-text">Development Tests</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../TEST.html">module test</a></li>
                 </ul>
 
             </div>
@@ -95,10 +102,12 @@
                         <div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">concurrent.futures</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">json</span><span class="w"> </span><span
                                 class="kn">import</span> <span class="n">dump</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">logging</span><span class="w"> </span><span
+                                class="kn">import</span> <span class="p">(</span><span class="n">DEBUG</span><span
+                                class="p">,</span> <span class="n">INFO</span><span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span
                                 class="kn">import</span> <span class="n">PosixPath</span> <span
                                 class="k">as</span> <span class="n">Path</span>
@@ -107,54 +116,16 @@
                                 class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span
                                 class="p">)</span>
 
-<span class="c1"># Try to import mariadb components, but make them optional</span>
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">mariadb</span><span class="w"> </span><span
+<span class="kn">from</span><span class="w"> </span><span class="nn">mariadb</span><span class="w"> </span><span
                                 class="kn">import</span> <span class="n">Error</span> <span class="k">as</span> <span
                                 class="n">MariaDBError</span>
 
-    <span class="n">MARIADB_AVAILABLE</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="c1"># Create a dummy exception class when mariadb is not available</span>
-    <span class="k">class</span><span class="w"> </span><span class="nc">MariaDBError</span><span
-                                class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-        <span class="k">pass</span>
-
-
-    <span class="n">MARIADB_AVAILABLE</span> <span class="o">=</span> <span class="kc">False</span>
-
 <span class="kn">from</span><span class="w"> </span><span class="nn">config</span><span class="w"> </span><span
                                 class="kn">import</span> <span class="p">(</span><span
-                                class="n">iso_utc_timestamp</span><span class="p">,</span> <span class="n">default_config</span><span
+                                class="n">default_config</span><span class="p">,</span> <span class="n">iso_utc_timestamp</span><span
                                 class="p">)</span>
-
-<span class="c1"># Import MariaDBConnector conditionally</span>
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">db</span><span class="w"> </span><span
-                                class="kn">import</span> <span class="n">MariaDBConnector</span>
-
-    <span class="n">DB_AVAILABLE</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="c1"># Create a dummy connector when db module is not available</span>
-    <span class="k">class</span><span class="w"> </span><span class="nc">MariaDBConnector</span><span class="p">:</span>
-        <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span
-                                class="bp">self</span><span class="p">,</span> <span class="n">config</span><span
-                                class="p">):</span>
-            <span class="k">pass</span>
-
-        <span class="k">def</span><span class="w"> </span><span class="nf">export_screened_moduli</span><span class="p">(</span><span
-                                class="bp">self</span><span class="p">,</span> <span class="n">moduli</span><span
-                                class="p">):</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;MariaDB functionality is not available. Please install mariadb package.&quot;</span><span
-                                class="p">)</span>
-
-        <span class="k">def</span><span class="w"> </span><span class="nf">write_moduli_file</span><span
-                                class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;MariaDB functionality is not available. Please install mariadb package.&quot;</span><span
-                                class="p">)</span>
-
-
-    <span class="n">DB_AVAILABLE</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">db</span><span class="w"> </span><span class="kn">import</span> <span
+                                class="n">MariaDBConnector</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">moduli_generator.validators</span><span
                                 class="w"> </span><span class="kn">import</span> <span class="n">validate_subprocess_args</span>
 
@@ -264,12 +235,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span
         class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">MARIADB_AVAILABLE</span><span
-        class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span
-        class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;MariaDB package is not available. Database functionality will be limited. &quot;</span>
-                                    <span class="s2">&quot;To enable full database features, please install the mariadb package: &quot;</span>
-                                    <span class="s2">&quot;pip install mariadb&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span
         class="o">=</span> <span class="n">MariaDBConnector</span><span class="p">(</span><span
         class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
@@ -297,9 +262,9 @@
         class="p">(</span><span class="n">command</span><span class="p">,</span>
                                      <span class="n">logger</span><span class="p">,</span>
                                      <span class="n">info_level</span><span class="o">=</span><span
-        class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+        class="n">INFO</span><span class="p">,</span>
                                      <span class="n">debug_level</span><span class="o">=</span><span
-        class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span>
+        class="n">DEBUG</span>
                                      <span class="p">)</span> <span class="o">-&gt;</span> <span
         class="n">subprocess</span><span class="o">.</span><span class="n">CompletedProcess</span><span
         class="p">:</span>
@@ -534,88 +499,6 @@
         <span class="k">return</span> <span class="n">screened_file</span></div>
 
 
-<div class="viewcode-block" id="ModuliGenerator._generate_candidates">
-<a class="viewcode-back"
-   href="../MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._generate_candidates">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_candidates</span><span
-        class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key_length</span><span
-        class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span
-        class="n">Path</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Generates candidate cryptographic keys of a specified length.</span>
-
-<span class="sd">        This method internally uses a static method to generate candidate keys</span>
-<span class="sd">        based on the provided key length and configuration. Logs the result of</span>
-<span class="sd">        the operation and handles subprocess errors.</span>
-
-<span class="sd">        :param key_length: Length of the key in bits to be generated.</span>
-<span class="sd">        :type key_length: int</span>
-<span class="sd">        :return: Path to the generated candidate keys.</span>
-<span class="sd">        :rtype: Path</span>
-<span class="sd">        :raises subprocess.CalledProcessError: If the candidate generation fails.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span
-        class="o">.</span><span class="n">_generate_candidates_static</span><span class="p">(</span><span class="bp">self</span><span
-        class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">key_length</span><span
-        class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span
-        class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Generated candidate file for </span><span
-        class="si">{</span><span class="n">key_length</span><span class="si">}</span><span
-        class="s1"> bits&#39;</span><span class="p">)</span>
-
-        <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span
-        class="k">as</span> <span class="n">err</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span
-        class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Candidate generation failed for </span><span
-        class="si">{</span><span class="n">key_length</span><span class="si">}</span><span class="s1">: </span><span
-        class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s1">&#39;</span><span
-        class="p">)</span>
-            <span class="k">raise</span> <span class="n">err</span>
-
-        <span class="k">return</span> <span class="n">result</span></div>
-
-
-<div class="viewcode-block" id="ModuliGenerator._screen_candidates">
-<a class="viewcode-back" href="../MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._screen_candidates">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">_screen_candidates</span><span class="p">(</span><span
-        class="bp">self</span><span class="p">,</span> <span class="n">candidates_file</span><span
-        class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span
-        class="n">Path</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Screens the provided candidates file by applying a static screening process defined in the configuration.</span>
-
-<span class="sd">        The method attempts to process the given candidates file using a static screening function.</span>
-<span class="sd">        If the process executes successfully, the screened result is logged and returned.</span>
-<span class="sd">        In case of failure, the error is logged and re-raised for further handling.</span>
-
-<span class="sd">        :param candidates_file: Path to the file containing the moduli candidates to be screened.</span>
-<span class="sd">        :type candidates_file: Path</span>
-<span class="sd">        :return: Path to the screened candidates file.</span>
-<span class="sd">        :rtype: Path</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span
-        class="o">.</span><span class="n">_screen_candidates_static</span><span class="p">(</span><span
-        class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span
-        class="n">candidates_file</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span
-        class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Screened candidate files: </span><span
-        class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s1">&#39;</span><span
-        class="p">)</span>
-
-        <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span
-        class="k">as</span> <span class="n">err</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span
-        class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Screening failed for </span><span
-        class="si">{</span><span class="n">candidates_file</span><span class="si">}</span><span
-        class="s1">: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span
-        class="s1">&#39;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="n">err</span>
-
-        <span class="k">return</span> <span class="n">result</span></div>
-
-
 <div class="viewcode-block" id="ModuliGenerator._parse_moduli_files">
 <a class="viewcode-back" href="../MODULI_GENERATOR.html#moduli_generator.ModuliGenerator._parse_moduli_files">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_parse_moduli_files</span><span
@@ -727,8 +610,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">generated_moduli</span> <span class="o">=</span> <span class="p">{}</span>
 
+        <span class="c1"># with concurrent.futures.ProcessPoolExecutor() as executor: - TBD</span>
+        <span class="c1">#  Testint ThreadPool vs ProcessPool executor</span>
         <span class="k">with</span> <span class="n">concurrent</span><span class="o">.</span><span
-        class="n">futures</span><span class="o">.</span><span class="n">ProcessPoolExecutor</span><span
+        class="n">futures</span><span class="o">.</span><span class="n">ThreadPoolExecutor</span><span
         class="p">()</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
             <span class="c1"># First, generate candidates</span>
             <span class="n">candidate_futures</span> <span class="o">=</span> <span class="p">[]</span>
@@ -921,7 +806,95 @@
         class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>
-</div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">restart_screening</span><span
+        class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span
+        class="s1">&#39;ModuliGenerator&#39;</span><span class="p">:</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_get_restart_candidates_by_length</span><span
+        class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span
+        class="n">Path</span><span class="p">]:</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Retrieves a list of restart candidates based on existing candidate index files</span>
+<span class="sd">            in the specified directory. It processes each index file by replacing the file</span>
+<span class="sd">            extension to generate candidate names.</span>
+
+<span class="sd">            :return: A list of candidate names derived from index files.</span>
+<span class="sd">            :rtype: List[Path]</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span
+        class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span
+        class="n">candidates_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span
+        class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span
+        class="n">candidate_idx_pattern</span><span class="p">):</span>
+                <span class="n">candidate</span> <span class="o">=</span> <span class="n">Path</span><span
+        class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span
+        class="o">.</span><span class="n">candidates_dir</span><span class="p">)</span> <span class="o">/</span> <span
+        class="n">idx</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span
+        class="p">(</span><span class="s1">&#39;.candidates&#39;</span><span class="p">,</span> <span class="s1">&#39;candidates&#39;</span><span
+        class="p">)</span>
+                <span class="n">local_length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span
+        class="n">idx</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span
+        class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">1</span><span
+        class="p">])</span>
+                <span class="k">if</span> <span class="n">local_length</span> <span class="ow">not</span> <span
+        class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+                    <span class="n">results</span><span class="p">[</span><span class="n">local_length</span><span
+        class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">results</span><span class="p">[</span><span class="n">local_length</span><span
+        class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">candidate</span><span
+        class="p">)</span>
+            <span class="k">return</span> <span class="n">results</span>
+
+        <span class="n">candidates_by_length</span> <span class="o">=</span> <span class="n">_get_restart_candidates_by_length</span><span
+        class="p">()</span>
+
+        <span class="k">with</span> <span class="n">concurrent</span><span class="o">.</span><span
+        class="n">futures</span><span class="o">.</span><span class="n">ProcessPoolExecutor</span><span
+        class="p">()</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+            <span class="c1"># Then screen candidates</span>
+            <span class="n">screening_futures</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">length</span><span class="p">,</span> <span class="n">candidate_files</span> <span
+        class="ow">in</span> <span class="n">candidates_by_length</span><span class="o">.</span><span
+        class="n">items</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">candidate_file</span> <span class="ow">in</span> <span
+        class="n">candidate_files</span><span class="p">:</span>
+                    <span class="n">future</span> <span class="o">=</span> <span class="n">executor</span><span
+        class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="bp">self</span><span
+        class="o">.</span><span class="n">_screen_candidates_static</span><span class="p">,</span> <span
+        class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span
+        class="n">candidate_file</span><span class="p">)</span>
+                    <span class="n">screening_futures</span><span class="o">.</span><span class="n">append</span><span
+        class="p">((</span><span class="n">future</span><span class="p">,</span> <span class="n">length</span><span
+        class="p">))</span>
+
+            <span class="c1"># Process completed screening futures</span>
+            <span class="n">generated_moduli</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">future</span><span class="p">,</span> <span
+        class="n">length</span> <span class="ow">in</span> <span class="n">screening_futures</span><span
+        class="p">:</span>
+                <span class="n">moduli_file</span> <span class="o">=</span> <span class="n">future</span><span
+        class="o">.</span><span class="n">result</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">length</span> <span class="ow">not</span> <span
+        class="ow">in</span> <span class="n">generated_moduli</span><span class="p">:</span>
+                    <span class="n">generated_moduli</span><span class="p">[</span><span class="n">length</span><span
+        class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">generated_moduli</span><span class="p">[</span><span class="n">length</span><span
+        class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">moduli_file</span><span
+        class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span
+        class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Produced </span><span
+        class="si">{</span><span class="nb">len</span><span class="p">(</span><span
+        class="n">screening_futures</span><span class="p">)</span><span class="si">}</span><span class="s1"> files of screened moduli</span><span
+        class="se">\n</span><span class="s1">&#39;</span>
+                             <span class="sa">f</span><span class="s1">&#39;for key-lengths:&#39;</span> <span
+        class="o">+</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span
+        class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span
+        class="n">key_lengths</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
 
 </pre>
                         </div>

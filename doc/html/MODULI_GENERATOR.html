@@ -18,7 +18,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html"/>
     <link rel="search" title="Search" href="search.html"/>
-    <link rel="next" title="bug_report template" href=".github/ISSUE_TEMPLATE/bug_report.html"/>
+    <link rel="next" title="module changelog_generator" href="CHANGELOG_GENERATOR.html"/>
     <link rel="prev" title="module db" href="DB.html"/>
 </head>
 
@@ -54,6 +54,9 @@
                     <li class="toctree-l1"><a class="reference internal" href="DB.html">module db</a></li>
                     <li class="toctree-l1 current"><a class="current reference internal" href="#">module
                         moduli_generator</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="CHANGELOG_GENERATOR.html">module
+                        changelog_generator</a></li>
+                    <li class="toctree-l1"><a class="reference internal" href="TEST.html">module test</a></li>
                 </ul>
                 <p class="caption" role="heading"><span class="caption-text">Contributing:</span></p>
                 <ul>
@@ -67,6 +70,10 @@
                 <ul>
                     <li class="toctree-l1"><a class="reference internal" href="COPYRIGHT.html">Copyright</a></li>
                     <li class="toctree-l1"><a class="reference internal" href="LICENSE.html">MIT License</a></li>
+                </ul>
+                <p class="caption" role="heading"><span class="caption-text">Development Tests</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="TEST.html">module test</a></li>
                 </ul>
 
             </div>
@@ -134,42 +141,6 @@
                                             </ul>
                                         </dd>
                                     </dl>
-                                    <dl class="py method">
-                                        <dt class="sig sig-object py">
-                                            <span class="sig-name descname"><span
-                                                    class="pre">_generate_candidates</span></span><span
-                                                class="sig-paren">(</span><em class="sig-param"><span class="n"><span
-                                                class="pre">key_length</span></span><span class="p"><span
-                                                class="pre">:</span></span><span class="w"> </span><span class="n"><span
-                                                class="pre">int</span></span></em><span class="sig-paren">)</span> <span
-                                                class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
-                                                class="sig-return-typehint"><span
-                                                class="pre">PosixPath</span></span></span><a class="reference internal"
-                                                                                             href="_modules/moduli_generator.html#ModuliGenerator._generate_candidates"><span
-                                                class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-                                        <dd><p>Generates candidate cryptographic keys of a specified length.</p>
-                                            <p>This method internally uses a static method to generate candidate keys
-                                                based on the provided key length and configuration. Logs the result of
-                                                the operation and handles subprocess errors.</p>
-                                            <dl class="field-list simple">
-                                                <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-                                                <dd class="field-odd"><p><strong>key_length</strong> (<em>int</em>) –
-                                                    Length of the key in bits to be generated.</p>
-                                                </dd>
-                                                <dt class="field-even">Returns<span class="colon">:</span></dt>
-                                                <dd class="field-even"><p>Path to the generated candidate keys.</p>
-                                                </dd>
-                                                <dt class="field-odd">Return type<span class="colon">:</span></dt>
-                                                <dd class="field-odd"><p>Path</p>
-                                                </dd>
-                                                <dt class="field-even">Raises<span class="colon">:</span></dt>
-                                                <dd class="field-even"><p><strong>subprocess.CalledProcessError</strong>
-                                                    – If the candidate generation fails.</p>
-                                                </dd>
-                                            </dl>
-                                        </dd>
-                                    </dl>
-
                                     <dl class="py method">
                                         <dt class="sig sig-object py">
                                             <em class="property"><span class="k"><span
@@ -336,43 +307,6 @@
                                                 <dt class="field-even">Raises<span class="colon">:</span></dt>
                                                 <dd class="field-even"><p><strong>CalledProcessError</strong> – If the
                                                     subprocess fails</p>
-                                                </dd>
-                                            </dl>
-                                        </dd>
-                                    </dl>
-
-                                    <dl class="py method">
-                                        <dt class="sig sig-object py">
-                                            <span class="sig-name descname"><span class="pre">_screen_candidates</span></span><span
-                                                class="sig-paren">(</span><em class="sig-param"><span class="n"><span
-                                                class="pre">candidates_file</span></span><span class="p"><span
-                                                class="pre">:</span></span><span class="w"> </span><span class="n"><span
-                                                class="pre">PosixPath</span></span></em><span class="sig-paren">)</span>
-                                            <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span
-                                                    class="sig-return-typehint"><span
-                                                    class="pre">PosixPath</span></span></span><a
-                                                class="reference internal"
-                                                href="_modules/moduli_generator.html#ModuliGenerator._screen_candidates"><span
-                                                class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-                                        <dd><p>Screens the provided candidates file by applying a static screening
-                                            process defined in the configuration.</p>
-                                            <p>The method attempts to process the given candidates file using a static
-                                                screening function.
-                                                If the process executes successfully, the screened result is logged and
-                                                returned.
-                                                In case of failure, the error is logged and re-raised for further
-                                                handling.</p>
-                                            <dl class="field-list simple">
-                                                <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-                                                <dd class="field-odd"><p><strong>candidates_file</strong> (<em>Path</em>)
-                                                    – Path to the file containing the moduli candidates to be screened.
-                                                </p>
-                                                </dd>
-                                                <dt class="field-even">Returns<span class="colon">:</span></dt>
-                                                <dd class="field-even"><p>Path to the screened candidates file.</p>
-                                                </dd>
-                                                <dt class="field-odd">Return type<span class="colon">:</span></dt>
-                                                <dd class="field-odd"><p>Path</p>
                                                 </dd>
                                             </dl>
                                         </dd>
@@ -596,8 +530,8 @@
                     <div class="rst-footer-buttons" role="navigation" aria-label="Footer">
                         <a href="DB.html" class="btn btn-neutral float-left" title="module db" accesskey="p" rel="prev"><span
                                 class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-                        <a href=".github/ISSUE_TEMPLATE/bug_report.html" class="btn btn-neutral float-right"
-                           title="bug_report template" accesskey="n" rel="next">Next <span
+                        <a href="CHANGELOG_GENERATOR.html" class="btn btn-neutral float-right"
+                           title="module changelog_generator" accesskey="n" rel="next">Next <span
                                 class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
                     </div>
 

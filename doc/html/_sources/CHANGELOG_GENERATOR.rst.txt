@@ -2,7 +2,9 @@
 module changelog_generator
 ==========================
 
-.. automodule:: changelog_generator.__init__
+
+
+.. automodule:: changelog_generator
     :members:
-    :private_members:
+    :private-members:
     :no-index:
