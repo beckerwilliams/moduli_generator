@@ -399,6 +399,14 @@ class MariaDBConnector:
             self.logger.error(f"Error creating connection pool: {err}")
             raise RuntimeError(f"Connection pool creation failed: {err}")
 
+        # Validate DB Schema Prior to completion of object instantiation
+        try:
+            if self.verify_schema() is None:
+                raise RuntimeError('Database schema verification failed')
+
+        except NameError:
+            self.logger.error(f'view_name, {config.view_name} not defined in `config`')
+
     def sql(self, query: str, params: Optional[tuple] = None, fetch: bool = True) -> Optional[List[Dict]]:
         """
         Executes an SQL query with optional parameters and returns the results or
