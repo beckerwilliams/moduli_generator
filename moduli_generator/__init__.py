@@ -7,7 +7,7 @@ from pathlib import PosixPath as Path
 from typing import (Any, Dict, List)
 
 from config import (default_config, iso_utc_timestamp)
-from db import (MariaDBConnector)
+from db import (Error, MariaDBConnector)
 from moduli_generator.validators import validate_subprocess_args
 
 # Constants
@@ -248,6 +248,7 @@ class ModuliGenerator:
 
         return screened_file
 
+
     def _parse_moduli_files(self) -> Dict[str, List[Dict[str, Any]]]:
         """
         Parses the moduli files to extract specific installers entries and formats them
@@ -393,7 +394,7 @@ class ModuliGenerator:
 
         # tbd - Verify Successful DB Load prior to Deletion
         try:
-            # self.db.export_screened_moduli(screened_moduli)
+            self.db.export_screened_moduli(screened_moduli)
 
             # Cleanup lefover moduli files
             moduli_files = self._list_moduli_files()
@@ -401,7 +402,7 @@ class ModuliGenerator:
                 for file in moduli_files:
                     file.unlink()
 
-        except MariaDBError as err:
+        except Error as err:
             self.logger.error(f'Error storing moduli: {err}')
 
         self.logger.info(f'Moduli Stored in MariaDB database: {len(screened_moduli)}')

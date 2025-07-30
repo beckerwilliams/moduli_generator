@@ -62,6 +62,8 @@ DEFAULT_MARIADB_TABLE: Final[str] = 'moduli'
 DEFAULT_MARIADB_VIEW: Final[str] = 'moduli_view'
 # Flag to Delete Records from Moduli DB after successfully extracting and writing a complete ssh / moduli file
 DEFAULT_PRESERVE_MODULI_AFTER_DBSTORE: Final[bool] = True
+# Flag to delete records on moduli write
+DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE: Final[bool] = False
 # Screened Moduli File Pattern
 DEFAULT_MODULI_FILENAME_PATTERN: Final[str] = r'moduli_????_*'
 DEFAULT_CANDIDATE_IDX_FILENAME_PATTERN: Final[str] = r'.candidates_????_????????????????????'
@@ -232,6 +234,7 @@ class ModuliConfig:
 
         # Delete on successful Write Flag
         self.preserve_moduli_after_dbstore = DEFAULT_PRESERVE_MODULI_AFTER_DBSTORE
+        self.delete_records_on_moduli_write = DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE
 
         # Set Project Version Number
         self.version = version

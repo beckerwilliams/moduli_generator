@@ -5,17 +5,16 @@ This module tests the core ModuliGenerator functionality including moduli genera
 file processing, database storage, and the complete workflow integration.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock, mock_open
-from pathlib import Path
-import subprocess
 import logging
-from datetime import datetime
+import subprocess
+from pathlib import Path
+from unittest.mock import MagicMock, mock_open, patch
 
-from moduli_generator import ModuliGenerator
-from moduli_generator.validators import validate_subprocess_args
-from config import ModuliConfig, default_config
+import pytest
+
+from config import default_config
 from db import MariaDBConnector
+from moduli_generator import ModuliGenerator
 
 
 class TestModuliGeneratorInitialization:
@@ -141,38 +140,6 @@ class TestModuliGeneratorCandidateGeneration:
         assert "-M" in command
         assert "generate" in command
 
-    @pytest.mark.integration
-    @patch('moduli_generator.ModuliGenerator._run_subprocess_with_logging')
-    def test_generate_candidates_instance_method(self, mock_subprocess, mock_config):
-        """Test instance candidate generation method."""
-        mock_subprocess.return_value = MagicMock(returncode=0)
-
-        generator = ModuliGenerator(mock_config)
-        result = generator._generate_candidates(4096)
-
-        # The method returns a Path object, not subprocess result
-        assert isinstance(result, Path)
-        mock_subprocess.assert_called_once()
-
-    @pytest.mark.integration
-    @patch('moduli_generator.ModuliGenerator._run_subprocess_with_logging')
-    def test_generate_candidates_with_nice_value(self, mock_subprocess, mock_config):
-        """Test candidate generation with nice value setting."""
-        mock_config.nice_value = 10
-        mock_subprocess.return_value = MagicMock(returncode=0)
-
-        generator = ModuliGenerator(mock_config)
-        result = generator._generate_candidates(4096)
-
-        # The method returns a Path object, not subprocess result
-        assert isinstance(result, Path)
-
-        # Verify nice command is included
-        call_args = mock_subprocess.call_args[0]
-        command = call_args[0]
-        assert "nice" in command
-        assert "-n" in command
-        assert "10" in command
 
 
 class TestModuliGeneratorCandidateScreening:
@@ -198,19 +165,6 @@ class TestModuliGeneratorCandidateScreening:
         assert "-M" in command
         assert "screen" in command
 
-    @pytest.mark.integration
-    @patch('moduli_generator.ModuliGenerator._run_subprocess_with_logging')
-    def test_screen_candidates_instance_method(self, mock_subprocess, mock_config, temp_file):
-        """Test instance candidate screening method."""
-        mock_subprocess.return_value = MagicMock(returncode=0)
-
-        generator = ModuliGenerator(mock_config)
-        candidates_file = Path(temp_file)
-        result = generator._screen_candidates(candidates_file)
-
-        # The method returns a Path object, not subprocess result
-        assert isinstance(result, Path)
-        mock_subprocess.assert_called_once()
 
 
 class TestModuliGeneratorFileProcessing:

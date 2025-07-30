@@ -5,9 +5,10 @@ This module tests the CLI main functionality, including configuration
 handling, moduli generation workflow, error handling, and timing.
 """
 
+from datetime import datetime
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
-from datetime import datetime, UTC
 
 from moduli_generator.cli import main
 
@@ -203,8 +204,7 @@ class TestCLILoggingAndTiming:
         # Mock datetime for precise timing
         start_time = datetime(2024, 1, 1, 12, 0, 0)
         end_time = datetime(2024, 1, 1, 12, 2, 30)  # 150 seconds later
-        mock_datetime.now.side_effect = [start_time, end_time]
-        mock_datetime.UTC = UTC
+        mock_iso_utc_time.side_effect = [start_time, end_time]
 
         # Mock ModuliGenerator chain
         mock_generator_instance = MagicMock()
@@ -365,8 +365,8 @@ class TestCLIIntegrationScenarios:
     @pytest.mark.integration
     @patch('moduli_generator.cli.ModuliGenerator')
     @patch('moduli_generator.cli.arg_parser')
-    @patch('moduli_generator.cli.datetime')
-    def test_complete_workflow_integration(self, mock_datetime, mock_arg_parser, mock_moduli_generator):
+    @patch('moduli_generator.cli.iso_utc_time')
+    def test_complete_workflow_integration(self, mock_iso_utc_time, mock_arg_parser, mock_moduli_generator):
         """Test complete CLI workflow integration."""
         # Setup comprehensive mocks
         mock_config = MagicMock()
@@ -378,8 +378,7 @@ class TestCLIIntegrationScenarios:
         # Mock datetime for timing
         start_time = datetime(2024, 1, 1, 12, 0, 0)
         end_time = datetime(2024, 1, 1, 12, 5, 0)  # 300 seconds later
-        mock_datetime.now.side_effect = [start_time, end_time]
-        mock_datetime.UTC = UTC
+        mock_iso_utc_time.side_effect = [start_time, end_time]
 
         # Mock complete ModuliGenerator workflow
         mock_generator_instance = MagicMock()

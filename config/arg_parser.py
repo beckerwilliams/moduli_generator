@@ -82,6 +82,11 @@ def _moduli_generator_argparser() -> Namespace:
         "--preserve-moduli-after-dbstore",
         action='store_true',
         help="Delete records from DB written to moduli file")
+    parser.add_argument(
+        "--delete-records-on-moduli-write",
+        action='store_true',
+        default=default_config.delete_records_on_moduli_write,
+        help="Delete records on moduli write")
     return parser.parse_args()
 
 
@@ -121,6 +126,7 @@ def local_config(args: Namespace = None) -> ModuliConfig:
     config.mariadb_cnf = config.moduli_home / args.mariadb_cnf
     config.records_per_keylength = args.records_per_keylength
     config.preserve_moduli_after_dbstore = args.preserve_moduli_after_dbstore
+    config.delete_records_on_moduli_write = args.delete_records_on_moduli_write
 
     config.ensure_directories()
     config.key_lengths = tuple(args.key_lengths)
