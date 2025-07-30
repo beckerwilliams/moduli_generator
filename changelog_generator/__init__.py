@@ -303,6 +303,32 @@ class ChangelogGenerator:
 
         print(f"Found {len(commits)} commits")
 
+        # Remove duplicate commits based on message content
+        # Keep the most recent commit for each unique message
+        seen_messages = {}
+        deduplicated_commits = []
+
+        for commit in commits:
+            message = commit['message']
+            if message not in seen_messages:
+                seen_messages[message] = commit
+                deduplicated_commits.append(commit)
+            else:
+                # Keep the more recent commit (earlier in the list since git log is reverse chronological)
+                existing_commit = seen_messages[message]
+                if commit['date'] > existing_commit['date']:
+                    # Replace the existing commit with the more recent one
+                    seen_messages[message] = commit
+                    # Remove the old commit and add the new one
+                    deduplicated_commits = [c for c in deduplicated_commits if c['message'] != message]
+                    deduplicated_commits.append(commit)
+
+        duplicates_removed = len(commits) - len(deduplicated_commits)
+        if duplicates_removed > 0:
+            print(f"Removed {duplicates_removed} duplicate commit entries")
+
+        commits = deduplicated_commits
+
         # Group by date
         grouped_commits = self._group_commits_by_date(commits)
 

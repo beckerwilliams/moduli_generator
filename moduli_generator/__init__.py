@@ -350,7 +350,7 @@ class ModuliGenerator:
                 if length not in generated_moduli:
                     generated_moduli[length] = []
                 generated_moduli[length].append(moduli_file)
-            self.logger.info('Screened {len(screening_futures)} candidate files for key-lengths:' +
+            self.logger.info(f'Screened {len(screening_futures)} candidate files for key-lengths:' +
                              f'{self.config.key_lengths}')
 
         return self

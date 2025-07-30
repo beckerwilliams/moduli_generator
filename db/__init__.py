@@ -363,7 +363,7 @@ class MariaDBConnector:
                        ]:
                 setattr(self, key, value)
 
-        # COnfigure Logger for Module
+        # Configure MariaDBCOnnedctor's Logger
         self.logger = config.get_logger()
         self.logger.name = __name__
         self.logger.debug(f"Using MariaDB config: {config.mariadb_cnf}")
