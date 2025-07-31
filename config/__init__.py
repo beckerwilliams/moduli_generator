@@ -66,11 +66,14 @@ DEFAULT_PRESERVE_MODULI_AFTER_DBSTORE: Final[bool] = True
 # Flag to delete records on moduli write
 DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE: Final[bool] = False
 # Screened Moduli File Pattern
-DEFAULT_MODULI_FILENAME_PATTERN: Final[str] = r'moduli_????_*'
-DEFAULT_CANDIDATE_IDX_FILENAME_PATTERN: Final[str] = r'.candidates_????_????????????????????'
+DEFAULT_MODULI_FILENAME_PATTERN: Final[re] = r"moduli_????_*"
+DEFAULT_CANDIDATE_IDX_FILENAME_PATTERN: Final[re] = (
+    r".candidates_????_????????????????????"
+)
 DEFAULT_MODULI_PREFIX: Final[str] = f'ssh-moduli_'
 # The number of moduli per key-length to capture in each produced moduli file
 DEFAULT_MODULI_RECORDS_PER_KEYLENGTH: Final[int] = 20
+
 
 #  ref: https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl
 
@@ -108,9 +111,6 @@ def iso_utc_time() -> datetime:
 
 # The Product: a Complete ssh-moduli file
 DEFAULT_MODULI_FILE: Final[str] = f'ssh-moduli_{iso_utc_timestamp(compress=True)}'
-
-
-##################################################################################
 
 
 # For Date Formats Sans Punctuation

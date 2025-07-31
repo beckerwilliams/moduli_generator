@@ -691,7 +691,7 @@ class MariaDBConnector:
         table = '.'.join((self.db_name, self.table_name))
         query = f"""
                 INSERT INTO {table} (timestamp, config_id, size, modulus)
-                VALUES (%s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s) \
                 """
         # Prepare parameters for batch execution
         params_list = [(
@@ -806,8 +806,16 @@ class MariaDBConnector:
             output_file = Path(self.moduli_file)
 
             # Validate identifiers
-            if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.view_name)):
-                raise RuntimeError("Invalid database or view name")
+            if not (
+                is_valid_identifier_sql(self.db_name)
+                and is_valid_identifier_sql(self.table_name)
+                and is_valid_identifier_sql(self.view_name)
+            ):
+                raise RuntimeError(
+                    f"Invalid database, table, or view name:\n\t{self.db_name}\n"
+                    f"\t{self.table_name}\n"
+                    f"\t{self.view_name}\n"
+                )
 
             # Get Hostname
             hostname = getfqdn()
@@ -816,16 +824,19 @@ class MariaDBConnector:
                 local_timestamp = iso_utc_timestamp(compress=False) + "Z"
                 f.write(f'# {hostname}::ModuliGenerator: ssh2 moduli generated at {local_timestamp}\n')
 
+                """
+                Convert key_lengths to the length of PRODUCED size, usually `key_length - 1`)
+                Using DEFAULT_KEY_LENGTHS as we output RECORDS_PER_MODULI_FILE for each
+                of (3072 4096 6144, 7680, 8192)
+                """
+                size_params = [key_length - 1 for key_length in DEFAULT_KEY_LENGTHS]
+                size_placeholders = ",".join(
+                    ["%s"] * len(size_params)
+                )  # We need 1 less than the requested size
+
                 # Build a single SQL query to get all records for all key sizes
                 # Create a CASE statement for LIMIT per size based on records_per_keylength
-                # tbd - TEST CHANGE to use moduli_db `table` instead of `view`
                 table = '.'.join((self.db_name, self.table_name))
-
-                # Convert key_lengths to the actual sizes (subtract 1 as done in the original code)
-                # Using DEFAULT_KEY_LENGTHS as we output RECORDS_PER_MODULI_FILE for each
-                # of (3072 4096 6144, 7680, 8192)
-                size_params = [key_length - 1 for key_length in DEFAULT_KEY_LENGTHS]
-                size_placeholders = ','.join(['%s'] * len(size_params))  # We need 1 less than the requested size
 
                 # Use a window function with ROW_NUMBER to limit records per size
                 query = f"""
@@ -970,7 +981,7 @@ class MariaDBConnector:
             if not hasattr(self, 'db_name') or not self.db_name:
                 verification_results['errors'].append("Database name not configured")
                 return verification_results
-                
+
             # Check database existence
             db_query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = %s"
             db_result = self.execute_select(db_query, (self.db_name,))

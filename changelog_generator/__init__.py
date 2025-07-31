@@ -22,34 +22,44 @@ def _categorize_commit(message):
 
     # Define categories and their keywords
     categories = {
-        'Database Improvements': [
-            'database', 'db', 'mariadb', 'connector', 'sql', 'schema',
-            'transactional', 'parameterized'
+        "Database Improvements": [
+            "database",
+            "db",
+            "mariadb",
+            "connector",
+            "sql",
+            "schema",
+            "transactional",
+            "parameterized",
         ],
-        'Bug Fixes': [
-            'fix', 'fixed', 'bug', 'error', 'issue', 'correct'
+        "Bug Fixes": ["fix", "fixed", "bug", "error", "issue", "correct"],
+        "Features": [
+            "add",
+            "added",
+            "new",
+            "feature",
+            "implement",
+            "create",
+            "created",
         ],
-        'Features': [
-            'add', 'added', 'new', 'feature', 'implement', 'create', 'created'
+        "Refactoring": [
+            "refactor",
+            "refactored",
+            "restructure",
+            "reorganize",
+            "cleanup",
         ],
-        'Refactoring': [
-            'refactor', 'refactored', 'restructure', 'reorganize', 'cleanup'
+        "Documentation": ["docs", "documentation", "readme", "comment", "docstring"],
+        "Configuration": [
+            "config",
+            "configuration",
+            "settings",
+            "default",
+            "constants",
         ],
-        'Documentation': [
-            'doc', 'documentation', 'readme', 'comment', 'docstring'
-        ],
-        'Configuration': [
-            'config', 'configuration', 'settings', 'default', 'constants'
-        ],
-        'Testing': [
-            'test', 'testing', 'tests', 'successful', 'complete'
-        ],
-        'Performance': [
-            'performance', 'optimize', 'speed', 'efficiency'
-        ],
-        'Security': [
-            'security', 'secure', 'vulnerability', 'auth'
-        ]
+        "Testing": ["test", "testing", "tests", "successful", "complete"],
+        "Performance": ["performance", "optimize", "speed", "efficiency"],
+        "Security": ["security", "secure", "vulnerability", "auth"],
     }
 
     # Check for category keywords

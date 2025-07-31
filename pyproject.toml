@@ -36,24 +36,10 @@ dependencies = [
 	"mariadb==1.1.13",
 	"configparser>=7.2.0",
 	"typing-extensions>=4.14.1,<5.0.0",
+	"mkdocstrings[python] (>=0.30.0,<0.31.0)",
+	"black (>=25.1.0,<26.0.0)",
 ]
 data = "data/**/*"
-
-[project.scripts]
-moduli_generator = "moduli_generator.cli:main"
-moduli_stats = "db.scripts.moduli_stats:main"
-changelog = "changelog_generator.scripts.print:main"
-install_schema = "db.scripts.install_schema:main"
-build_docs = "moduli_generator.scripts.build_docs:main"
-cli = "moduli_generator.cli:main"
-
-[project.urls]
-Homepage = "https://github.com/beckerwilliams/moduli_generator"
-Documentation = "https://github.com/beckerwilliams/moduli_generator/blob/main/README.rst"
-Repository = "https://github.com/beckerwilliams/moduli_generator.git"
-Issues = "https://github.com/beckerwilliams/moduli_generator/issues"
-
-[tool.poetry]
 packages = [
 	{ include = "moduli_generator" },
 	{ include = "db" },
@@ -70,14 +56,33 @@ include = [
 	"**/*.rst"
 ]
 
+[project.scripts]
+moduli_generator = "moduli_generator.cli:main"
+moduli_stats = "db.scripts.moduli_stats:main"
+changelog = "changelog_generator.scripts.print:main"
+install_schema = "db.scripts.install_schema:main"
+build_docs = "moduli_generator.scripts.build_docs:main"
+cli = "moduli_generator.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/beckerwilliams/moduli_generator"
+Documentation = "https://github.com/beckerwilliams/moduli_generator/blob/main/README.rst"
+Repository = "https://github.com/beckerwilliams/moduli_generator.git"
+Issues = "https://github.com/beckerwilliams/moduli_generator/issues"
+
+
+
 [tool.poetry.group.dev.dependencies]
+mkdocs = ">=1.6.1,<2.0.0"
+mkdocs-material = ">=9.0.0,<10.0.0"
 black = ">=25.0,<26.0.0"
 configparser = "~=7.2.0"
 mariadb = "~=1.1.13"
-sphinx = ">=8.2.3"
-sphinxcontrib-jquery = ">=4.1"
-sphinx-rtd-theme = ">=3.0.2"
-myst-parser = ">=2.0.0"
+pip-tools = ">=7.5.0,<8.0.0"
+#sphinx = ">=8.2.3"
+#sphinxcontrib-jquery = ">=4.1"
+#sphinx-rtd-theme = ">=3.0.2"
+#myst-parser = ">=2.0.0"
 pytest = "~=8.4.1"
 pytest-cov = ">=4.0.0"
 pytest-mock = ">=3.12.0"
