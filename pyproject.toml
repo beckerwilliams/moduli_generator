@@ -6,7 +6,7 @@ authors = [
 ]
 license = { text = "MIT" }
 keywords = ["cryptography", "ssh", "moduli", "security"]
-version = "2.1.32"
+version = "2.1.33"
 readme = "README.rst"
 classifiers = [
 	"Development Status :: 4 - Beta",
@@ -37,6 +37,7 @@ dependencies = [
 	"configparser>=7.2.0",
 	"typing-extensions>=4.14.1,<5.0.0",
 ]
+data = "data/**/*"
 
 [project.scripts]
 moduli_generator = "moduli_generator.cli:main"

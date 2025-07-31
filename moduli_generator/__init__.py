@@ -110,43 +110,86 @@ class ModuliGenerator:
                                      debug_level=DEBUG
                                      ) -> subprocess.CompletedProcess:
         """
-        Run a subprocess command and capture output for logging.
+        Executes a subprocess command with real-time logging for both `stdout` and `stderr`. This method
+        handles the logging of subprocess output streams directly as they are produced and employs a
+        threaded approach to ensure asynchronous handling of stream data.
 
-        This method uses subprocess.PIPE to capture stdout and stderr,
-        then logs the captured output using the provided logger.
+        Subprocess outputs are logged in real-time using the provided logger object, and the function
+        returns a custom `StreamedResult` object containing information about the command execution
+        (omitting `stdout` and `stderr` data as they're already logged). Exceptions encountered during the
+        operation, such as errors in the process execution or issues with logging, are propagated
+        appropriately.
 
-        :param command: List of command arguments to execute
-        :type command: List[str]
-        :param logger: Logger instance for logging output
-        :type logger: logging.Logger
-        :param info_level: Log level for stdout messages
-        :type info_level: int
-        :param debug_level: Log level for stderr messages
-        :type debug_level: int
-        :return: CompletedProcess instance
+        :param command: The command to be executed as a list of strings.
+        :param logger: Logger instance used for logging the subprocess output.
+        :param info_level: Logging level used for `stdout` stream messages. Defaults to INFO.
+        :param debug_level: Logging level used for `stderr` stream messages. Defaults to DEBUG.
+        :return: A custom result object containing command arguments and a return code.
         :rtype: subprocess.CompletedProcess
-        :raises CalledProcessError: If the subprocess fails
         """
-        result = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            check=True
-        )
+        import threading
 
-        # Log stdout if present
-        if result.stdout:
-            for line in result.stdout.strip().split('\n'):
-                if line.strip():
-                    logger.log(info_level, line.strip())
+        def log_stream(stream, log_func, prefix):
+            """Helper to log stream output in real-time"""
+            try:
+                for line in iter(stream.readline, ''):
+                    if line.strip():
+                        log_func(f"{line.strip()}")
+            except Exception as e:
+                logger.error(f"Error reading {prefix} stream: {e}")
+            finally:
+                stream.close()
 
-        # Log stderr if present
-        if result.stderr:
-            for line in result.stderr.strip().split('\n'):
-                if line.strip():
-                    logger.log(debug_level, line.strip())
+        try:
+            process = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,  # Line buffered for real-time output
+                universal_newlines=True
+            )
 
-        return result
+            # Start threads to handle stdout and stderr streams concurrently
+            stdout_thread = threading.Thread(
+                target=log_stream,
+                args=(process.stdout, lambda msg: logger.log(info_level, msg), "stdout"),
+                daemon=True
+            )
+            stderr_thread = threading.Thread(
+                target=log_stream,
+                args=(process.stderr, lambda msg: logger.log(debug_level, msg), "stderr"),
+                daemon=True
+            )
+
+            stdout_thread.start()
+            stderr_thread.start()
+
+            # Wait for process to complete
+            return_code = process.wait()
+
+            # Wait for logging threads to finish
+            stdout_thread.join(timeout=5.0)  # Prevent hanging
+            stderr_thread.join(timeout=5.0)
+
+            if return_code != 0:
+                raise subprocess.CalledProcessError(return_code, command)
+
+            # Create a CompletedProcess-like object for compatibility
+            class StreamedResult:
+                def __init__(self, returncode, args):
+                    self.returncode = returncode
+                    self.args = args
+                    self.stdout = ""  # Output already logged in real-time
+                    self.stderr = ""  # Errors already logged in real-time
+
+            return StreamedResult(return_code, command)
+
+        except subprocess.CalledProcessError:
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error running command {command}: {e}")
+            raise subprocess.CalledProcessError(1, command) from e
 
     @staticmethod
     def _generate_candidates_static(config, key_length: int) -> Path:
@@ -186,9 +229,7 @@ class ModuliGenerator:
 
         except subprocess.CalledProcessError as err:
             logger.error(f'ssh-keygen generate failed for {key_length} bits: {err}')
-            # Log captured stderr if available
-            if err.stderr:
-                logger.error(f'ssh-keygen stderr: {err.stderr}')
+            # stderr is already logged in real-time by the streaming implementation
             raise err
 
         return candidates_file
@@ -233,21 +274,18 @@ class ModuliGenerator:
             str(screened_file)
         ]
         try:
-            # Use subprocess.PIPE to capture and log output
+            # Use streaming approach for real-time output logging
             ModuliGenerator._run_subprocess_with_logging(command, logger)
 
         except subprocess.CalledProcessError as err:
             logger.error(f'ssh-keygen screen failed for {candidates_file}: {err}')
-            # Log captured stderr if available
-            if err.stderr:
-                logger.error(f'ssh-keygen stderr: {err.stderr}')
+            # stderr is already logged in real-time by the streaming implementation
             raise err
 
         # Cleanup used Moduli Candidates
         candidates_file.unlink()
 
         return screened_file
-
 
     def _parse_moduli_files(self) -> Dict[str, List[Dict[str, Any]]]:
         """
@@ -376,8 +414,8 @@ class ModuliGenerator:
                         generated_moduli[length] = []
                     generated_moduli[length].append(moduli_file)
 
-                except Exception as e:
-                    self.logger.error(f'Error screening candidate for length {length}: {e}')
+                except Exception as err:
+                    self.logger.error(f'Error screening candidate for length {length}: {err}')
                     raise
 
             self.logger.info(f'Screened {screened_count} candidate files for key-lengths: {self.config.key_lengths}')
