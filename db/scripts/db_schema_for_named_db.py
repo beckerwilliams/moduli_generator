@@ -6,16 +6,14 @@ from typing import (Any,
 def get_moduli_generator_schema_statements(moduli_db: str = 'test_moduli_db') -> List[Dict[str, Any]]:
     """
     Generates and returns a list of database schema setup statements for creating the required
-    moduli-related tables, views, and indexes within a specified database. Additionally, it
-    includes an initial insert statement for populating configuration constants.
+        moduli-related tables, views, and indexes within a specified database. Additionally, it
+        includes an initial insert statement for populating configuration constants.
 
-    :param moduli_db: Name of the database where the schema will be created. Defaults
-       to 'test_moduli_db'.
-    :type moduli_db: str
+    Args:
+        moduli_db (str): Name of the database where the schema will be created. Defaults        to 'test_moduli_db'.
 
-    :return: A list of dictionaries, each representing an SQL query statement with optional
-       parameters to execute and whether a fetch operation is required.
-    :rtype: List[Dict[str, Any]]
+    Returns:
+        List[Dict[str, Any]]: A list of dictionaries, each representing an SQL query statement with optional        parameters to execute and whether a fetch operation is required.
     """
     # Note: Database/table names cannot be parameterized in MySQL/MariaDB,
     # so we still need to validate and use f-strings for identifiers

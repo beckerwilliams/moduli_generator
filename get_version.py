@@ -2,16 +2,16 @@ def get_version() -> str:
     """
     Retrieves the version information of the project specified in the `pyproject.toml` file.
 
-    This function locates the `pyproject.toml` file in the project root directory and parses it
-    to get the project version from the `[project]` section (PEP 621 standard). If the file is not found
-    or the version information is missing, it falls back to checking the `[tool.poetry]` section
-    for backward compatibility. It requires the `toml` package to be installed for parsing the `pyproject.toml` file.
+        This function locates the `pyproject.toml` file in the project root directory and parses it
+        to get the project version from the `[project]` section (PEP 621 standard). If the file is not found
+        or the version information is missing, it falls back to checking the `[tool.poetry]` section
+        for backward compatibility. It requires the `toml` package to be installed for parsing the `pyproject.toml` file.
 
-    :raises RuntimeError: If the `pyproject.toml` file is not found, if the version cannot be
-        retrieved from either the `[project]` or `[tool.poetry]` section, or if the `toml` package is not installed.
-    :raises RuntimeError: For all other unexpected issues accessing or parsing the file.
-    :return: Project version string as defined in the `pyproject.toml` file.
-    :rtype: str
+    Returns:
+        str: Project version string as defined in the `pyproject.toml` file.
+
+    Raises:
+        RuntimeError: For all other unexpected issues accessing or parsing the file.
     """
     try:
         import toml

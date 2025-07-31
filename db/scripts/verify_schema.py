@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-from sys import exit
-
 # Import the default configuration
 from config import ModuliConfig, arg_parser, iso_utc_time
-from moduli_generator import ModuliGenerator
+from db import MariaDBConnector
 
 
 def main(config: ModuliConfig = None):
@@ -33,24 +31,25 @@ def main(config: ModuliConfig = None):
 
     # The Invocation
     try:
-        (ModuliGenerator(config)
-         .generate_moduli()
-         .store_moduli()
-         .write_moduli_file())
-
+        MariaDBConnector(config)
+    except RuntimeError as err:
+        logger.error('Are you pointing to the correct MariaDB instance and *.cnf?\n'
+                     f'Instantiating MariaDBConnector Failed: {err}')
+        return 1
     except ValueError as err:
-        logger.error(f'Moduli Generation Failed: {err}')
+        logger.error(f'ModuliDB Verification Failed: {err}')
         return 1
     except Exception as err:
-        logger.error(f'Moduli Generation Failed: {err}')
+        logger.error(f'ModuliDB Verification FAILED: {err}')
         return 2
     else:
         # Stats and Cleanup
         end_time = iso_utc_time()
         duration = (end_time - start_time).total_seconds()
-        logger.info(f'Moduli Generation Complete. Time taken: {int(duration)} seconds')
-        logger.info('Moduli Generation Complete')
+        logger.info(f'MariaDB Schema Validated. Time taken: {int(duration)} seconds')
         return 0
+
+    logger.info(f'self: {self}: Connector Validated and Instantiated')
 
 
 if __name__ == "__main__":

@@ -1,9 +1,7 @@
-from sys import exit
-from argparse import ArgumentParser
 from pathlib import Path
 
 from config import DEFAULT_MARIADB
-from db import (Error, MariaDBConnector, default_config)
+from db import (Error, MariaDBConnector)
 from db.scripts.db_schema_for_named_db import get_moduli_generator_schema_statements
 
 __all__ = ['InstallSchema']
@@ -12,33 +10,30 @@ __all__ = ['InstallSchema']
 class InstallSchema(object):
     """
     Handles the installation of database schemas using various methods such
-    as parameterized queries, batch execution, or from a schema file.
+        as parameterized queries, batch execution, or from a schema file.
 
-    This class provides functions to install the database schema efficiently,
-    either by processing defined schema statements, using batch execution
-    for improved performance, or reading and executing schema statements
-    from a file. Its primary purpose is to ensure the database structure
-    is correctly set up based on predefined schema definitions.
+        This class provides functions to install the database schema efficiently,
+        either by processing defined schema statements, using batch execution
+        for improved performance, or reading and executing schema statements
+        from a file. Its primary purpose is to ensure the database structure
+        is correctly set up based on predefined schema definitions.
 
-    :ivar db_conn: Database connector instance to execute queries.
-    :type db_conn: MariaDBConnector
-    :ivar db_name: Name of the database for schema installation.
-    :type db_name: str
-    :ivar schema_statements: List of schema statements required for
-        installation. Contains queries, parameters, and fetch options.
-    :type schema_statements: list
+        :ivar db_conn: Database connector instance to execute queries.
+
+    Args:
+        db_conn (MariaDBConnector): Parameter description.
+        db_name (str): Parameter description.
+        schema_statements (list): Parameter description.
     """
 
     def __init__(self, db_connector: MariaDBConnector, db_name: str = DEFAULT_MARIADB):
         """
         Initializes the class with database connection, database name, and schema statements.
-        The initialization process sets up the schema for the specified database.
+                The initialization process sets up the schema for the specified database.
 
-        :param db_connector: Instance of MariaDBConnector used for connecting to the MariaDB database.
-        :type db_connector: MariaDBConnector
-        :param db_name: Name of the database where the schema will be installed. If not provided,
-            it defaults to the configured DEFAULT_MARIADB constant.
-        :type db_name: str
+        Args:
+            db_connector (MariaDBConnector): Instance of MariaDBConnector used for connecting to the MariaDB database.
+            db_name (str): Name of the database where the schema will be installed. If not provided,             it defaults to the configured DEFAULT_MARIADB constant.
         """
         self.db_conn = db_connector
         self.db_name = db_name
@@ -48,16 +43,17 @@ class InstallSchema(object):
     def install_schema(self) -> bool:
         """
         Executes a series of schema installation statements stored in `schema_statements`. Each statement
-        is executed using the provided database connection interface `db_conn`. If the installation is
-        successful, it returns True; otherwise, if an exception occurs, it returns False.
+                is executed using the provided database connection interface `db_conn`. If the installation is
+                successful, it returns True; otherwise, if an exception occurs, it returns False.
 
-        Schema installation includes iterating over the `schema_statements` and executing the statements
-        with optional parameters and fetching capabilities as defined in the `schema_statements` list.
+                Schema installation includes iterating over the `schema_statements` and executing the statements
+                with optional parameters and fetching capabilities as defined in the `schema_statements` list.
 
-        :raises Exception: If any error occurs during the execution of schema statements.
+        Returns:
+            bool: Boolean indicating the success or failure of the schema installation process.
 
-        :return: Boolean indicating the success or failure of the schema installation process.
-        :rtype: bool
+        Raises:
+            Exception: If any error occurs during the execution of schema statements.
         """
         try:
             for i, statement_info in enumerate(self.schema_statements):
@@ -84,17 +80,16 @@ class InstallSchema(object):
     def install_schema_batch(self) -> bool:
         """
         Installs schema statements in batch mode using a database connection.
-        The method executes all provided schema statements within a single transaction
-        to ensure atomicity. Each statement may include associated parameters.
+                The method executes all provided schema statements within a single transaction
+                to ensure atomicity. Each statement may include associated parameters.
 
-        If the execution is successful, a success message is logged, and the method
-        returns True. Otherwise, a failure message is logged, and the method returns False.
-        In the case of an error, an exception message is printed, and the method also
-        returns False.
+                If the execution is successful, a success message is logged, and the method
+                returns True. Otherwise, a failure message is logged, and the method returns False.
+                In the case of an error, an exception message is printed, and the method also
+                returns False.
 
-        :return: A boolean indicating whether the schema installation succeeded
-                 in batch mode.
-        :rtype: bool
+        Returns:
+            bool: A boolean indicating whether the schema installation succeeded                  in batch mode.
         """
         try:
             # Separate queries and parameters
@@ -126,14 +121,13 @@ class InstallSchema(object):
     def install_schema_file(self, schema_file: Path = None) -> bool:
         """
         Install a database schema from a specified SQL file. The method reads the schema
-        file, splits the content into individual SQL statements, and executes them.
+                file, splits the content into individual SQL statements, and executes them.
 
-        :param schema_file: Path to the SQL schema file. If not provided, a default
-            file path "db/schema/ssh_moduli_schema.sql" is used.
-        :type schema_file: Path
-        :return: True if the schema installation completes successfully,
-            False otherwise.
-        :rtype: bool
+        Args:
+            schema_file (Path): Path to the SQL schema file. If not provided, a default             file path "db/schema/ssh_moduli_schema.sql" is used.
+
+        Returns:
+            bool: True if the schema installation completes successfully,             False otherwise.
         """
         if schema_file is None:
             schema_file = Path("db/schema/ssh_moduli_schema.sql")
@@ -170,23 +164,24 @@ def main():
     """
     Main function to parse command-line arguments and handle the installation
     of the SSH Moduli Schema into the specified MariaDB database.
+"""
+Main function to parse command-line arguments and handle the installation
+    of the SSH Moduli Schema into the specified MariaDB database.
 
     This function utilizes the `argparse` library to define and parse command-line
     arguments and performs the schema installation based on the provided
     parameters. It supports an optional batch execution mode for improved performance.
 
-    :raises SystemExit: If argument parsing fails or invalid arguments are provided.
-    :raises Exception: If the schema installation process encounters an error.
+Args:
+    None: This function takes no direct parameters through function calls but                  relies on command-line arguments for configuration.
 
-    :param None: This function takes no direct parameters through function calls but
-                 relies on command-line arguments for configuration.
+Returns:
+    None: None
 
-    :return: None
-    :rtype: None
-    """
-    argparse = ArgumentParser(description='Install SSH Moduli Schema')
-    argparse.add_argument(
-        'mariadb_cnf',
+Raises:
+    SystemExit: If argument parsing fails or invalid arguments are provided.
+    Exception: If the schema installation process encounters an error.
+"""
         type=str,
         help='Path to MariaDB configuration file'
     )

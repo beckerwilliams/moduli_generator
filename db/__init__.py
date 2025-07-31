@@ -23,15 +23,16 @@ __all__ = [
 def is_valid_identifier_sql(identifier: str) -> bool:
     """
     Determines if the given string is a valid identifier following specific
-    rules. Valid identifiers must either be unquoted strings containing only
-    alphanumeric characters, underscores, and dollar signs, or quoted strings
-    wrapped in backticks with proper pairing. Additionally, identifiers must not
-    exceed 64 characters.
+        rules. Valid identifiers must either be unquoted strings containing only
+        alphanumeric characters, underscores, and dollar signs, or quoted strings
+        wrapped in backticks with proper pairing. Additionally, identifiers must not
+        exceed 64 characters.
 
-    :param identifier: The identifier string to validate.
-    :type identifier: str
-    :return: True if the identifier is valid, otherwise False.
-    :rtype: Bool
+    Args:
+        identifier (str): The identifier string to validate.
+
+    Returns:
+        Bool: True if the identifier is valid, otherwise False.
     """
     if not identifier or not isinstance(identifier, str):
         return False
@@ -63,10 +64,15 @@ def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
     """
     Parse MySQL/MariaDB configuration file and return a dictionary structure.
 
-    :param mysql_cnf: Path to config file (str or Path) or file-like object
-    :return: Dictionary with sections and key-value pairs
-    :raises ValueError: If the configuration file has parsing errors
-    :raises FileNotFoundError: If the file doesn't exist
+    Args:
+        mysql_cnf: Path to config file (str or Path) or file-like object
+
+    Returns:
+        Dictionary with sections and key-value pairs
+
+    Raises:
+        ValueError: If the configuration file has parsing errors
+        FileNotFoundError: If the file doesn't exist
     """
     # Fix: Check if mysql_cnf is None or empty string
     if mysql_cnf is None or mysql_cnf == "":
@@ -157,12 +163,17 @@ def get_mysql_config_value(cnf: Dict[str, Dict[str, str]],
     """
     Get a specific value from the parsed MySQL config dictionary.
 
-    :param cnf: Parsed config dictionary from parse_mysql_config
-    :param section: Section name
-    :param key: Key name
-    :param default: Default value if not found
-    :return: Config value or default
-    :raises TypeError: If parameters are not of the correct type
+    Args:
+        cnf: Parsed config dictionary from parse_mysql_config
+        default: Default value if not found
+        key: Key name
+        section: Section name
+
+    Returns:
+        Config value or default
+
+    Raises:
+        TypeError: If parameters are not of the correct type
     """
     # Type validation - None config should raise TypeError
     if cnf is None:
@@ -188,65 +199,53 @@ class MariaDBConnector:
     """
     Provides a connection pool and management functions for interacting with a MariaDB database.
 
-    This class wraps around the MariaDB connection pooling mechanism to offer efficient,
-    manageable access to database connections. It includes context managers for safe and
-    atomic database operations, as well as utility methods for executing queries and managing
-    transactions.
+        This class wraps around the MariaDB connection pooling mechanism to offer efficient,
+        manageable access to database connections. It includes context managers for safe and
+        atomic database operations, as well as utility methods for executing queries and managing
+        transactions.
 
-    :ivar mariadb_cnf: Path to the MariaDB configuration file.
-    :type mariadb_cnf: str
-    :ivar db_name: Name of the target database for operations.
-    :type db_name: str
-    :ivar base_dir: The base directory for storing files or logs.
-    :type base_dir: str
-    :ivar moduli_file_pfx: Prefix for generated file names related to database moduli operations.
-    :type moduli_file_pfx: str
-    :ivar table_name: Name of the table used for database operations.
-    :type table_name: str
-    :ivar view_name: Name of the view related to database queries.
-    :type view_name: str
-    :ivar config_id: Identifier representing a specific configuration instance.
-    :type config_id: str
-    :ivar key_lengths: List of key lengths used for cryptographic or operational purposes.
-    :type key_lengths: List[int]
-    :ivar records_per_keylength: Number of records tied to each key length.
-    :type records_per_keylength: int
-    :ivar moduli_file: Path to the file storing database moduli information.
-    :type moduli_file: Path
-    :ivar delete_records_on_moduli_write: Boolean flag to remove records after writing to the file.
-    :type delete_records_on_moduli_write: bool
-    :ivar delete_records_on_read: Boolean flag to remove records after they are read from the database.
-    :type delete_records_on_read: bool
-    :ivar logger: Logger instance for managing log output for the module.
-    :type logger: Logger
+        :ivar mariadb_cnf: Path to the MariaDB configuration file.
+
+    Args:
+        base_dir (str): Parameter description.
+        config_id (str): Parameter description.
+        db_name (str): Parameter description.
+        delete_records_on_moduli_write (bool): Parameter description.
+        delete_records_on_read (bool): Parameter description.
+        key_lengths (List[int]): Parameter description.
+        logger (Logger): Parameter description.
+        mariadb_cnf (str): Parameter description.
+        moduli_file (Path): Parameter description.
+        moduli_file_pfx (str): Parameter description.
+        records_per_keylength (int): Parameter description.
+        table_name (str): Parameter description.
+        view_name (str): Parameter description.
     """
 
     def __enter__(self):
         """
         Context manager entry method. When the managed context is entered,
-        this method is called to return the resource or object to be used
-        within the context.
+                this method is called to return the resource or object to be used
+                within the context.
 
-        :return: The object or resource that should be used within the managed
-            context.
-        :rtype: The same type as the class implementing this method.
+        Returns:
+            The same type as the class implementing this method.: The object or resource that should be used within the managed             context.
         """
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """
         Handles the cleanup process when exiting a context manager for the object. Ensures that
-        the connection pool is properly closed if it exists and logs any errors that occur
-        during this operation.
+                the connection pool is properly closed if it exists and logs any errors that occur
+                during this operation.
 
-        :param exc_type: The exception type if an exception was raised, otherwise None
-        :type exc_type: type | None
-        :param exc_val: The exception value if an exception was raised, otherwise None
-        :type exc_val: Exception | None
-        :param exc_tb: The traceback object if an exception was raised, otherwise None
-        :type exc_tb: TracebackType | None
-        :return: Returns False to re-raise any exception encountered in the context
-        :rtype: bool
+        Args:
+            exc_tb (TracebackType | None): The traceback object if an exception was raised, otherwise None
+            exc_type (type | None): The exception type if an exception was raised, otherwise None
+            exc_val (Exception | None): The exception value if an exception was raised, otherwise None
+
+        Returns:
+            bool: Returns False to re-raise any exception encountered in the context
         """
         if hasattr(self, 'pool') and self.pool:
             try:
@@ -260,11 +259,11 @@ class MariaDBConnector:
     def get_connection(self) -> ContextManager:
         """
         Provides a context manager for safely getting and managing a connection
-        from the connection pool. Ensures the connection is properly closed and
-        returned to the pool after usage.
+                from the connection pool. Ensures the connection is properly closed and
+                returned to the pool after usage.
 
-        :return: Yields a connection object from the connection pool.
-        :rtype: Connection
+        Returns:
+            Connection: Yields a connection object from the connection pool.
         """
         connection = None
         try:
@@ -281,13 +280,13 @@ class MariaDBConnector:
     def transaction(self, connection: "MariaDBConnector" = None) -> ContextManager:
         """
         Provides a context manager for handling database transactions. It ensures that the
-        transaction is properly committed or rolled back and manages logging for the process.
+                transaction is properly committed or rolled back and manages logging for the process.
 
-        :param connection: Optional existing connection to be used in the transaction. If not
-            provided, a new connection will be retrieved from the connection pool.
-        :type connection: Optional
-        :return: Yields the database connection within the transaction context.
-        :rtype: ContextManager
+        Args:
+            connection (Optional): Optional existing connection to be used in the transaction. If not             provided, a new connection will be retrieved from the connection pool.
+
+        Returns:
+            ContextManager: Yields the database connection within the transaction context.
         """
         if connection:
             # Use the provided connection
@@ -316,13 +315,14 @@ class MariaDBConnector:
         """
         Context manager for safely opening a file for writing.
 
-        When used, this context manager ensures that the specified file is opened for
-        writing and properly closed after use, even in the event of an error.
+                When used, this context manager ensures that the specified file is opened for
+                writing and properly closed after use, even in the event of an error.
 
-        :param output_file: The path of the file to be written.
-        :type output_file: Path
-        :return: A file handle for writing.
-        :rtype: TextIO
+        Args:
+            output_file (Path): The path of the file to be written.
+
+        Returns:
+            TextIO: A file handle for writing.
         """
         try:
             with output_file.open('w') as file_handle:
@@ -334,18 +334,17 @@ class MariaDBConnector:
     def __init__(self, config: ModuliConfig = default_config) -> "MariaDBConnector":
         """
         Initializes a class instance with provided configuration parameters and sets up a MariaDB
-        connection pool, along with configured logging for module operations.
+                connection pool, along with configured logging for module operations.
 
-        A Detailed connection pool is established using connection parameters parsed from the MariaDB
-        configuration file, ensuring efficient database interaction. Logging is configured for the
-        module using the provided logger in the configuration.
+                A Detailed connection pool is established using connection parameters parsed from the MariaDB
+                configuration file, ensuring efficient database interaction. Logging is configured for the
+                module using the provided logger in the configuration.
 
-        :param config: Configuration object containing necessary properties for initialization
-                       such as MariaDB setup, table/view names, logging preferences, and other
-                       settings.
-        :type config: ModuliConfig
+        Args:
+            config (ModuliConfig): Configuration object containing necessary properties for initialization                        such as MariaDB setup, table/view names, logging preferences, and other                        settings.
 
-        :raises RuntimeError: If the connection pool creation fails due to database-related issues.
+        Raises:
+            RuntimeError: If the connection pool creation fails due to database-related issues.
         """
         for key, value in config.__dict__.items():
             if key in ["mariadb_cnf",
@@ -440,23 +439,22 @@ class MariaDBConnector:
     def sql(self, query: str, params: Optional[tuple] = None, fetch: bool = True) -> Optional[List[Dict]]:
         """
         Executes an SQL query with optional parameters and returns the results or
-        affected rows depending on the fetch flag.
+                affected rows depending on the fetch flag.
 
-        This method manages database transactions, logs the results or errors, and
-        ensures proper resource cleanup. It also supports parameterized queries
-        for enhanced security against SQL injection.
+                This method manages database transactions, logs the results or errors, and
+                ensures proper resource cleanup. It also supports parameterized queries
+                for enhanced security against SQL injection.
 
-        :param query: The SQL query to be executed.
-        :type query: str
-        :param params: Optional tuple of parameters for the query, default is None.
-        :type params: Optional[tuple]
-        :param fetch: A flag indicating whether to fetch and return query results
-            (True) or not (False). Defaults to True.
-        :type fetch: bool
-        :return: A list of results as dictionaries if fetch is True, or None if
-            fetch is False.
-        :rtype: Optional[List[Dict]]
-        :raises RuntimeError: If an error occurs during query execution.
+        Args:
+            fetch (bool): A flag indicating whether to fetch and return query results             (True) or not (False). Defaults to True.
+            params (Optional[tuple]): Optional tuple of parameters for the query, default is None.
+            query (str): The SQL query to be executed.
+
+        Returns:
+            Optional[List[Dict]]: A list of results as dictionaries if fetch is True, or None if             fetch is False.
+
+        Raises:
+            RuntimeError: If an error occurs during query execution.
         """
         try:
             with self.get_connection() as connection:
@@ -487,34 +485,35 @@ class MariaDBConnector:
         """
         Executes a SELECT SQL query and returns the results.
 
-        This method takes an SQL query and optional parameters, executes the query,
-        and fetches the results from the database. The results are returned as a
-        list of dictionaries, where each dictionary corresponds to a row retrieved
-        from the database.
+                This method takes an SQL query and optional parameters, executes the query,
+                and fetches the results from the database. The results are returned as a
+                list of dictionaries, where each dictionary corresponds to a row retrieved
+                from the database.
 
-        :param query: The SQL query to be executed.
-        :type query: str
-        :param params: A tuple of optional parameters to use during query execution,
-            defaults to None.
-        :type params: Optional[tuple]
-        :return: A list of dictionaries representing the rows of the result set.
-        :rtype: List[Dict]
+        Args:
+            params (Optional[tuple]): A tuple of optional parameters to use during query execution,             defaults to None.
+            query (str): The SQL query to be executed.
+
+        Returns:
+            List[Dict]: A list of dictionaries representing the rows of the result set.
         """
         return self.sql(query, params, fetch=True)
 
     def execute_update(self, query: str, params: Optional[tuple] = None) -> int:
         """
         Executes an update query on the database and returns the number of rows affected. The
-        method ensures the query is executed within a managed connection and transaction block
-        to maintain database integrity and handle rollback in case of errors.
+                method ensures the query is executed within a managed connection and transaction block
+                to maintain database integrity and handle rollback in case of errors.
 
-        :param query: The SQL query to be executed.
-        :type query: str
-        :param params: Optional parameters to be used with the query.
-        :type params: Optional[tuple]
-        :return: The number of rows affected by the query execution.
-        :rtype: int
-        :raises RuntimeError: If executing the update query fails.
+        Args:
+            params (Optional[tuple]): Optional parameters to be used with the query.
+            query (str): The SQL query to be executed.
+
+        Returns:
+            int: The number of rows affected by the query execution.
+
+        Raises:
+            RuntimeError: If executing the update query fails.
         """
         try:
             with self.get_connection() as connection:
@@ -555,20 +554,19 @@ class MariaDBConnector:
         """
         Execute multiple SQL queries in a batch with optional parameters.
 
-        This method allows execution of a series of SQL queries in a batch,
-        using transactions to ensure atomicity of operations. The queries can
-        have associated parameter tuples for execution.
+                This method allows execution of a series of SQL queries in a batch,
+                using transactions to ensure atomicity of operations. The queries can
+                have associated parameter tuples for execution.
 
-        :param queries: A list of SQL query strings to be executed in a batch.
-        :type queries: List[str]
-        :param params_list: A list of tuples containing parameters to
-            correspond with each query. If provided, its length should not
-            exceed the length of the queries list. Defaults to None.
-        :type params_list: Optional[List[tuple]]
-        :return: Boolean indicating whether the batch execution was successful.
-        :rtype: bool
-        :raises RuntimeError: If any error occurs during the execution of
-            the batch queries.
+        Args:
+            params_list (Optional[List[tuple]]): A list of tuples containing parameters to             correspond with each query. If provided, its length should not             exceed the length of the queries list. Defaults to None.
+            queries (List[str]): A list of SQL query strings to be executed in a batch.
+
+        Returns:
+            bool: Boolean indicating whether the batch execution was successful.
+
+        Raises:
+            RuntimeError: If any error occurs during the execution of             the batch queries.
         """
         try:
             with self.get_connection() as connection:
@@ -590,18 +588,19 @@ class MariaDBConnector:
     def _add_without_transaction(self, connection, timestamp: int, key_size: int, modulus: str) -> int:
         """
         Inserts a new record into the database table without wrapping the operation
-        in a transaction. This method directly interacts with the database cursor
-        to execute an INSERT statement for storing the provided installers.
+                in a transaction. This method directly interacts with the database cursor
+                to execute an INSERT statement for storing the provided installers.
 
-        :param timestamp: The timestamp for the record being inserted.
-        :type timestamp: int
-        :param key_size: The size of the cryptographic key in bits.
-        :type key_size: int
-        :param modulus: The cryptographic modulus as a string.
-        :type modulus: str
-        :return: The last inserted ID of the record.
-        :rtype: int
-        :raises Error: If there is an issue during the database operation.
+        Args:
+            key_size (int): The size of the cryptographic key in bits.
+            modulus (str): The cryptographic modulus as a string.
+            timestamp (int): The timestamp for the record being inserted.
+
+        Returns:
+            int: The last inserted ID of the record.
+
+        Raises:
+            Error: If there is an issue during the database operation.
         """
         # Validate identifiers
         if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.table_name)):
@@ -628,18 +627,17 @@ class MariaDBConnector:
     def add(self, timestamp: int, key_size: int, modulus: str) -> int:
         """
         Inserts a record into a specified database table. The record includes details such
-        as a timestamp, key size, and modulus value. The method validates the database name
-        and table name before attempting to insert installers. If the validation fails or there
-        is an error during the insertion, the operation will fail gracefully.
+                as a timestamp, key size, and modulus value. The method validates the database name
+                and table name before attempting to insert installers. If the validation fails or there
+                is an error during the insertion, the operation will fail gracefully.
 
-        :param timestamp: Timestamp representing the time associated with the record.
-        :type timestamp: int
-        :param key_size: Size of the key (in bits) to be added.
-        :type key_size: int
-        :param modulus: The modulus value to be added.
-        :type modulus: str
-        :return: The identifier of the last inserted row if successful, otherwise 0.
-        :rtype: int
+        Args:
+            key_size (int): Size of the key (in bits) to be added.
+            modulus (str): The modulus value to be added.
+            timestamp (int): Timestamp representing the time associated with the record.
+
+        Returns:
+            int: The identifier of the last inserted row if successful, otherwise 0.
         """
         # Validate identifiers
         if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.table_name)):
@@ -670,19 +668,17 @@ class MariaDBConnector:
         """
         Add a batch of records to the specified table within the database.
 
-        This method validates the database and table names, prepares the SQL query
-        for batch insertion, and attempts to execute the batch operation. If the
-        execution is successful, a log message is generated indicating the number
-        of records successfully added. If an error occurs during the operation,
-        the error is logged, and the function returns False.
+                This method validates the database and table names, prepares the SQL query
+                for batch insertion, and attempts to execute the batch operation. If the
+                execution is successful, a log message is generated indicating the number
+                of records successfully added. If an error occurs during the operation,
+                the error is logged, and the function returns False.
 
-        :param records: A list of tuples, where each tuple represents a record to
-            be inserted. Each record should contain the timestamp, key size, and
-            modulus values.
-        :type records: List[tuple]
-        :return: A boolean indicating whether the batch operation was successful.
-            Returns True if successful, False otherwise.
-        :rtype: bool
+        Args:
+            records (List[tuple]): A list of tuples, where each tuple represents a record to             be inserted. Each record should contain the timestamp, key size, and             modulus values.
+
+        Returns:
+            bool: A boolean indicating whether the batch operation was successful.             Returns True if successful, False otherwise.
         """
         if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.table_name)):
             self.logger.error("Invalid database or table name")
@@ -713,17 +709,16 @@ class MariaDBConnector:
     def delete_records(self, table_name, where_clause=None) -> int:
         """
         Deletes records from the specified table in the database, with an optional
-        WHERE clause to filter the records to be deleted. If no WHERE clause is provided,
-        all records in the table will be deleted. The method returns the number of rows
-        affected by the DELETE operation.
+                WHERE clause to filter the records to be deleted. If no WHERE clause is provided,
+                all records in the table will be deleted. The method returns the number of rows
+                affected by the DELETE operation.
 
-        :param table_name: The name of the table from which records are to be deleted.
-        :type table_name: str
-        :param where_clause: An optional SQL WHERE clause to specify the conditions
-            for the DELETE operation. Defaults to None.
-        :type where_clause: str, optional
-        :return: The number of rows deleted from the table.
-        :rtype: int
+        Args:
+            table_name (str): The name of the table from which records are to be deleted.
+            where_clause (str, optional): An optional SQL WHERE clause to specify the conditions             for the DELETE operation. Defaults to None.
+
+        Returns:
+            int: The number of rows deleted from the table.
         """
         try:
             # Validate table name to prevent SQL injection
@@ -755,17 +750,17 @@ class MariaDBConnector:
         """
         Stores screened moduli installers from the given dictionary into the storage.
 
-        This method iterates over the provided moduli installers, extracting
-        moduli attributes and saving them using an internal method. The operation
-        is performed within a database transaction to ensure atomicity. Errors
-        encountered during the process are logged, and an appropriate status is
-        returned.
+                This method iterates over the provided moduli installers, extracting
+                moduli attributes and saving them using an internal method. The operation
+                is performed within a database transaction to ensure atomicity. Errors
+                encountered during the process are logged, and an appropriate status is
+                returned.
 
-        :param screened_moduli: A dictionary containing moduli installers mapped to corresponding keys.
-        :type screened_moduli: dict
-        :return: An integer indicating the status of the operation,
-                 where 0 indicates success and 1 indicates failure.
-        :rtype: int
+        Args:
+            screened_moduli (dict): A dictionary containing moduli installers mapped to corresponding keys.
+
+        Returns:
+            int: An integer indicating the status of the operation,                  where 0 indicates success and 1 indicates failure.
         """
         with self.get_connection() as connection:
             with self.transaction(connection):
@@ -795,11 +790,12 @@ class MariaDBConnector:
         """
         Writes the moduli file using the database interface.
 
-        This method retrieves the installers necessary for the moduli file from the
-        database and then writes it to the appropriate location using
-        the database interface.
+                This method retrieves the installers necessary for the moduli file from the
+                database and then writes it to the appropriate location using
+                the database interface.
 
-        :return: None
+        Returns:
+            None
         """
         try:
             # Get the output file path from instance attributes
@@ -893,12 +889,14 @@ class MariaDBConnector:
         """
         Returns all modulus counts by keysize using a single SQL query.
 
-        The iteration over the counts occurs completely within the SQL query
-        of the moduli_db.moduli table using GROUP BY aggregation.
+                The iteration over the counts occurs completely within the SQL query
+                of the moduli_db.moduli table using GROUP BY aggregation.
 
-        :return: A dictionary with keysize as keys and counts as values
-        :rtype: Dict[str, int]
-        :raises RuntimeError: If the database query fails
+        Returns:
+            Dict[str, int]: A dictionary with keysize as keys and counts as values
+
+        Raises:
+            RuntimeError: If the database query fails
         """
         try:
             # Validate identifiers
@@ -939,30 +937,34 @@ class MariaDBConnector:
     def show_stats(self) -> Dict[str, int]:
         """
         Alias for stats() method.
-        
-        Returns all modulus counts by keysize using a single SQL query.
-        
-        :return: A dictionary with keysize as keys and counts as values
-        :rtype: Dict[str, int]
-        :raises RuntimeError: If the database query fails
+
+                Returns all modulus counts by keysize using a single SQL query.
+
+        Returns:
+            Dict[str, int]: A dictionary with keysize as keys and counts as values
+
+        Raises:
+            RuntimeError: If the database query fails
         """
         return self.stats()
 
     def verify_schema(self) -> Dict[str, Any]:
         """
         Verify that the actual DB schema exists and is properly installed.
-        
-        Checks for the existence and proper configuration of:
-        - Database (moduli_db)
-        - Tables (mod_fl_consts, moduli, moduli_archive)
-        - Views (moduli_view)
-        - Indexes (idx_size, idx_timestamp, idx_size_archive, idx_timestamp_archive)
-        - Foreign key constraints
-        - Required configuration data
-        
-        :return: Dictionary containing verification results with status and details
-        :rtype: Dict[str, Any]
-        :raises RuntimeError: If critical schema verification fails
+
+                Checks for the existence and proper configuration of:
+                - Database (moduli_db)
+                - Tables (mod_fl_consts, moduli, moduli_archive)
+                - Views (moduli_view)
+                - Indexes (idx_size, idx_timestamp, idx_size_archive, idx_timestamp_archive)
+                - Foreign key constraints
+                - Required configuration data
+
+        Returns:
+            Dict[str, Any]: Dictionary containing verification results with status and details
+
+        Raises:
+            RuntimeError: If critical schema verification fails
         """
         verification_results = {
             'database_exists': False,

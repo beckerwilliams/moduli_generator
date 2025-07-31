@@ -8,15 +8,13 @@ from moduli_generator import ModuliGenerator
 
 def main(config: ModuliConfig = None):
     """
-    CLI utility for the generation, saving, and storage of moduli. This function
-        handles the entire workflow, including configuring paths, processing command-line arguments,
-        ensuring the required directories exist, and carrying out moduli generation, storage,
-        and cleanup. The workflow includes integration with MariaDB for storing resulting installers.
+    Write GeneratorModuli SSH2 Moduli File
 
-        Detail logs are generated throughout the process to facilitate debugging and tracking.
+    Args:
+        config (ModuliConfig or None): Configuration object for moduli generation. Defaults to None, in which case                    a local configuration instance is used.
 
     Returns:
-        Int: The return code of the CLI function where 0 indicates successful execution.
+        int: Status code indicating the result of the moduli generation process.              0 - Success              1 - Failure due to a ValueError              2 - General failure due to other exceptions
     """
 
     if not config:
@@ -29,13 +27,11 @@ def main(config: ModuliConfig = None):
     # Generate, Screen, Store, and Write Moduli File
     start_time = iso_utc_time()
     logger.info(
-        f'Starting Moduli Generation at {start_time.strftime("%Y-%m-%d %H:%M:%S")}, with {config.key_lengths} as moduli key-lengths')
+        f'Starting Moduli Generation at {start_time.isoformat()}, with {config.key_lengths} as moduli key-lengths')
 
     # The Invocation
     try:
         (ModuliGenerator(config)
-         .generate_moduli()
-         .store_moduli()
          .write_moduli_file())
 
     except ValueError as err:
@@ -48,8 +44,7 @@ def main(config: ModuliConfig = None):
         # Stats and Cleanup
         end_time = iso_utc_time()
         duration = (end_time - start_time).total_seconds()
-        logger.info(f'Moduli Generation Complete. Time taken: {int(duration)} seconds')
-        logger.info('Moduli Generation Complete')
+        logger.info(f'Moduli Generation Complete @{end_time.isoformat()}: Seconds: {int(duration)}')
         return 0
 
 

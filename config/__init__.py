@@ -48,28 +48,34 @@ DEFAULT_DIR: Final[Path] = Path.home() / '.moduli_generator'
 DEFAULT_CANDIDATES_DIR: Final[str] = '.candidates'
 DEFAULT_MODULI_DIR: Final[str] = '.moduli'
 DEFAULT_LOG_DIR: Final[str] = '.logs'
+
 # The only log file this module recognizes
 DEFAULT_LOG_FILE: Final[str] = 'moduli_generator.log'
+
 # SSH-KEYGEN Generator settings
 DEFAULT_KEY_LENGTHS: Final[tuple[int, ...]] = (3072, 4096, 6144, 7680, 8192)
 DEFAULT_GENERATOR_TYPE: Final[int] = 2
 DEFAULT_NICE_VALUE: Final[int] = 15
 DEFAULT_CONFIG_ID: Final[int] = 1  # JOIN to Moduli File Constants
+
 # MariaDB Configuration File (mysql.cnf)
 DEFAULT_MARIADB_CNF: Final[str] = "moduli_generator.cnf"
+
 # Operational Database, Tables, and Views
 DEFAULT_MARIADB: Final[str] = 'moduli_db'
 DEFAULT_MARIADB_TABLE: Final[str] = 'moduli'
 DEFAULT_MARIADB_VIEW: Final[str] = 'moduli_view'
+
 # Flag to Delete Records from Moduli DB after successfully extracting and writing a complete ssh / moduli file
 DEFAULT_PRESERVE_MODULI_AFTER_DBSTORE: Final[bool] = True
+
 # Flag to delete records on moduli write
 DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE: Final[bool] = False
+
 # Screened Moduli File Pattern
 DEFAULT_MODULI_FILENAME_PATTERN: Final[re] = r"moduli_????_*"
-DEFAULT_CANDIDATE_IDX_FILENAME_PATTERN: Final[re] = (
-    r".candidates_????_????????????????????"
-)
+DEFAULT_CANDIDATE_IDX_FILENAME_PATTERN: Final[re] = r".candidates_????_????????????????????"
+
 DEFAULT_MODULI_PREFIX: Final[str] = f'ssh-moduli_'
 # The number of moduli per key-length to capture in each produced moduli file
 DEFAULT_MODULI_RECORDS_PER_KEYLENGTH: Final[int] = 20
@@ -80,14 +86,13 @@ DEFAULT_MODULI_RECORDS_PER_KEYLENGTH: Final[int] = 20
 def iso_utc_timestamp(compress: bool = False) -> str:
     """
     Generates a UTC timestamp in ISO 8601 format. Optionally, the output can be compressed
-    to remove non-numeric characters.
+        to remove non-numeric characters.
 
-    :param compress: Specifies whether the timestamp should be compressed by removing
-        non-numeric characters.
-    :type compress: bool
-    :return: The generated UTC timestamp as a string. If `compress` is True, the
-        timestamp will only contain numeric characters.
-    :rtype: str
+    Args:
+        compress (bool): Specifies whether the timestamp should be compressed by removing         non-numeric characters.
+
+    Returns:
+        str: The generated UTC timestamp as a string. If `compress` is True, the         timestamp will only contain numeric characters.
     """
 
     timestamp = iso_utc_time().isoformat()
@@ -100,11 +105,11 @@ def iso_utc_timestamp(compress: bool = False) -> str:
 def iso_utc_time() -> datetime:
     """
     Generates and returns the current time in UTC format, stripped of timezone
-    information. This function uses the UTC timezone to fetch the current time
-    but removes the timezone information from the resulting datetime object.
+        information. This function uses the UTC timezone to fetch the current time
+        but removes the timezone information from the resulting datetime object.
 
-    :return: The current UTC time as a timezone-naive datetime object.
-    :rtype: datetime
+    Returns:
+        datetime: The current UTC time as a timezone-naive datetime object.
     """
     return datetime.now(UTC).replace(tzinfo=None)
 
@@ -117,13 +122,13 @@ DEFAULT_MODULI_FILE: Final[str] = f'ssh-moduli_{iso_utc_timestamp(compress=True)
 def strip_punction_from_datetime_str(timestamp: datetime) -> str:
     """
     Compresses a datetime object into a compact string format by removing non-numeric
-    characters from its ISO 8601 format string.
+        characters from its ISO 8601 format string.
 
-    :param timestamp: A datetime object to compress into a string.
-    :type timestamp: Datetime
-    :return: A string representation of the given datetime with all non-numeric
-        characters removed.
-    :rtype: str
+    Args:
+        timestamp (Datetime): A datetime object to compress into a string.
+
+    Returns:
+        str: A string representation of the given datetime with all non-numeric         characters removed.
     """
     return sub(r'[^0-9]', '', timestamp.isoformat())
 
@@ -131,73 +136,45 @@ def strip_punction_from_datetime_str(timestamp: datetime) -> str:
 class ModuliConfig:
     """
     Represents a configuration structure for moduli assembly, encompassing paths,
-    logs, database configurations, and default settings.
+        logs, database configurations, and default settings.
 
-    This class provides directory management, default file paths, and configuration
-    for moduli generation and related operations. It ensures the existence of required
-    directories and offers methods for logging and configuration handling.
+        This class provides directory management, default file paths, and configuration
+        for moduli generation and related operations. It ensures the existence of required
+        directories and offers methods for logging and configuration handling.
 
-    :ivar moduli_home: The root directory for all moduli-related operations, derived
-         from the provided `base_dir` parameter or environment variables.
-    :type base_dir: Path
-    :ivar candidates_dir: The directory path designated for candidate files
-         involved in the moduli assembly process.
-    :type candidates_dir: Path
-    :ivar moduli_dir: The directory for storing generated moduli files.
-    :type moduli_dir: Path
-    :ivar log_dir: The directory housing log files for the moduli assembly process.
-    :type log_dir: Path
-    :ivar moduli_generator_config: Path to the default moduli generator
-         configuration file.
-    :type moduli_generator_config: Path
-    :ivar log_file: Default log file path.
-    :type log_file: Path
-    :ivar moduli_file: Default path for storing the primary moduli output file.
-    :type moduli_file: Path
-    :ivar key_lengths: Default key lengths used during moduli generation.
-    :type key_lengths: list[int]
-    :ivar generator_type: Type of generator used for moduli generation.
-    :type generator_type: str
-    :ivar nice_value: Default nice value for process prioritization.
-    :type nice_value: int
-    :ivar config_id: Identifier used to associate constants with configuration
-         tables.
-    :type config_id: str
-    :ivar mariadb_cnf: Path to the MariaDB configuration file used during moduli
-         assembly.
-    :type mariadb_cnf: Path
-    :ivar moduli_file_pattern: Filename pattern for generated moduli files.
-    :type moduli_file_pattern: str
-    :ivar delete_records_on_moduli_write: Flag indicating whether records should
-         be deleted upon a successful moduli file write operation.
-    :type delete_records_on_moduli_write: bool
-    :ivar db_name: Default database name for MariaDB configurations.
-    :type db_name: str
-    :ivar table_name: Name of the table used in the database for moduli record
-         storage.
-    :type table_name: str
-    :ivar view_name: Name of the database view associated with moduli records.
-    :type view_name: str
-    :ivar records_per_keylength: Number of records associated with each
-         key length in the moduli assembly process.
-    :type records_per_keylength: int
-    :ivar version: Current version of the moduli configuration as derived
-         from the `pyproject.toml`.
-    :type version: str
+    Args:
+        base_dir (Path): Parameter description.
+        candidates_dir (Path): Parameter description.
+        config_id (str): Parameter description.
+        db_name (str): Parameter description.
+        delete_records_on_moduli_write (bool): Parameter description.
+        generator_type (str): Parameter description.
+        key_lengths (list[int]): Parameter description.
+        log_dir (Path): Parameter description.
+        log_file (Path): Parameter description.
+        mariadb_cnf (Path): Parameter description.
+        moduli_dir (Path): Parameter description.
+        moduli_file (Path): Parameter description.
+        moduli_file_pattern (str): Parameter description.
+        moduli_generator_config (Path): Parameter description.
+        nice_value (int): Parameter description.
+        records_per_keylength (int): Parameter description.
+        table_name (str): Parameter description.
+        version (str): Parameter description.
+        view_name (str): Parameter description.
     """
 
     def __init__(self, base_dir=None):
         """
         Represents a configuration and directory structure for moduli assembly
-        operation, including paths for candidate files, moduli files, logs, and
-        default configurations.
+                operation, including paths for candidate files, moduli files, logs, and
+                default configurations.
 
-        Provides default values and configurations for various parameters related
-        to moduli generation and database management.
+                Provides default values and configurations for various parameters related
+                to moduli generation and database management.
 
-        :param base_dir: The base directory path for moduli assembly operations. If not provided,
-            defaults to the environment variable 'MODULI_HOME' or a preset default directory.
-        :type base_dir: Path or None
+        Args:
+            base_dir (Path or None): The base directory path for moduli assembly operations. If not provided,             defaults to the environment variable 'MODULI_HOME' or a preset default directory.
         """
         # Use user-provided base dir, or env var, or default to ~/.moduli_assembly
         self.moduli_home = Path(base_dir or osenv.get('MODULI_HOME', DEFAULT_DIR))
@@ -243,11 +220,11 @@ class ModuliConfig:
     def ensure_directories(self):
         """
         Ensures that a set of directories (base, candidates, moduli, and log directories) exist.
-        If they do not exist, they will be created. This method ensures all necessary directories
-        are ready for further operations.
+                If they do not exist, they will be created. This method ensures all necessary directories
+                are ready for further operations.
 
-        :return: The current instance after ensuring directories exist.
-        :rtype: Self
+        Returns:
+            Self: The current instance after ensuring directories exist.
         """
         for dir_path in [self.moduli_home, self.candidates_dir, self.moduli_dir, self.log_dir]:
             dir_path.mkdir(parents=True, exist_ok=True)
@@ -258,17 +235,18 @@ class ModuliConfig:
         """
         Initializes and returns a logger instance configured for file-based logging.
 
-        This function ensures that the required directories and configuration files exist
-        before setting up the logging system. It verifies the existence of the base logging
-        directory, the default log directory, and the MariaDB configuration file. If they do not
-        exist, they are created as needed. Once these prerequisites are met, the logger is
-        configured with a specific logging level, format, and file output.
+                This function ensures that the required directories and configuration files exist
+                before setting up the logging system. It verifies the existence of the base logging
+                directory, the default log directory, and the MariaDB configuration file. If they do not
+                exist, they are created as needed. Once these prerequisites are met, the logger is
+                configured with a specific logging level, format, and file output.
 
-        :raises OSError: If there is an issue, create required directories or files.
-        :raises IOError: If there is an issue, read the default MariaDB configuration file.
+        Returns:
+            Logging.Logger: Configured logger instance.
 
-        :return: Configured logger instance.
-        :rtype: Logging.Logger
+        Raises:
+            OSError: If there is an issue, create required directories or files.
+            IOError: If there is an issue, read the default MariaDB configuration file.
         """
 
         if not self.moduli_home.exists():
@@ -292,17 +270,16 @@ class ModuliConfig:
         """
         Retrieve the log file path, either by name or default log file path.
 
-        This method determines whether a specific log file name is provided. If a
-        name is given, the method constructs and returns the full path to the named
-        log file within the logging directory. If no name is provided, it returns the
-        path to the default log file.
+                This method determines whether a specific log file name is provided. If a
+                name is given, the method constructs and returns the full path to the named
+                log file within the logging directory. If no name is provided, it returns the
+                path to the default log file.
 
-        :param name: Name of the log file to retrieve. If None, the default log file
-            path is returned.
-        :type name: Optional[str]
-        :return: The full path to the specified log file if a name is provided, or
-            the default log file path otherwise.
-        :rtype: Path
+        Args:
+            name (Optional[str]): Name of the log file to retrieve. If None, the default log file             path is returned.
+
+        Returns:
+            Path: The full path to the specified log file if a name is provided, or             the default log file path otherwise.
         """
         if name:
             return self.log_dir / name
@@ -314,15 +291,15 @@ class ModuliConfig:
         """
         Creates a new instance of ModuliConfig with the given base directory.
 
-        This static method provides a convenience to instantiate the ModuliConfig
-        class with a specified base directory. It ensures that the provided base
-        directory is explicitly set during the object creation.
+                This static method provides a convenience to instantiate the ModuliConfig
+                class with a specified base directory. It ensures that the provided base
+                directory is explicitly set during the object creation.
 
-        :param base_dir: The base directory to be used for initialization.
-        :type base_dir: str
-        :return: A new instance of the ModuliConfig class initialized with the given
-            base directory.
-        :rtype: ModuliConfig
+        Args:
+            base_dir (str): The base directory to be used for initialization.
+
+        Returns:
+            ModuliConfig: A new instance of the ModuliConfig class initialized with the given             base directory.
         """
         return ModuliConfig(base_dir)
 

@@ -11,13 +11,13 @@ def arg_parser():
     """
     Parses command-line arguments for the SSH Moduli Schema installation script.
 
-    This function creates an argument parser to handle input parameters and options
-    for the SSH Moduli Schema installation process. The parser allows customization
-    of parameters, such as the base directory for moduli generation and storage,
-    the path to the MariaDB configuration file, and the execution mode.
+        This function creates an argument parser to handle input parameters and options
+        for the SSH Moduli Schema installation process. The parser allows customization
+        of parameters, such as the base directory for moduli generation and storage,
+        the path to the MariaDB configuration file, and the execution mode.
 
-    :return: Parsed command-line arguments
-    :rtype: argparse.Namespace
+    Returns:
+        argparse.Namespace: Parsed command-line arguments
     """
     argparse = ArgumentParser(description='Install SSH Moduli Schema')
     argparse.add_argument(
@@ -48,15 +48,15 @@ def arg_parser():
 def create_moduli_generator_home():
     """
     Creates a home directory setup for the ModuliGenerator tool. This function initializes the
-    ModuliGenerator instance and configures its base directory using the provided arguments. Additionally,
-    it ensures that a specified MariaDB configuration file is copied, if it exists, into the ModuliGenerator's
-    home directory.
+        ModuliGenerator instance and configures its base directory using the provided arguments. Additionally,
+        it ensures that a specified MariaDB configuration file is copied, if it exists, into the ModuliGenerator's
+        home directory.
 
-    :raises FileNotFoundError: If the MariaDB configuration file specified in the arguments does not exist.
+    Returns:
+        int: Exit code indicating the result of the operation. Returns 0 on success, 1 if the MariaDB              configuration file is not found.
 
-    :return: Exit code indicating the result of the operation. Returns 0 on success, 1 if the MariaDB
-             configuration file is not found.
-    :rtype: int
+    Raises:
+        FileNotFoundError: If the MariaDB configuration file specified in the arguments does not exist.
     """
     args = arg_parser()
     config = default_config

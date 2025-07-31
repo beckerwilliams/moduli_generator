@@ -9,14 +9,14 @@ from moduli_generator import ModuliGenerator
 def main(config: ModuliConfig = None):
     """
     CLI utility for restarting moduli generation. This function
-    handles the entire workflow, including configuring paths, processing command-line arguments,
-    ensuring the required directories exist, and carrying out moduli restart, storage,
-    and cleanup. The workflow includes integration with MariaDB for storing resulting installers.
+        handles the entire workflow, including configuring paths, processing command-line arguments,
+        ensuring the required directories exist, and carrying out moduli restart, storage,
+        and cleanup. The workflow includes integration with MariaDB for storing resulting installers.
 
-    Detail logs are generated throughout the process to facilitate debugging and tracking.
+        Detail logs are generated throughout the process to facilitate debugging and tracking.
 
-    :return: The return code of the CLI function where 0 indicates successful execution.
-    :rtype: Int
+    Returns:
+        Int: The return code of the CLI function where 0 indicates successful execution.
     """
 
     if not config:

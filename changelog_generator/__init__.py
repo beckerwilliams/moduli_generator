@@ -81,25 +81,26 @@ class ChangelogGenerator:
     """
     Generates a detailed changelog based on git commit history and project metadata.
 
-    The ChangelogGenerator class is designed to parse git commit logs, extract meaningful
-    information, categorize commits by their content, organize commits by date, and
-    generate a formatted changelog in reStructuredText (RST). Additionally, it provides
-    project-specific information if available in the `pyproject.toml`.
+        The ChangelogGenerator class is designed to parse git commit logs, extract meaningful
+        information, categorize commits by their content, organize commits by date, and
+        generate a formatted changelog in reStructuredText (RST). Additionally, it provides
+        project-specific information if available in the `pyproject.toml`.
 
-    :ivar project_root: The root directory of the project to be analyzed.
-    :type project_root: pathlib.Path
-    :ivar project_info: Metadata about the project extracted from `pyproject.toml`.
-    :type project_info: dict
+        :ivar project_root: The root directory of the project to be analyzed.
+
+    Args:
+        project_info (dict): Parameter description.
+        project_root (pathlib.Path): Parameter description.
     """
 
     def __init__(self, project_root=None):
         """
         Initializes the class with a given project root directory and loads related
-        project information. If no project root is provided, it defaults to the
-        current working directory.
+                project information. If no project root is provided, it defaults to the
+                current working directory.
 
-        :param project_root: The root directory of the project
-        :type project_root: str or None
+        Args:
+            project_root (str or None): The root directory of the project
         """
         self.project_root = Path(project_root) if project_root else Path.cwd()
         self.project_info = self._load_project_info()
@@ -280,16 +281,15 @@ class ChangelogGenerator:
     def generate_changelog(self, output_file="CHANGELOG.rst", max_commits=50):
         """
         Generates a changelog file based on git commit history and saves it to the
-        specified output file. The changelog is formatted in reStructuredText (RST)
-        format and includes grouped commit entries by date in descending order.
+                specified output file. The changelog is formatted in reStructuredText (RST)
+                format and includes grouped commit entries by date in descending order.
 
-        :param output_file: The name of the output changelog file with the default value "CHANGELOG.rst".
-        :type output_file: str, optional
-        :param max_commits: The maximum number of recent commits to include in the
-            changelog, with a default value of 50.
-        :type max_commits: int, optional
-        :return: None
-        :rtype: None
+        Args:
+            max_commits (int, optional): The maximum number of recent commits to include in the             changelog, with a default value of 50.
+            output_file (str, optional): The name of the output changelog file with the default value "CHANGELOG.rst".
+
+        Returns:
+            None: None
         """
         print("Generating changelog...")
 

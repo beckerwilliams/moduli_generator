@@ -10,14 +10,14 @@ def _moduli_generator_argparser() -> Namespace:
     """
     Parse command-line arguments for the Moduli Generator and return the parsed arguments.
 
-    This function uses the `argparse` module to define and parse command-line options used
-    for managing the secure moduli generation process. It provides a variety of configurable
-    options, including base directory settings, directory paths for storing generated moduli,
-    and specific configuration file paths. Additionally, the function supports specifying
-    key lengths for moduli generation as well as process priority settings through a nice value.
+        This function uses the `argparse` module to define and parse command-line options used
+        for managing the secure moduli generation process. It provides a variety of configurable
+        options, including base directory settings, directory paths for storing generated moduli,
+        and specific configuration file paths. Additionally, the function supports specifying
+        key lengths for moduli generation as well as process priority settings through a nice value.
 
-    :return: Parsed command-line arguments
-    :rtype: argparse.Namespace
+    Returns:
+        argparse.Namespace: Parsed command-line arguments
     """
     parser = ArgumentParser(
         description="Moduli Generator - Generate and manage secure moduli for cryptographic operations",
@@ -94,16 +94,15 @@ def local_config(args: Namespace = None) -> ModuliConfig:
     """
     Create a custom configuration based on the provided command line arguments.
 
-    This function generates a configuration by overriding the default configuration
-    with the input parameters passed. It also ensures required directories exist
-    and applies specific settings based on the user-provided options.
+        This function generates a configuration by overriding the default configuration
+        with the input parameters passed. It also ensures required directories exist
+        and applies specific settings based on the user-provided options.
 
-    :param args: A Namespace object containing command line parameters that are required
-        to customize the configuration.
-    :type args: Namespace
-    :return: A customized configuration object with updated properties based on
-        the provided namespace.
-    :rtype: ModuliConfig
+    Args:
+        args (Namespace): A Namespace object containing command line parameters that are required         to customize the configuration.
+
+    Returns:
+        ModuliConfig: A customized configuration object with updated properties based on         the provided namespace.
     """
 
     # Create a custom configuration based on the command line arguments

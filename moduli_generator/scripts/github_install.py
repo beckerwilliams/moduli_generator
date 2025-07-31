@@ -8,11 +8,11 @@ def installer():
     """
     Executes a bash script to perform installation using a predefined path.
 
-    This function locates a script within a specified directory structure and
-    invokes it using the `bash` command.
+        This function locates a script within a specified directory structure and
+        invokes it using the `bash` command.
 
-    :return: None
-    :rtype: None
+    Returns:
+        None: None
     """
     try:
         # Access the module from the installers directory

@@ -4,17 +4,19 @@ def validate_integer_parameters(key_length=None, nice_value=None):
     """
     Validates that key_length and nice_value are proper integers.
 
-    This function addresses the security concerns identified in the code analysis,
-    particularly the command injection risks from unvalidated inputs to subprocess calls.
+        This function addresses the security concerns identified in the code analysis,
+        particularly the command injection risks from unvalidated inputs to subprocess calls.
 
-    :param key_length: The cryptographic key length in bits (e.g., 1024, 2048, 4096)
-    :type key_length: Any
-    :param nice_value: The process priority value for 'nice' command (-20 to 19)
-    :type nice_value: Any
-    :raises ValueError: If parameters are not valid integers or are out of expected ranges
-    :raises TypeError: If parameters are not of expected types
-    :return: Tuple of validated integers (key_length, nice_value) or None values
-    :rtype: tuple[int | None, int | None]
+    Args:
+        key_length (Any): The cryptographic key length in bits (e.g., 1024, 2048, 4096)
+        nice_value (Any): The process priority value for 'nice' command (-20 to 19)
+
+    Returns:
+        tuple[int | None, int | None]: Tuple of validated integers (key_length, nice_value) or None values
+
+    Raises:
+        ValueError: If parameters are not valid integers or are out of expected ranges
+        TypeError: If parameters are not of expected types
     """
     validated_key_length = None
     validated_nice_value = None
@@ -58,17 +60,19 @@ def validate_subprocess_args(key_length, nice_value):
     """
     Specialized validation for subprocess arguments to prevent command injection.
 
-    This function ensures that parameters passed to subprocess calls are safe
-    and cannot be exploited for command injection attacks.
+        This function ensures that parameters passed to subprocess calls are safe
+        and cannot be exploited for command injection attacks.
 
-    :param key_length: The cryptographic key length in bits
-    :type key_length: Any
-    :param nice_value: The process priority value
-    :type nice_value: Any
-    :raises ValueError: If parameters fail validation
-    :raises TypeError: If parameters are not of expected types
-    :return: Tuple of validated string representations safe for subprocess
-    :rtype: tuple[str, str]
+    Args:
+        key_length (Any): The cryptographic key length in bits
+        nice_value (Any): The process priority value
+
+    Returns:
+        tuple[str, str]: Tuple of validated string representations safe for subprocess
+
+    Raises:
+        ValueError: If parameters fail validation
+        TypeError: If parameters are not of expected types
     """
     # Use the main validation function first
     validated_key_length, validated_nice_value = validate_integer_parameters(
