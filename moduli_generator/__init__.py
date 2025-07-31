@@ -307,51 +307,80 @@ class ModuliGenerator:
 
     def generate_moduli(self) -> 'ModuliGenerator':
         """
-        Generates and screens Diffie-Hellman moduli files for specified key lengths.
+        Generates and screens Diffie-Hellman moduli files for specified key lengths using
+        pipeline processing for optimal performance.
 
-        The method first generates candidate files for Diffie-Hellman moduli in parallel
-        using a process pool. Next, it screens these candidates to produce final moduli
-        files. Generated moduli are organized by key lengths. The candidate and moduli
-        generations are logged for debugging purposes.
+        This method uses a pipeline approach where candidate generation and screening happen
+        concurrently. As soon as a candidate file is generated, it's immediately submitted
+        for screening, rather than waiting for all candidates to be generated first.
+        This optimization reduces overall processing time by overlapping I/O and CPU operations.
 
         :return: self
         :rtype: ModuliGenerator
         """
         generated_moduli = {}
 
-        # with concurrent.futures.ProcessPoolExecutor() as executor: - TBD
-        #  Testint ThreadPool vs. ProcessPool executor
         with concurrent.futures.ProcessPoolExecutor() as executor:
-            # First, generate candidates
+            # Submit all candidate generation tasks
             candidate_futures = []
             for length in self.config.key_lengths:
                 future = executor.submit(self._generate_candidates_static, self.config, length)
                 candidate_futures.append((future, length))
 
-            # Process completed futures and organized candidates by key length
-            candidates_by_length = {}
-            for future, length in candidate_futures:
-                candidate_file = future.result()
-                if length not in candidates_by_length:
-                    candidates_by_length[length] = []
-                candidates_by_length[length].append(candidate_file)
-            self.logger.debug(
-                f'Generated {len(candidate_futures)} candidate files for key-lengths: {self.config.key_lengths}')
-
-            # Then screen candidates
+            # Pipeline processing: screen candidates as they become available
             screening_futures = []
-            for length, candidate_files in candidates_by_length.items():
-                for candidate_file in candidate_files:
-                    future = executor.submit(self._screen_candidates_static, self.config, candidate_file)
-                    screening_futures.append((future, length))
-            # Process completed screening futures
-            for future, length in screening_futures:
-                moduli_file = future.result()
-                if length not in generated_moduli:
-                    generated_moduli[length] = []
-                generated_moduli[length].append(moduli_file)
-            self.logger.info(f'Screened {len(screening_futures)} candidate files for key-lengths:' +
-                             f'{self.config.key_lengths}')
+            candidates_generated = 0
+
+            # Process candidates as they complete and immediately submit for screening
+            for future in concurrent.futures.as_completed([f for f, _ in candidate_futures]):
+                # Find the corresponding length for this future
+                length = None
+                for candidate_future, candidate_length in candidate_futures:
+                    if candidate_future == future:
+                        length = candidate_length
+                        break
+
+                try:
+                    candidate_file = future.result()
+                    candidates_generated += 1
+                    self.logger.debug(
+                        f'Generated candidate file {candidates_generated}/{len(candidate_futures)}: {candidate_file}')
+
+                    # Immediately submit for screening (pipeline processing)
+                    screening_future = executor.submit(self._screen_candidates_static, self.config, candidate_file)
+                    screening_futures.append((screening_future, length))
+
+                except Exception as e:
+                    self.logger.error(f'Error generating candidate for length {length}: {e}')
+                    raise
+
+            self.logger.info(
+                f'Generated {candidates_generated} candidate files for key-lengths: {self.config.key_lengths}')
+
+            # Process screening results as they complete
+            screened_count = 0
+            for future in concurrent.futures.as_completed([f for f, _ in screening_futures]):
+                # Find the corresponding length for this future
+                length = None
+                for screening_future, screening_length in screening_futures:
+                    if screening_future == future:
+                        length = screening_length
+                        break
+
+                try:
+                    moduli_file = future.result()
+                    screened_count += 1
+                    self.logger.debug(f'Screened moduli file {screened_count}/{len(screening_futures)}: {moduli_file}')
+
+                    if length not in generated_moduli:
+                        generated_moduli[length] = []
+                    generated_moduli[length].append(moduli_file)
+
+                except Exception as e:
+                    self.logger.error(f'Error screening candidate for length {length}: {e}')
+                    raise
+
+            self.logger.info(f'Screened {screened_count} candidate files for key-lengths: {self.config.key_lengths}')
 
         return self
 

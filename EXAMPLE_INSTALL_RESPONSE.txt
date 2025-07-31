@@ -1,9 +1,0 @@
-ron@dcrunch:~/MG_TEMP % ./install_mg.sh
-[ Saving Current Directory /home/ron/MG_TEMP, entering .moduli_generator_temp ]
-[ Cloning moduli_generator from Github ]
-[ Entering Moduli Dev Directory: moduli_generator ]
-[ Creating and Activating Python Virtual Enviroment in /home/ron/MG_TEMP/.moduli_generator_temp/moduli_generator ]
-[ Building moduli_generator wheel ]
-[ Copy Moduli Generator Wheel to starting directory: /home/ron/moduli_generator-2.1.12-py3-none-any.whl ]
-[ Creating runtime virtual environment ]
-[ Upgrading Virtual Environment and Installing Moduli Generator wheel: moduli_generator-2.1.12-py3-none-any.whl ]

@@ -36,7 +36,8 @@ __all__ = [
     'DEFAULT_MARIADB',
     'DEFAULT_MARIADB_CNF',
     'DEFAULT_KEY_LENGTHS',
-    'TEST_MARIADB'
+    'TEST_MARIADB',
+    '__version__'
 ]
 
 # TEST PARAMETERS

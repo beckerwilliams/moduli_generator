@@ -127,7 +127,7 @@ class TestModuliGeneratorCandidateGeneration:
         """Test static candidate generation method."""
         mock_subprocess.return_value = MagicMock(returncode=0)
 
-        result = ModuliGenerator._generate_candidates_static(mock_config, 4096)
+        result = ModuliGenerator._generate_candidates_static(mock_config, 3072)
 
         # The method returns a Path object, not subprocess result
         assert isinstance(result, Path)
@@ -174,7 +174,7 @@ class TestModuliGeneratorFileProcessing:
     @patch('pathlib.Path.glob')
     def test_list_moduli_files(self, mock_glob, mock_config):
         """Test listing moduli files in the moduli directory."""
-        mock_files = [Path("moduli_4096"), Path("moduli_8192")]
+        mock_files = [Path("moduli_3072"), Path("moduli_4096")]
         mock_glob.return_value = mock_files
 
         generator = ModuliGenerator(mock_config)
@@ -195,11 +195,11 @@ class TestModuliGeneratorFileProcessing:
         assert files == []
 
     @pytest.mark.integration
-    @patch('pathlib.Path.open', new_callable=mock_open, read_data="20231201000000 2 4096 5 4096 2 test_modulus\n")
+    @patch('pathlib.Path.open', new_callable=mock_open, read_data="20231201000000 2 3072 5 3072 2 test_modulus\n")
     @patch('pathlib.Path.glob')
     def test_parse_moduli_files_success(self, mock_glob, mock_file, mock_config):
         """Test parsing moduli files successfully."""
-        mock_files = [Path("moduli_4096")]
+        mock_files = [Path("moduli_3072")]
         mock_glob.return_value = mock_files
 
         generator = ModuliGenerator(mock_config)
@@ -220,7 +220,7 @@ class TestModuliGeneratorFileProcessing:
     @patch('pathlib.Path.glob')
     def test_parse_moduli_files_io_error(self, mock_glob, mock_file, mock_config):
         """Test parsing moduli files with IO error."""
-        mock_files = [Path("moduli_4096")]
+        mock_files = [Path("moduli_3072")]
         mock_glob.return_value = mock_files
 
         generator = ModuliGenerator(mock_config)
@@ -236,25 +236,46 @@ class TestModuliGeneratorWorkflow:
     """Test cases for the complete ModuliGenerator workflow."""
 
     @pytest.mark.integration
+    @patch('concurrent.futures.as_completed')
     @patch('concurrent.futures.ProcessPoolExecutor')
     @patch('moduli_generator.ModuliGenerator._screen_candidates_static')
     @patch('moduli_generator.ModuliGenerator._generate_candidates_static')
-    def test_generate_moduli_success(self, mock_generate_static, mock_screen_static, mock_executor, mock_config):
+    def test_generate_moduli_success(self, mock_generate_static, mock_screen_static, mock_executor, mock_as_completed,
+                                     mock_config):
         """Test the complete generate_moduli workflow."""
-        mock_config.key_lengths = (4096, 8192)
+        mock_config.key_lengths = (3072, 4096)
 
         # Mock the static methods to return file paths
-        mock_generate_static.return_value = Path('/tmp/candidates_4096.txt')
-        mock_screen_static.return_value = Path('/tmp/moduli_4096.txt')
+        mock_generate_static.return_value = Path('/tmp/candidates_3072.txt')
+        mock_screen_static.return_value = Path('/tmp/moduli_3072.txt')
 
         # Mock the executor to avoid multiprocessing
         mock_executor_instance = MagicMock()
         mock_executor.return_value.__enter__.return_value = mock_executor_instance
 
-        # Mock futures
-        mock_future = MagicMock()
-        mock_future.result.return_value = Path('/tmp/test_file.txt')
-        mock_executor_instance.submit.return_value = mock_future
+        # Mock futures for candidate generation
+        mock_candidate_future_1 = MagicMock()
+        mock_candidate_future_1.result.return_value = Path('/tmp/candidates_3072.txt')
+        mock_candidate_future_2 = MagicMock()
+        mock_candidate_future_2.result.return_value = Path('/tmp/candidates_4096.txt')
+
+        # Mock futures for screening
+        mock_screening_future_1 = MagicMock()
+        mock_screening_future_1.result.return_value = Path('/tmp/moduli_3072.txt')
+        mock_screening_future_2 = MagicMock()
+        mock_screening_future_2.result.return_value = Path('/tmp/moduli_4096.txt')
+
+        # Configure submit to return different futures for generation vs screening
+        mock_executor_instance.submit.side_effect = [
+            mock_candidate_future_1, mock_candidate_future_2,  # Generation futures
+            mock_screening_future_1, mock_screening_future_2  # Screening futures
+        ]
+
+        # Mock as_completed to return futures in order
+        mock_as_completed.side_effect = [
+            [mock_candidate_future_1, mock_candidate_future_2],  # First call for candidates
+            [mock_screening_future_1, mock_screening_future_2]  # Second call for screening
+        ]
 
         generator = ModuliGenerator(mock_config)
         result = generator.generate_moduli()
@@ -263,13 +284,14 @@ class TestModuliGeneratorWorkflow:
         assert mock_executor_instance.submit.call_count == 4  # 2 for generation + 2 for screening
 
     @pytest.mark.integration
+    @patch('concurrent.futures.as_completed')
     @patch('concurrent.futures.ProcessPoolExecutor')
     @patch('moduli_generator.ModuliGenerator._screen_candidates_static')
     @patch('moduli_generator.ModuliGenerator._generate_candidates_static')
     def test_generate_moduli_generation_failure(self, mock_generate_static, mock_screen_static, mock_executor,
-                                                mock_config):
+                                                mock_as_completed, mock_config):
         """Test generate_moduli with candidate generation failure."""
-        mock_config.key_lengths = (4096,)
+        mock_config.key_lengths = (3072,)
 
         # Mock the executor to avoid multiprocessing
         mock_executor_instance = MagicMock()
@@ -280,19 +302,23 @@ class TestModuliGeneratorWorkflow:
         mock_future.result.side_effect = Exception("Generation failed")
         mock_executor_instance.submit.return_value = mock_future
 
+        # Mock as_completed to return the failing future
+        mock_as_completed.return_value = [mock_future]
+
         generator = ModuliGenerator(mock_config)
 
         with pytest.raises(Exception, match="Generation failed"):
             generator.generate_moduli()
 
     @pytest.mark.integration
+    @patch('concurrent.futures.as_completed')
     @patch('concurrent.futures.ProcessPoolExecutor')
     @patch('moduli_generator.ModuliGenerator._screen_candidates_static')
     @patch('moduli_generator.ModuliGenerator._generate_candidates_static')
     def test_generate_moduli_screening_failure(self, mock_generate_static, mock_screen_static, mock_executor,
-                                               mock_config):
+                                               mock_as_completed, mock_config):
         """Test generate_moduli with candidate screening failure."""
-        mock_config.key_lengths = (4096,)
+        mock_config.key_lengths = (3072,)
 
         # Mock the executor to avoid multiprocessing
         mock_executor_instance = MagicMock()
@@ -304,6 +330,12 @@ class TestModuliGeneratorWorkflow:
         mock_future_failure = MagicMock()
         mock_future_failure.result.side_effect = Exception("Screening failed")
         mock_executor_instance.submit.side_effect = [mock_future_success, mock_future_failure]
+
+        # Mock as_completed to return futures in order - first generation, then screening
+        mock_as_completed.side_effect = [
+            [mock_future_success],  # First call for candidates (succeeds)
+            [mock_future_failure]  # Second call for screening (fails)
+        ]
 
         generator = ModuliGenerator(mock_config)
 
@@ -323,9 +355,9 @@ class TestModuliGeneratorWorkflow:
         }
         mock_pool.return_value = MagicMock()
         mock_parse.return_value = {
-            "4096": [
-                {"timestamp": 20231201000000, "key-size": 4096, "modulus": "test_modulus_1"},
-                {"timestamp": 20231201000001, "key-size": 4096, "modulus": "test_modulus_2"}
+            "3072": [
+                {"timestamp": 20231201000000, "key-size": 3072, "modulus": "test_modulus_1"},
+                {"timestamp": 20231201000001, "key-size": 3072, "modulus": "test_modulus_2"}
             ]
         }
 
@@ -370,8 +402,8 @@ class TestModuliGeneratorWorkflow:
         }
         mock_pool.return_value = MagicMock()
         mock_parse.return_value = [
-            (20231201000000, 4096, "test_modulus_1"),
-            (20231201000001, 4096, "test_modulus_2")
+            (20231201000000, 3072, "test_modulus_1"),
+            (20231201000001, 3072, "test_modulus_2")
         ]
 
         generator = ModuliGenerator(mock_config)
@@ -424,7 +456,7 @@ class TestModuliGeneratorErrorHandling:
         }
         mock_pool.return_value = MagicMock()
         mock_parse.return_value = {
-            "screened_moduli": [{"timestamp": "20231201000000", "key-size": "4096", "modulus": "test_modulus"}]}
+            "screened_moduli": [{"timestamp": "20231201000000", "key-size": "3072", "modulus": "test_modulus"}]}
         mock_export.side_effect = Error("Database connection failed")
 
         generator = ModuliGenerator(mock_config)
@@ -438,8 +470,8 @@ class TestModuliGeneratorErrorHandling:
     @patch('json.dump')
     @patch('moduli_generator.ModuliGenerator._parse_moduli_files')
     def test_save_moduli_directory_creation_error(self, mock_parse, mock_json_dump, mock_open, mock_config, temp_dir):
-        """Test save_moduli with file creation error."""
-        mock_parse.return_value = [(20231201000000, 4096, "test_modulus")]
+        """Test save_moduli with a file creation error."""
+        mock_parse.return_value = [(20231201000000, 3072, "test_modulus")]
         mock_open.side_effect = PermissionError("Permission denied")
 
         generator = ModuliGenerator(mock_config)

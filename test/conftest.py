@@ -143,7 +143,7 @@ def mock_db_connector():
 def sample_moduli_data():
     """Sample moduli data for testing file parsing."""
     return [
-        "20230101000000 2 1024 8 0 1234567890abcdef1234567890abcdef12345678 fedcba0987654321fedcba0987654321fedcba09",
+        "20230101000000 2 3072 8 0 1234567890abcdef1234567890abcdef12345678 fedcba0987654321fedcba0987654321fedcba09",
         "20230101000001 2 2048 8 0 abcdef1234567890abcdef1234567890abcdef12 09abcdef1234567890abcdef1234567890abcdef",
         "20230101000002 2 4096 8 0 567890abcdef1234567890abcdef1234567890ab cdef1234567890abcdef1234567890abcdef1234",
     ]
@@ -218,6 +218,8 @@ def mock_config():
     config.records_per_keylength = 100
     config.delete_records_on_moduli_write = False
     config.delete_records_on_read = False
+    config.preserve_moduli_after_dbstore = False
+    config.generator_type = 2
 
     # Mock the get_logger method to return a mock logger
     mock_logger_instance = MagicMock()
@@ -280,6 +282,44 @@ def mock_db_config():
         mock_pool.return_value = mock_pool_instance
 
         yield config
+
+
+@pytest.fixture(autouse=True)
+def mock_all_subprocess():
+    """Automatically mock all subprocess calls to prevent actual shell command execution."""
+    # Only mock at the module level to prevent actual execution, but allow test-specific patches to override
+    with patch('moduli_generator.subprocess.run') as mock_mg_run, \
+            patch('subprocess.Popen') as mock_popen, \
+            patch('subprocess.call') as mock_call, \
+            patch('subprocess.check_call') as mock_check_call, \
+            patch('subprocess.check_output') as mock_check_output:
+        # Configure mock_run (most commonly used)
+        mock_result = MagicMock(
+            returncode=0,
+            stdout="Mocked ssh-keygen output\nGenerated moduli candidates successfully",
+            stderr="",
+            args=[]
+        )
+        mock_mg_run.return_value = mock_result
+
+        # Configure other subprocess methods
+        mock_popen.return_value = MagicMock(
+            returncode=0,
+            stdout=MagicMock(read=lambda: "Mocked output"),
+            stderr=MagicMock(read=lambda: ""),
+            communicate=lambda: ("Mocked output", "")
+        )
+        mock_call.return_value = 0
+        mock_check_call.return_value = 0
+        mock_check_output.return_value = "Mocked output"
+
+        yield {
+            'popen': mock_popen,
+            'call': mock_call,
+            'check_call': mock_check_call,
+            'check_output': mock_check_output,
+            'mg_run': mock_mg_run
+        }
 
 
 @pytest.fixture(autouse=True)

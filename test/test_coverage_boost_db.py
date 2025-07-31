@@ -86,7 +86,8 @@ class TestDatabaseCoverageBoost:
 
     @patch('db.parse_mysql_config')
     @patch('db.ConnectionPool')
-    def test_add_database_error(self, mock_pool, mock_parse_config, valid_mock_config):
+    @patch('db.MariaDBConnector.verify_schema')
+    def test_add_database_error(self, mock_verify_schema, mock_pool, mock_parse_config, valid_mock_config):
         """Test add method with database error."""
         mock_parse_config.return_value = \
             {"client": {"user": "test", "password": "test", "host": "localhost", "port": "3306", "database": "testdb"}}
@@ -97,6 +98,9 @@ class TestDatabaseCoverageBoost:
         mock_connection_pool = MagicMock()
         mock_connection_pool.get_connection.return_value = mock_connection
         mock_pool.return_value = mock_connection_pool
+
+        # Mock schema verification to succeed during initialization
+        mock_verify_schema.return_value = True
 
         connector = MariaDBConnector(valid_mock_config)
         result = connector.add(20231201000000, 4096, "test_modulus")
@@ -157,7 +161,8 @@ class TestDatabaseCoverageBoost:
 
     @patch('db.parse_mysql_config')
     @patch('db.ConnectionPool')
-    def test_delete_records_error_handling(self, mock_pool, mock_parse_config, valid_mock_config):
+    @patch('db.MariaDBConnector.verify_schema')
+    def test_delete_records_error_handling(self, mock_verify_schema, mock_pool, mock_parse_config, valid_mock_config):
         """Test delete_records method error handling."""
         mock_parse_config.return_value = \
             {"client": {"user": "test", "password": "test", "host": "localhost", "port": "3306", "database": "testdb"}}
@@ -168,6 +173,9 @@ class TestDatabaseCoverageBoost:
         mock_connection_pool = MagicMock()
         mock_connection_pool.get_connection.return_value = mock_connection
         mock_pool.return_value = mock_connection_pool
+
+        # Mock schema verification to succeed during initialization
+        mock_verify_schema.return_value = True
 
         connector = MariaDBConnector(valid_mock_config)
 

@@ -6,7 +6,7 @@ authors = [
 ]
 license = { text = "MIT" }
 keywords = ["cryptography", "ssh", "moduli", "security"]
-version = "2.1.31"
+version = "2.1.32"
 readme = "README.rst"
 classifiers = [
 	"Development Status :: 4 - Beta",

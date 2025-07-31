@@ -51,6 +51,18 @@ CREATE TABLE IF NOT EXISTS moduli_db.moduli_archive
     UNIQUE KEY (modulus_hash)
 );
 
+CREATE VIEW IF NOT EXISTS moduli_db.archive_view AS
+SELECT m.timestamp,
+       c.type,
+       c.tests,
+       c.trials,
+       m.size,
+       c.generator,
+       m.modulus
+FROM moduli_db.moduli_archive m
+         JOIN
+     moduli_db.mod_fl_consts c ON m.config_id = c.config_id;
+
 -- Indexes for commonly queried fields
 CREATE INDEX idx_size ON moduli_db.moduli(size);
 CREATE INDEX idx_timestamp ON moduli_db.moduli(timestamp);
