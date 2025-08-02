@@ -12,7 +12,7 @@ In the Moduli Generator pre-Install below, we'll
 
 - Create `Moduli Generator`'s mariadb.cnf file: `${HOME}/.moduli_generator/moduli_generator.cnf`
 
-## Install Mariadb
+## Install MariaDB
 
 ### Installers
 
@@ -20,6 +20,8 @@ In the Moduli Generator pre-Install below, we'll
   MariaDB.com - [MariaDB Installation Guide](https://mariadb.com/docs/server/mariadb-quickstart-guides/installing-mariadb-server-guide)
 - **MacOsX** - homebrew - `brew install mariadb@11.4`
 - **FreeBSD >=14.2** - portmaster - `portmaster databases/mariadb114-server`
+
+## Configure MariaDB
 
 #### Moduli Generator's User and DB
 
@@ -85,7 +87,21 @@ At the command line, type
 
 ```bash
 source .venv/bin/activate
-install_schema
+install_schema --moduli-db-name moduli_db
+```
+
+Upon successful completion, you will observe be New MariaDB named `moduli_db`, having tables `moduli`, `mod-fl-consts`,
+and
+`moduli_archive`, and a view named `moduli_view`. At which point, _**You're Live!**_
+
+____
+
+## Configure `moduli_generator` User
+
+You can create the user manually, from a privileged account, with the following SQl:
+
+```mysql
+
 ```
 
 ## Configure MariaDB for Moduli Generator

@@ -5,18 +5,23 @@ from re import compile, sub
 from socket import getfqdn
 from typing import Any, Dict, List, Optional
 
-from mariadb import (ConnectionPool, Error)  # Add this import
+from mariadb import ConnectionPool, Error  # Add this import
 from typing_extensions import ContextManager
 
-from config import (DEFAULT_KEY_LENGTHS, ModuliConfig, default_config, iso_utc_timestamp,
-                    strip_punction_from_datetime_str)
+from config import (
+    DEFAULT_KEY_LENGTHS,
+    ModuliConfig,
+    default_config,
+    iso_utc_timestamp,
+    strip_punction_from_datetime_str,
+)
 
 __all__ = [
     "MariaDBConnector",
     "parse_mysql_config",
     "get_mysql_config_value",
     "is_valid_identifier_sql",
-    "Error"
+    "Error",
 ]
 
 
@@ -42,13 +47,13 @@ def is_valid_identifier_sql(identifier: str) -> bool:
         return False
 
     # If the identifier is quoted with backticks, we need different validation
-    if identifier.startswith('`') and identifier.endswith('`'):
+    if identifier.startswith("`") and identifier.endswith("`"):
         # For quoted identifiers, make sure the backticks are properly paired
         # and that the identifier isn't just empty backticks
         return len(identifier) > 2
 
     # For unquoted identifiers, check that they only contain valid characters
-    valid_pattern = compile(r'^[a-zA-Z0-9_$]+$')
+    valid_pattern = compile(r"^[a-zA-Z0-9_$]+$")
 
     # Validate the pattern
     if not valid_pattern.match(identifier):
@@ -86,17 +91,18 @@ def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
     config = configparser.ConfigParser(
         allow_no_value=True,
         interpolation=None,
-        strict=False  # Allow duplicate sections to be merged
+        strict=False,  # Allow duplicate sections to be merged
     )
 
     # Check if we're in a mocked context first
     import builtins
     import unittest.mock
+
     is_mocked = isinstance(builtins.open, unittest.mock.MagicMock)
 
     try:
         # Check if input is a file-like object (has read method)
-        if hasattr(mysql_cnf, 'read'):
+        if hasattr(mysql_cnf, "read"):
             # Handle file-like objects (StringIO, etc.)
             config.read_file(mysql_cnf)
         else:
@@ -104,11 +110,15 @@ def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
             # For real files, check if the file exists first
             if not is_mocked:
                 if not mysql_cnf.exists():
-                    raise FileNotFoundError(f"Configuration file not found: {mysql_cnf}")
+                    raise FileNotFoundError(
+                        f"Configuration file not found: {mysql_cnf}"
+                    )
 
                 # Check if it's a directory
                 if mysql_cnf.is_dir():
-                    raise ValueError(f"Error parsing configuration file: [Errno 21] Is a directory: '{mysql_cnf}'")
+                    raise ValueError(
+                        f"Error parsing configuration file: [Errno 21] Is a directory: '{mysql_cnf}'"
+                    )
 
                 # Check if the file is empty
                 if mysql_cnf.stat().st_size == 0:
@@ -128,7 +138,7 @@ def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
             for key, value in config.items(section_name):
                 if value is not None:
                     # Strip inline comments (everything after # including whitespace before it)
-                    cleaned_value = sub(r'\s*#.*$', '', value).strip()
+                    cleaned_value = sub(r"\s*#.*$", "", value).strip()
                     result[section_name][key] = cleaned_value
                 else:
                     result[section_name][key] = None
@@ -156,10 +166,9 @@ def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
         raise ValueError(f"Error parsing configuration file: {e}")
 
 
-def get_mysql_config_value(cnf: Dict[str, Dict[str, str]],
-                           section: str,
-                           key: str,
-                           default: Any = None) -> Any:
+def get_mysql_config_value(
+    cnf: Dict[str, Dict[str, str]], section: str, key: str, default: Any = None
+) -> Any:
     """
     Get a specific value from the parsed MySQL config dictionary.
 
@@ -248,7 +257,7 @@ class MariaDBConnector:
         Returns:
             bool: Returns False to re-raise any exception encountered in the context
         """
-        if hasattr(self, 'pool') and self.pool:
+        if hasattr(self, "pool") and self.pool:
             try:
                 self.pool.close()
                 self.logger.debug("Connection pool closed")
@@ -326,7 +335,7 @@ class MariaDBConnector:
             TextIO: A file handle for writing.
         """
         try:
-            with output_file.open('w') as file_handle:
+            with output_file.open("w") as file_handle:
                 yield file_handle
         except IOError as err:
             self.logger.error(f"Error writing to file {output_file}: {err}")
@@ -348,19 +357,20 @@ class MariaDBConnector:
             RuntimeError: If the connection pool creation fails due to database-related issues.
         """
         for key, value in config.__dict__.items():
-            if key in ["mariadb_cnf",
-                       "db_name",
-                       "base_dir",
-                       "moduli_file_pfx",
-                       "moduli_file",
-                       "table_name",
-                       "view_name",
-                       "config_id",
-                       "key_lengths",
-                       "records_per_keylength",
-                       "delete_records_on_moduli_write",
-                       "delete_records_on_read"
-                       ]:
+            if key in [
+                "mariadb_cnf",
+                "db_name",
+                "base_dir",
+                "moduli_file_pfx",
+                "moduli_file",
+                "table_name",
+                "view_name",
+                "config_id",
+                "key_lengths",
+                "records_per_keylength",
+                "delete_records_on_moduli_write",
+                "delete_records_on_read",
+            ]:
                 setattr(self, key, value)
 
         # Configure MariaDBCOnnedctor's Logger
@@ -373,29 +383,32 @@ class MariaDBConnector:
         parsed_config = parse_mysql_config(config.mariadb_cnf)
         if not isinstance(parsed_config, dict):
             raise RuntimeError(
-                f"Invalid configuration format in {config.mariadb_cnf}: expected dictionary, got {type(parsed_config)}")
+                f"Invalid configuration format in {config.mariadb_cnf}: expected dictionary, got {type(parsed_config)}"
+            )
 
         if "client" not in parsed_config:
-            raise RuntimeError(f"Missing [client] section in configuration file {config.mariadb_cnf}. "
-                               f"Available sections: {list(parsed_config.keys())}")
+            raise RuntimeError(
+                f"Missing [client] section in configuration file {config.mariadb_cnf}. "
+                f"Available sections: {list(parsed_config.keys())}"
+            )
 
         mysql_cnf = parsed_config["client"]
 
         try:
             # Create connection pool instead of single connection
             pool_params = {
-                'pool_name': 'moduli_pool',
-                'pool_size': 10,  # Adjust based on your needs
-                'pool_reset_connection': True,
-                'host': mysql_cnf["host"],
-                'port': int(mysql_cnf["port"]),
-                'user': mysql_cnf["user"],
-                'password': mysql_cnf["password"],
+                "pool_name": "moduli_pool",
+                "pool_size": 10,  # Adjust based on your needs
+                "pool_reset_connection": True,
+                "host": mysql_cnf["host"],
+                "port": int(mysql_cnf["port"]),
+                "user": mysql_cnf["user"],
+                "password": mysql_cnf["password"],
             }
 
             # Add database parameter if db_name is available
-            if hasattr(self, 'db_name') and self.db_name:
-                pool_params['database'] = self.db_name
+            if hasattr(self, "db_name") and self.db_name:
+                pool_params["database"] = self.db_name
 
             self.pool = ConnectionPool(**pool_params)
             self.logger.info(f"Connection pool created with size: 10")
@@ -408,36 +421,51 @@ class MariaDBConnector:
         # Skip schema verification if using mock objects or in test environment
         try:
             is_test_env = (
-                    hasattr(config, '__class__') and 'Mock' in str(config.__class__) or
-                    'pytest' in str(type(config)) or
-                    hasattr(config, '_mock_name') or
-                    str(config).startswith('<Mock')
+                hasattr(config, "__class__")
+                and "Mock" in str(config.__class__)
+                or "pytest" in str(type(config))
+                or hasattr(config, "_mock_name")
+                or str(config).startswith("<Mock")
             )
 
             if is_test_env:
-                self.logger.debug('Skipping schema verification for test environment')
+                self.logger.debug("Skipping schema verification for test environment")
             else:
                 schema_result = self.verify_schema()
-                if schema_result is None or schema_result.get('overall_status') in ['FAILED', 'ERROR']:
-                    self.logger.warning('Database schema verification failed, but continuing initialization')
+                if schema_result is None or schema_result.get("overall_status") in [
+                    "FAILED",
+                    "ERROR",
+                ]:
+                    self.logger.warning(
+                        "Database schema verification failed, but continuing initialization"
+                    )
 
         except (NameError, RuntimeError) as err:
             # Log the error but don't fail initialization in test environments
             is_test_env = (
-                    hasattr(config, '__class__') and 'Mock' in str(config.__class__) or
-                    'pytest' in str(type(config)) or
-                    hasattr(config, '_mock_name') or
-                    str(config).startswith('<Mock')
+                hasattr(config, "__class__")
+                and "Mock" in str(config.__class__)
+                or "pytest" in str(type(config))
+                or hasattr(config, "_mock_name")
+                or str(config).startswith("<Mock")
             )
 
             if is_test_env:
-                self.logger.debug(f'Schema verification skipped for test environment: {err}')
+                self.logger.debug(
+                    f"Schema verification skipped for test environment: {err}"
+                )
             else:
                 if isinstance(err, NameError):
-                    self.logger.error(f'view_name, {getattr(config, "view_name", "unknown")} not defined in `config`')
-                self.logger.warning(f'Schema verification failed: {err}, but continuing initialization')
+                    self.logger.error(
+                        f'view_name, {getattr(config, "view_name", "unknown")} not defined in `config`'
+                    )
+                self.logger.warning(
+                    f"Schema verification failed: {err}, but continuing initialization"
+                )
 
-    def sql(self, query: str, params: Optional[tuple] = None, fetch: bool = True) -> Optional[List[Dict]]:
+    def sql(
+        self, query: str, params: Optional[tuple] = None, fetch: bool = True
+    ) -> Optional[List[Dict]]:
         """
         Executes an SQL query with optional parameters and returns the results or
                 affected rows depending on the fetch flag.
@@ -544,14 +572,17 @@ class MariaDBConnector:
                 raise RuntimeError(
                     f"Insufficient database privileges: "
                     "The current user needs CREATE USER privilege for this operation."
-                    "Contact your database administrator.")
+                    "Contact your database administrator."
+                )
             elif "access denied" in error_msg:
                 self.logger.error("Database access denied - check user permissions")
                 raise RuntimeError(f"Database access denied: {err}")
             else:
                 raise RuntimeError(f"Database update failed: {err}")
 
-    def execute_batch(self, queries: List[str], params_list: Optional[List[tuple]] = None) -> bool:
+    def execute_batch(
+        self, queries: List[str], params_list: Optional[List[tuple]] = None
+    ) -> bool:
         """
         Execute multiple SQL queries in a batch with optional parameters.
 
@@ -574,19 +605,27 @@ class MariaDBConnector:
                 with self.transaction(connection):
                     with connection.cursor() as cursor:
                         for i, query in enumerate(queries):
-                            params = params_list[i] if params_list and i < len(params_list) else None
+                            params = (
+                                params_list[i]
+                                if params_list and i < len(params_list)
+                                else None
+                            )
                             if params:
                                 cursor.execute(query, params)
                             else:
                                 cursor.execute(query)
-                        self.logger.debug(f"Successfully executed {len(queries)} in batch")
+                        self.logger.debug(
+                            f"Successfully executed {len(queries)} in batch"
+                        )
                         return True
 
         except Error as err:
             self.logger.error(f"Error executing batch queries: {err}")
             raise RuntimeError(f"Batch query execution failed: {err}")
 
-    def _add_without_transaction(self, connection, timestamp: int, key_size: int, modulus: str) -> int:
+    def _add_without_transaction(
+        self, connection, timestamp: int, key_size: int, modulus: str
+    ) -> int:
         """
         Inserts a new record into the database table without wrapping the operation
                 in a transaction. This method directly interacts with the database cursor
@@ -604,20 +643,18 @@ class MariaDBConnector:
             Error: If there is an issue during the database operation.
         """
         # Validate identifiers
-        if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.table_name)):
+        if not (
+            is_valid_identifier_sql(self.db_name)
+            and is_valid_identifier_sql(self.table_name)
+        ):
             self.logger.error("Invalid database or table name")
             return 0
 
         try:
             with connection.cursor() as cursor:
-                table = '.'.join((self.db_name, self.table_name))
+                table = ".".join((self.db_name, self.table_name))
                 query = f"INSERT INTO {table} (timestamp, config_id, size, modulus) VALUES (%s, %s, %s, %s)"
-                params_list = (
-                    timestamp,
-                    self.config_id,
-                    key_size,
-                    modulus
-                )
+                params_list = (timestamp, self.config_id, key_size, modulus)
                 cursor.execute(query, params_list)
                 last_id = cursor.lastrowid
                 return last_id
@@ -641,7 +678,10 @@ class MariaDBConnector:
             int: The identifier of the last inserted row if successful, otherwise 0.
         """
         # Validate identifiers
-        if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.table_name)):
+        if not (
+            is_valid_identifier_sql(self.db_name)
+            and is_valid_identifier_sql(self.table_name)
+        ):
             self.logger.error("Invalid database or table name")
             return 0
 
@@ -649,14 +689,9 @@ class MariaDBConnector:
             with self.get_connection() as connection:
                 with self.transaction(connection):
                     with connection.cursor() as cursor:
-                        table = '.'.join((self.db_name, self.table_name))
+                        table = ".".join((self.db_name, self.table_name))
                         query = f"INSERT INTO {table} (timestamp, config_id, size, modulus) VALUES (%s, %s, %s, %s)"
-                        params_list = (
-                            timestamp,
-                            self.config_id,
-                            key_size,
-                            modulus
-                        )
+                        params_list = (timestamp, self.config_id, key_size, modulus)
 
                         cursor.execute(query, params_list)
                         last_id = cursor.lastrowid
@@ -681,27 +716,30 @@ class MariaDBConnector:
         Returns:
             bool: A boolean indicating whether the batch operation was successful.             Returns True if successful, False otherwise.
         """
-        if not (is_valid_identifier_sql(self.db_name) and is_valid_identifier_sql(self.table_name)):
+        if not (
+            is_valid_identifier_sql(self.db_name)
+            and is_valid_identifier_sql(self.table_name)
+        ):
             self.logger.error("Invalid database or table name")
             return False
 
-        table = '.'.join((self.db_name, self.table_name))
+        table = ".".join((self.db_name, self.table_name))
         query = f"""
                 INSERT INTO {table} (timestamp, config_id, size, modulus)
                 VALUES (%s, %s, %s, %s) \
                 """
         # Prepare parameters for batch execution
-        params_list = [(
-            timestamp,
-            self.config_id,
-            key_size,
-            modulus)
-            for timestamp, key_size, modulus in records]
+        params_list = [
+            (timestamp, self.config_id, key_size, modulus)
+            for timestamp, key_size, modulus in records
+        ]
 
         try:
             success = self.execute_batch([query] * len(records), params_list)
             if success:
-                self.logger.info(f'Successfully added {len(records)} records to {self.db_name}.{self.table_name}')
+                self.logger.info(
+                    f"Successfully added {len(records)} records to {self.db_name}.{self.table_name}"
+                )
             return success
         except RuntimeError as err:
             self.logger.error(f"Error inserting batch records: {err}")
@@ -773,11 +811,13 @@ class MariaDBConnector:
                                 connection,
                                 modulus["timestamp"],
                                 modulus["key-size"],
-                                modulus["modulus"]
+                                modulus["modulus"],
                             )
                         except Error as err:
-                            if 'duplicate' in str(err).lower():
-                                self.logger.warn(f"Duplicate Modulus, Skipping ...: {modulus}")
+                            if "duplicate" in str(err).lower():
+                                self.logger.warn(
+                                    f"Duplicate Modulus, Skipping ...: {modulus}"
+                                )
                                 continue
                             else:
                                 self.logger.error(f"Error storing moduli: {err}")
@@ -816,10 +856,12 @@ class MariaDBConnector:
 
             # Get Hostname
             hostname = getfqdn()
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 # Write header
                 local_timestamp = iso_utc_timestamp(compress=False) + "Z"
-                f.write(f'# {hostname}::ModuliGenerator: ssh2 moduli generated at {local_timestamp}\n')
+                f.write(
+                    f"# {hostname}::ModuliGenerator: ssh2 moduli generated at {local_timestamp}\n"
+                )
 
                 """
                 Convert key_lengths to the length of PRODUCED size, usually `key_length - 1`)
@@ -833,7 +875,7 @@ class MariaDBConnector:
 
                 # Build a single SQL query to get all records for all key sizes
                 # Create a CASE statement for LIMIT per size based on records_per_keylength
-                table = '.'.join((self.db_name, self.table_name))
+                table = ".".join((self.db_name, self.table_name))
 
                 # Use a window function with ROW_NUMBER to limit records per size
                 query = f"""
@@ -858,29 +900,41 @@ class MariaDBConnector:
                 # move written_records to moduli_db.archived_moduli, delete from .moduli
                 for record in records:
                     # Track records per size for logging
-                    if current_size != record['size']:
+                    if current_size != record["size"]:
                         if current_size is not None:
-                            self.logger.debug(f"Wrote {size_count} records of size {current_size}")
-                        current_size = record['size']
+                            self.logger.debug(
+                                f"Wrote {size_count} records of size {current_size}"
+                            )
+                        current_size = record["size"]
                         size_count = 0
 
                     # Format as SSH moduli format
-                    line = ' '.join((
-                        strip_punction_from_datetime_str(record['timestamp']),  # timestamp
-                        '2', '6', '100',  # type # tests # trials
-                        str(record['size']),  # size
-                        '2',  # generator
-                        str(record['modulus']) + '\n'  # Modulus<eol>
-                    ))
+                    line = " ".join(
+                        (
+                            strip_punction_from_datetime_str(
+                                record["timestamp"]
+                            ),  # timestamp
+                            "2",
+                            "6",
+                            "100",  # type # tests # trials
+                            str(record["size"]),  # size
+                            "2",  # generator
+                            str(record["modulus"]) + "\n",  # Modulus<eol>
+                        )
+                    )
                     f.write(line)
                     total_records += 1
                     size_count += 1
 
                 # Log the last size group
                 if current_size is not None:
-                    self.logger.debug(f"Wrote {size_count} records of size {current_size}")
+                    self.logger.debug(
+                        f"Wrote {size_count} records of size {current_size}"
+                    )
 
-            self.logger.info(f"Successfully wrote {total_records} moduli records to {output_file}")
+            self.logger.info(
+                f"Successfully wrote {total_records} moduli records to {output_file}"
+            )
 
         except Exception as err:
             self.logger.error(f"Error writing moduli file: {err}")
@@ -906,7 +960,7 @@ class MariaDBConnector:
 
             # Build the SQL query that does all counting within the query
             # table = f"{self.db_name}.moduli"
-            table = '.'.join((self.db_name, self.table_name))
+            table = ".".join((self.db_name, self.table_name))
             query = f"""
                 SELECT size, COUNT(*) as count
                 FROM {table}
@@ -920,15 +974,17 @@ class MariaDBConnector:
             # Convert results to dictionary with string keys as specified in the return type
             stats_dict = {}
             for row in results:
-                stats_dict[str(row['size'])] = row['count']
+                stats_dict[str(row["size"])] = row["count"]
 
             # Add available moduli files count based on the smallest count divided by records_per_keylength
             if stats_dict:
                 min_count = min(stats_dict.values())
                 available_files = min_count // self.records_per_keylength
-                stats_dict['available moduli files'] = available_files
+                stats_dict["available moduli files"] = available_files
 
-            self.logger.debug(f"Retrieved moduli stats for {len(stats_dict)} different key sizes")
+            self.logger.debug(
+                f"Retrieved moduli stats for {len(stats_dict)} different key sizes"
+            )
             return stats_dict
 
         except Exception as err:
@@ -968,47 +1024,53 @@ class MariaDBConnector:
             RuntimeError: If critical schema verification fails
         """
         verification_results = {
-            'database_exists': False,
-            'tables': {},
-            'views': {},
-            'indexes': {},
-            'foreign_keys': {},
-            'configuration_data': False,
-            'overall_status': 'FAILED',
-            'errors': [],
-            'warnings': []
+            "database_exists": False,
+            "tables": {},
+            "views": {},
+            "indexes": {},
+            "foreign_keys": {},
+            "configuration_data": False,
+            "overall_status": "FAILED",
+            "errors": [],
+            "warnings": [],
         }
 
         try:
             # Check if db_name is available
-            if not hasattr(self, 'db_name') or not self.db_name:
-                verification_results['errors'].append("Database name not configured")
+            if not hasattr(self, "db_name") or not self.db_name:
+                verification_results["errors"].append("Database name not configured")
                 return verification_results
 
             # Check database existence
             db_query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = %s"
             db_result = self.execute_select(db_query, (self.db_name,))
-            verification_results['database_exists'] = len(db_result) > 0
+            verification_results["database_exists"] = len(db_result) > 0
 
-            if not verification_results['database_exists']:
-                verification_results['errors'].append(f"Database '{self.db_name}' does not exist")
+            if not verification_results["database_exists"]:
+                verification_results["errors"].append(
+                    f"Database '{self.db_name}' does not exist"
+                )
                 return verification_results
 
             # Check tables
-            expected_tables = ['mod_fl_consts', 'moduli', 'moduli_archive']
+            expected_tables = ["mod_fl_consts", "moduli", "moduli_archive"]
             table_query = """
                           SELECT TABLE_NAME, TABLE_TYPE
                           FROM INFORMATION_SCHEMA.TABLES
                           WHERE TABLE_SCHEMA = %s
                             AND TABLE_NAME IN (%s, %s, %s) \
                           """
-            table_results = self.execute_select(table_query, (self.db_name, *expected_tables))
+            table_results = self.execute_select(
+                table_query, (self.db_name, *expected_tables)
+            )
 
             for table in expected_tables:
-                table_exists = any(row['TABLE_NAME'] == table for row in table_results)
-                verification_results['tables'][table] = table_exists
+                table_exists = any(row["TABLE_NAME"] == table for row in table_results)
+                verification_results["tables"][table] = table_exists
                 if not table_exists:
-                    verification_results['errors'].append(f"Table '{self.db_name}.{table}' does not exist")
+                    verification_results["errors"].append(
+                        f"Table '{self.db_name}.{table}' does not exist"
+                    )
 
             # Check views
             view_query = """
@@ -1017,18 +1079,20 @@ class MariaDBConnector:
                          WHERE TABLE_SCHEMA = %s
                            AND TABLE_NAME = %s \
                          """
-            view_result = self.execute_select(view_query, (self.db_name, 'moduli_view'))
-            verification_results['views']['moduli_view'] = len(view_result) > 0
+            view_result = self.execute_select(view_query, (self.db_name, "moduli_view"))
+            verification_results["views"]["moduli_view"] = len(view_result) > 0
 
-            if not verification_results['views']['moduli_view']:
-                verification_results['errors'].append(f"View '{self.db_name}.moduli_view' does not exist")
+            if not verification_results["views"]["moduli_view"]:
+                verification_results["errors"].append(
+                    f"View '{self.db_name}.moduli_view' does not exist"
+                )
 
             # Check indexes
             expected_indexes = {
-                'idx_size': 'moduli',
-                'idx_timestamp': 'moduli',
-                'idx_size_archive': 'moduli_archive',
-                'idx_timestamp_archive': 'moduli_archive'
+                "idx_size": "moduli",
+                "idx_timestamp": "moduli",
+                "idx_size_archive": "moduli_archive",
+                "idx_timestamp_archive": "moduli_archive",
             }
 
             index_query = """
@@ -1037,17 +1101,20 @@ class MariaDBConnector:
                           WHERE TABLE_SCHEMA = %s
                             AND INDEX_NAME IN (%s, %s, %s, %s) \
                           """
-            index_results = self.execute_select(index_query, (self.db_name, *expected_indexes.keys()))
+            index_results = self.execute_select(
+                index_query, (self.db_name, *expected_indexes.keys())
+            )
 
             for index_name, table_name in expected_indexes.items():
                 index_exists = any(
-                    row['INDEX_NAME'] == index_name and row['TABLE_NAME'] == table_name
+                    row["INDEX_NAME"] == index_name and row["TABLE_NAME"] == table_name
                     for row in index_results
                 )
-                verification_results['indexes'][index_name] = index_exists
+                verification_results["indexes"][index_name] = index_exists
                 if not index_exists:
-                    verification_results['warnings'].append(
-                        f"Index '{index_name}' on table '{table_name}' does not exist")
+                    verification_results["warnings"].append(
+                        f"Index '{index_name}' on table '{table_name}' does not exist"
+                    )
 
             # Check foreign key constraints
             fk_query = """
@@ -1059,53 +1126,65 @@ class MariaDBConnector:
             fk_results = self.execute_select(fk_query, (self.db_name,))
 
             expected_fks = [
-                ('moduli', 'mod_fl_consts', 'config_id'),
-                ('moduli_archive', 'mod_fl_consts', 'config_id')
+                ("moduli", "mod_fl_consts", "config_id"),
+                ("moduli_archive", "mod_fl_consts", "config_id"),
             ]
 
             for table, ref_table, ref_column in expected_fks:
                 fk_exists = any(
-                    row['TABLE_NAME'] == table and
-                    row['REFERENCED_TABLE_NAME'] == ref_table and
-                    row['REFERENCED_COLUMN_NAME'] == ref_column
+                    row["TABLE_NAME"] == table
+                    and row["REFERENCED_TABLE_NAME"] == ref_table
+                    and row["REFERENCED_COLUMN_NAME"] == ref_column
                     for row in fk_results
                 )
                 fk_key = f"{table} -> {ref_table}.{ref_column}"
-                verification_results['foreign_keys'][fk_key] = fk_exists
+                verification_results["foreign_keys"][fk_key] = fk_exists
                 if not fk_exists:
-                    verification_results['errors'].append(f"Foreign key constraint '{fk_key}' does not exist")
+                    verification_results["errors"].append(
+                        f"Foreign key constraint '{fk_key}' does not exist"
+                    )
 
             # Check configuration data
-            if verification_results['tables'].get('mod_fl_consts', False):
-                config_query = f"SELECT COUNT(*) as count FROM {self.db_name}.mod_fl_consts"
+            if verification_results["tables"].get("mod_fl_consts", False):
+                config_query = (
+                    f"SELECT COUNT(*) as count FROM {self.db_name}.mod_fl_consts"
+                )
                 config_result = self.execute_select(config_query)
-                verification_results['configuration_data'] = config_result[0]['count'] > 0
+                verification_results["configuration_data"] = (
+                    config_result[0]["count"] > 0
+                )
 
-                if not verification_results['configuration_data']:
-                    verification_results['warnings'].append("No configuration data found in mod_fl_consts table")
+                if not verification_results["configuration_data"]:
+                    verification_results["warnings"].append(
+                        "No configuration data found in mod_fl_consts table"
+                    )
 
             # Determine overall status
-            critical_errors = len(verification_results['errors'])
+            critical_errors = len(verification_results["errors"])
             if critical_errors == 0:
-                if len(verification_results['warnings']) == 0:
-                    verification_results['overall_status'] = 'PASSED'
+                if len(verification_results["warnings"]) == 0:
+                    verification_results["overall_status"] = "PASSED"
                 else:
-                    verification_results['overall_status'] = 'PASSED_WITH_WARNINGS'
+                    verification_results["overall_status"] = "PASSED_WITH_WARNINGS"
             else:
-                verification_results['overall_status'] = 'FAILED'
+                verification_results["overall_status"] = "FAILED"
 
-            self.logger.info(f"Schema verification completed with status: {verification_results['overall_status']}")
-            if verification_results['errors']:
-                for error in verification_results['errors']:
+            self.logger.info(
+                f"Schema verification completed with status: {verification_results['overall_status']}"
+            )
+            if verification_results["errors"]:
+                for error in verification_results["errors"]:
                     self.logger.error(f"Schema verification error: {error}")
-            if verification_results['warnings']:
-                for warning in verification_results['warnings']:
+            if verification_results["warnings"]:
+                for warning in verification_results["warnings"]:
                     self.logger.warning(f"Schema verification warning: {warning}")
 
             return verification_results
 
         except Exception as err:
-            verification_results['errors'].append(f"Schema verification failed with exception: {str(err)}")
-            verification_results['overall_status'] = 'ERROR'
+            verification_results["errors"].append(
+                f"Schema verification failed with exception: {str(err)}"
+            )
+            verification_results["overall_status"] = "ERROR"
             self.logger.error(f"Schema verification exception: {err}")
             return verification_results

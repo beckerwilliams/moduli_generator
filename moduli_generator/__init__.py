@@ -3,30 +3,30 @@ import concurrent.futures
 import logging
 import subprocess
 from json import dump
-from logging import (DEBUG, INFO)
+from logging import DEBUG, INFO
 from pathlib import PosixPath as Path
-from typing import (Any, Dict, List)
+from typing import Any, Dict, List
 
 from config import ModuliConfig, default_config, iso_utc_timestamp
-from db import (Error, MariaDBConnector)
+from db import Error, MariaDBConnector
 from moduli_generator.validators import validate_subprocess_args
 
 # Constants
 SSH2_MODULI_FILE_FIELD_COUNT = 7  # Expected number of fields in moduli file format
 
-__all__ = ['ModuliGenerator']
+__all__ = ["ModuliGenerator"]
 
 
 class ModuliGenerator:
     """Handles the generation, screening, and management of cryptographic modulus files.
-    
-    This class provides methods for generating moduli candidates, screening them for 
+
+    This class provides methods for generating moduli candidates, screening them for
     validity, and organizing them into structured formats used for secure communications.
-    
+
     This utility is intended for cryptographic security operations, where moduli
     are required for operations like key exchange. It uses external tools like
     `ssh-keygen` for candidate generation and screening processes.
-    
+
     Attributes:
         config: The configuration object containing paths and settings such as
             directory paths and security-related configurations.
@@ -55,13 +55,13 @@ class ModuliGenerator:
         # Log paths used
         if self.config:
             for path_name, path_obj in [
-                ('Base directory', self.config.moduli_dir),
-                ('Candidates directory', self.config.candidates_dir),
-                ('Moduli directory', self.config.moduli_dir),
-                ('Log directory', self.config.log_dir),
-                ('MariaDB config', self.config.mariadb_cnf)
+                ("Base directory", self.config.moduli_dir),
+                ("Candidates directory", self.config.candidates_dir),
+                ("Moduli directory", self.config.moduli_dir),
+                ("Log directory", self.config.log_dir),
+                ("MariaDB config", self.config.mariadb_cnf),
             ]:
-                self.logger.info(f'Using {path_name}: {path_obj}')
+                self.logger.info(f"Using {path_name}: {path_obj}")
 
         # Store config for lazy DB initialization instead of creating a connection here
         self._db = None
@@ -69,10 +69,10 @@ class ModuliGenerator:
     @property
     def db(self) -> MariaDBConnector:
         """Lazy initialization of the database connection property.
-        
+
         This property ensures that the database connection is initialized only once,
         upon first access, and then reused for subsequent operations.
-        
+
         Returns:
             MariaDBConnector: Initialized database connection object.
         """
@@ -126,7 +126,7 @@ class ModuliGenerator:
         def log_stream(stream, log_func, prefix):
             """Helper to log stream output in real-time"""
             try:
-                for line in iter(stream.readline, ''):
+                for line in iter(stream.readline, ""):
                     if line.strip():
                         log_func(f"{line.strip()}")
             except Exception as e:
@@ -141,19 +141,27 @@ class ModuliGenerator:
                 stderr=subprocess.PIPE,
                 text=True,
                 bufsize=1,  # Line buffered for real-time output
-                universal_newlines=True
+                universal_newlines=True,
             )
 
             # Start threads to handle stdout and stderr streams concurrently
             stdout_thread = threading.Thread(
                 target=log_stream,
-                args=(process.stdout, lambda msg: logger.log(info_level, msg), "stdout"),
-                daemon=True
+                args=(
+                    process.stdout,
+                    lambda msg: logger.log(info_level, msg),
+                    "stdout",
+                ),
+                daemon=True,
             )
             stderr_thread = threading.Thread(
                 target=log_stream,
-                args=(process.stderr, lambda msg: logger.log(debug_level, msg), "stderr"),
-                daemon=True
+                args=(
+                    process.stderr,
+                    lambda msg: logger.log(debug_level, msg),
+                    "stderr",
+                ),
+                daemon=True,
             )
 
             stdout_thread.start()
@@ -202,26 +210,35 @@ class ModuliGenerator:
         Returns:
             Path: Path to the generated moduli candidate file.
         """
-        candidates_file = config.candidates_dir / f'candidates_{key_length}_{iso_utc_timestamp(compress=True)}'
+        candidates_file = (
+            config.candidates_dir
+            / f"candidates_{key_length}_{iso_utc_timestamp(compress=True)}"
+        )
         logger = config.get_logger()
 
         # nice_value and key_length(s) CAN Be User provided Variables. We need to make sure they're safe.
-        safe_key_length, safe_nice_value = validate_subprocess_args(key_length, config.nice_value)
+        safe_key_length, safe_nice_value = validate_subprocess_args(
+            key_length, config.nice_value
+        )
 
         # try:
         command = [
-            'nice', '-n', f'{safe_nice_value}',
-            'ssh-keygen',
-            '-M', 'generate',
-            '-O', f'bits={safe_key_length}',
-            str(candidates_file)
+            "nice",
+            "-n",
+            f"{safe_nice_value}",
+            "ssh-keygen",
+            "-M",
+            "generate",
+            "-O",
+            f"bits={safe_key_length}",
+            str(candidates_file),
         ]
 
         try:
             ModuliGenerator._run_subprocess_with_logging(command, logger)
 
         except subprocess.CalledProcessError as err:
-            logger.error(f'ssh-keygen generate failed for {key_length} bits: {err}')
+            logger.error(f"ssh-keygen generate failed for {key_length} bits: {err}")
             # stderr is already logged in real-time by the streaming implementation
             raise err
 
@@ -250,7 +267,10 @@ class ModuliGenerator:
         Raises:
             CalledProcessError: If the `ssh-keygen` tool fails during execution.
         """
-        screened_file = config.moduli_dir / f'{candidates_file.name.replace('candidates', 'moduli')}'
+        screened_file = (
+            config.moduli_dir
+            / f"{candidates_file.name.replace('candidates', 'moduli')}"
+        )
         logger = config.get_logger()
 
         # We only need to validate a nice value, Using valid key_length(int(3072)) to pass argument validator
@@ -259,20 +279,26 @@ class ModuliGenerator:
         # try:
         checkpoint_file = config.candidates_dir / f".{candidates_file.name}"
         command = [
-            'nice', '-n', f'{safe_nice_value}',
-            'ssh-keygen',
-            '-M', 'screen',
-            '-O', f'generator={config.generator_type}',
-            '-O', f'checkpoint={str(checkpoint_file)}',
-            '-f', str(candidates_file),
-            str(screened_file)
+            "nice",
+            "-n",
+            f"{safe_nice_value}",
+            "ssh-keygen",
+            "-M",
+            "screen",
+            "-O",
+            f"generator={config.generator_type}",
+            "-O",
+            f"checkpoint={str(checkpoint_file)}",
+            "-f",
+            str(candidates_file),
+            str(screened_file),
         ]
         try:
             # Use streaming approach for real-time output logging
             ModuliGenerator._run_subprocess_with_logging(command, logger)
 
         except subprocess.CalledProcessError as err:
-            logger.error(f'ssh-keygen screen failed for {candidates_file}: {err}')
+            logger.error(f"ssh-keygen screen failed for {candidates_file}: {err}")
             # stderr is already logged in real-time by the streaming implementation
             raise err
 
@@ -298,27 +324,29 @@ class ModuliGenerator:
 
         for file in screened_files:
             try:
-                with file.open('r') as f:
+                with file.open("r") as f:
                     for line in f:
-                        if line.startswith('#') or not line.strip():
+                        if line.startswith("#") or not line.strip():
                             continue
 
                         parts = line.split()
                         if len(parts) == SSH2_MODULI_FILE_FIELD_COUNT:
                             moduli_entry = {
-                                'timestamp': parts[0],  # TIMESTAMP
+                                "timestamp": parts[0],  # TIMESTAMP
                                 # 'type': parts[1],         # Constant, Stored in moduli_db.mod_fl_consts
                                 # 'tests': parts[2],        # Constant, Stored in moduli_db.mod_fl_consts
                                 # 'trials': parts[3],       # Constant, Stored in moduli_db.mod_fl_consts
-                                'key-size': parts[4],  # KEY_LENGTH
+                                "key-size": parts[4],  # KEY_LENGTH
                                 # 'generator': parts[5], # Constant, Stored in moduli_db.mod_fl_consts
-                                'modulus': parts[6]  # MODULUS
+                                "modulus": parts[6],  # MODULUS
                             }
 
-                            screened_moduli.setdefault('screened_moduli', []).append(moduli_entry)
+                            screened_moduli.setdefault("screened_moduli", []).append(
+                                moduli_entry
+                            )
 
             except FileNotFoundError:
-                self.logger.warning(f'Moduli file not found: {file}')
+                self.logger.warning(f"Moduli file not found: {file}")
 
         return screened_moduli
 
@@ -335,7 +363,7 @@ class ModuliGenerator:
         """
         return list(self.config.moduli_dir.glob(self.config.moduli_file_pattern))
 
-    def generate_moduli(self) -> 'ModuliGenerator':
+    def generate_moduli(self) -> "ModuliGenerator":
         """
         Generates and screens Diffie-Hellman moduli files for specified key lengths using
                 pipeline processing for optimal performance.
@@ -354,7 +382,9 @@ class ModuliGenerator:
             # Submit all candidate generation tasks
             candidate_futures = []
             for length in self.config.key_lengths:
-                future = executor.submit(self._generate_candidates_static, self.config, length)
+                future = executor.submit(
+                    self._generate_candidates_static, self.config, length
+                )
                 candidate_futures.append((future, length))
 
             # Pipeline processing: screen candidates as they become available
@@ -362,7 +392,9 @@ class ModuliGenerator:
             candidates_generated = 0
 
             # Process candidates as they complete and immediately submit for screening
-            for future in concurrent.futures.as_completed([f for f, _ in candidate_futures]):
+            for future in concurrent.futures.as_completed(
+                [f for f, _ in candidate_futures]
+            ):
                 # Find the corresponding length for this future
                 length = None
                 for candidate_future, candidate_length in candidate_futures:
@@ -374,22 +406,30 @@ class ModuliGenerator:
                     candidate_file = future.result()
                     candidates_generated += 1
                     self.logger.debug(
-                        f'Generated candidate file {candidates_generated}/{len(candidate_futures)}: {candidate_file}')
+                        f"Generated candidate file {candidates_generated}/{len(candidate_futures)}: {candidate_file}"
+                    )
 
                     # Immediately submit for screening (pipeline processing)
-                    screening_future = executor.submit(self._screen_candidates_static, self.config, candidate_file)
+                    screening_future = executor.submit(
+                        self._screen_candidates_static, self.config, candidate_file
+                    )
                     screening_futures.append((screening_future, length))
 
                 except Exception as e:
-                    self.logger.error(f'Error generating candidate for length {length}: {e}')
+                    self.logger.error(
+                        f"Error generating candidate for length {length}: {e}"
+                    )
                     raise
 
             self.logger.info(
-                f'Generated {candidates_generated} candidate files for key-lengths: {self.config.key_lengths}')
+                f"Generated {candidates_generated} candidate files for key-lengths: {self.config.key_lengths}"
+            )
 
             # Process screening results as they complete
             screened_count = 0
-            for future in concurrent.futures.as_completed([f for f, _ in screening_futures]):
+            for future in concurrent.futures.as_completed(
+                [f for f, _ in screening_futures]
+            ):
                 # Find the corresponding length for this future
                 length = None
                 for screening_future, screening_length in screening_futures:
@@ -400,21 +440,27 @@ class ModuliGenerator:
                 try:
                     moduli_file = future.result()
                     screened_count += 1
-                    self.logger.debug(f'Screened moduli file {screened_count}/{len(screening_futures)}: {moduli_file}')
+                    self.logger.debug(
+                        f"Screened moduli file {screened_count}/{len(screening_futures)}: {moduli_file}"
+                    )
 
                     if length not in generated_moduli:
                         generated_moduli[length] = []
                     generated_moduli[length].append(moduli_file)
 
                 except Exception as err:
-                    self.logger.error(f'Error screening candidate for length {length}: {err}')
+                    self.logger.error(
+                        f"Error screening candidate for length {length}: {err}"
+                    )
                     raise
 
-            self.logger.info(f'Screened {screened_count} candidate files for key-lengths: {self.config.key_lengths}')
+            self.logger.info(
+                f"Screened {screened_count} candidate files for key-lengths: {self.config.key_lengths}"
+            )
 
         return self
 
-    def save_moduli(self, moduli_file_dir: Path = None) -> 'ModuliGenerator':
+    def save_moduli(self, moduli_file_dir: Path = None) -> "ModuliGenerator":
         """
         Saves the processed moduli installers to a JSON file in the specified directory or a default location.
 
@@ -431,16 +477,20 @@ class ModuliGenerator:
         if not moduli_file_dir:
             moduli_file_dir = self.config.moduli_home
 
-        moduli_json = moduli_file_dir / f'screened_moduli_{iso_utc_timestamp(True)}.json'
-        with moduli_json.open('w') as f:
+        moduli_json = (
+            moduli_file_dir / f"screened_moduli_{iso_utc_timestamp(True)}.json"
+        )
+        with moduli_json.open("w") as f:
             # with open(moduli_json, 'w') as f:
             dump(self._parse_moduli_files(), f, indent=2)
 
-        self.logger.info(f'Moduli schema saved to {self.config.moduli_dir / moduli_json}')
+        self.logger.info(
+            f"Moduli schema saved to {self.config.moduli_dir / moduli_json}"
+        )
 
         return self
 
-    def store_moduli(self) -> 'ModuliGenerator':
+    def store_moduli(self) -> "ModuliGenerator":
         """
         Parse, validate, and store screened moduli into the database and manage their source
                 files once the operation is successful. This function ensures that the moduli records
@@ -459,13 +509,13 @@ class ModuliGenerator:
                 for file in moduli_files:
                     file.unlink()
         except Error as err:
-            self.logger.error(f'Error storing moduli: {err}')
+            self.logger.error(f"Error storing moduli: {err}")
 
-        self.logger.info(f'Moduli Stored in MariaDB database: {len(screened_moduli)}')
+        self.logger.info(f"Moduli Stored in MariaDB database: {len(screened_moduli)}")
 
         return self
 
-    def write_moduli_file(self) -> 'ModuliGenerator':
+    def write_moduli_file(self) -> "ModuliGenerator":
         """
         Writes the moduli file using the database interface.
 
@@ -484,7 +534,7 @@ class ModuliGenerator:
 
         return self
 
-    def restart_screening(self) -> 'ModuliGenerator':
+    def restart_screening(self) -> "ModuliGenerator":
         """
         Restarts the screening process for candidates grouped by their respective lengths
                 and generates moduli files for each key length. This method processes candidates
@@ -506,9 +556,13 @@ class ModuliGenerator:
                 dict[int, List[Path]]: A dictionary where the keys are lengths (int) and the values are                 lists of Path objects representing restart candidate files.
             """
             results = {}
-            for idx in self.config.candidates_dir.glob(self.config.candidate_idx_pattern):
-                candidate = Path(self.config.candidates_dir) / idx.name.replace('.candidates', 'candidates')
-                local_length = int(idx.name.split('_')[1])
+            for idx in self.config.candidates_dir.glob(
+                self.config.candidate_idx_pattern
+            ):
+                candidate = Path(self.config.candidates_dir) / idx.name.replace(
+                    ".candidates", "candidates"
+                )
+                local_length = int(idx.name.split("_")[1])
                 if local_length not in results:
                     results[local_length] = []
                 results[local_length].append(candidate)
@@ -525,7 +579,9 @@ class ModuliGenerator:
                 screening_futures = []
                 for length, candidate_files in candidates_by_length.items():
                     for candidate_file in candidate_files:
-                        future = executor.submit(self._screen_candidates_static, self.config, candidate_file)
+                        future = executor.submit(
+                            self._screen_candidates_static, self.config, candidate_file
+                        )
                         screening_futures.append((future, length))
 
                 # Process completed screening futures
@@ -535,9 +591,11 @@ class ModuliGenerator:
                     if length not in generated_moduli:
                         generated_moduli[length] = []
                     generated_moduli[length].append(moduli_file)
-                self.logger.info(f'Produced {len(screening_futures)} files of screened moduli\n'
-                                 f'for key-lengths:' + f'{self.config.key_lengths}')
+                self.logger.info(
+                    f"Produced {len(screening_futures)} files of screened moduli\n"
+                    f"for key-lengths:" + f"{self.config.key_lengths}"
+                )
         else:
-            self.logger.info(f'No Unscreened Candidates Found for Restart')
+            self.logger.info(f"No Unscreened Candidates Found for Restart")
 
         return self

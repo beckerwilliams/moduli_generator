@@ -38,20 +38,26 @@ keywords = ["cryptography", "ssh", "moduli", "security"]
 license = { text = "MIT" }
 readme = "docs/README.md"
 requires-python = ">=3.11,<4.0"
-version = "2.1.33"
+version = "2.1.34"
 packages = [
 	"moduli_generator",
 	"db",
-	"config"
+	"config",
+	"changelog_generator"
+]
+data = [
+	'docs/**/*',
+	'data/bash_scripts/*',
+	'data/schema/*'
 ]
 package-mode = true
 
 [project.scripts]
 moduli_generator = "moduli_generator.cli:main"
 moduli_stats = "db.scripts.moduli_stats:main"
-changelog = "changelog_generator.generate_changelog(max_commits=50):main"
+#changelog = "changelog_generator.generate_changelog(max_commits=50):main"
 install_schema = "db.scripts.install_schema:main"
-cli = "moduli_generator.cli:main"
+#cli = "moduli_generator.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/beckerwilliams/moduli_generator"

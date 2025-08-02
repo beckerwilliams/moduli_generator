@@ -10,7 +10,8 @@ from os import environ as osenv
 from pathlib import PosixPath as Path
 from typing import Final
 
-# Try to get version from package metadata first
+
+# Try to get the version from package metadata first
 try:
     from importlib.metadata import version
 

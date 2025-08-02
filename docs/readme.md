@@ -112,6 +112,12 @@ source .venv/bin/activate
 
 _This will assure `moduli_generator`'s scripts are available in your $PATH_
 
+### Test initial install
+
+```
+
+```
+
 ### Install `moduli_generator` SQL Schema
 
 You need Two (2) MariaDB.cnf (.my.sql.conf) Files

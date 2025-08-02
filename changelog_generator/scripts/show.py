@@ -9,7 +9,9 @@ def main():
     """Main entry point for the changelog generator."""
     import argparse
 
-    parser = argparse.ArgumentParser(description='Generate CHANGELOG.rst from git history')
+    parser = argparse.ArgumentParser(
+        description="Generate CHANGELOG.rst from git history"
+    )
     parser.add_argument(
         "--output",
         "-o",

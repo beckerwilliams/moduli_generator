@@ -13,7 +13,7 @@ from pathlib import Path
 
 import toml
 
-__all__ = ['ChangelogGenerator']
+__all__ = ["ChangelogGenerator"]
 
 
 def _categorize_commit(message):
@@ -68,13 +68,13 @@ def _categorize_commit(message):
             return category
 
     # Check for specific patterns
-    if 'checkpoint' in message_lower or 'milestone' in message_lower:
-        return 'Milestones'
+    if "checkpoint" in message_lower or "milestone" in message_lower:
+        return "Milestones"
 
-    if 'production' in message_lower or 'release' in message_lower:
-        return 'Releases'
+    if "production" in message_lower or "release" in message_lower:
+        return "Releases"
 
-    return 'General'
+    return "General"
 
 
 class ChangelogGenerator:
@@ -110,9 +110,9 @@ class ChangelogGenerator:
         try:
             pyproject_path = self.project_root / "pyproject.toml"
             if pyproject_path.exists():
-                with open(pyproject_path, 'r') as f:
+                with open(pyproject_path, "r") as f:
                     data = toml.load(f)
-                    return data.get('tool', {}).get('poetry', {})
+                    return data.get("tool", {}).get("poetry", {})
         except Exception as e:
             print(f"Warning: Could not load pyproject.toml: {e}")
 
@@ -123,14 +123,16 @@ class ChangelogGenerator:
         try:
             # Get a commit log with format: hash|date|author|message
             cmd = [
-                'git', 'log',
-                f'--max-count={max_commits}',
-                '--pretty=format:%H|%ad|%an <%ae>|%s',
-                '--date=short'
+                "git",
+                "log",
+                f"--max-count={max_commits}",
+                "--pretty=format:%H|%ad|%an <%ae>|%s",
+                "--date=short",
             ]
 
-            result = subprocess.run(cmd, capture_output=True, text=True,
-                                    cwd=self.project_root)
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, cwd=self.project_root
+            )
 
             if result.returncode != 0:
                 raise RuntimeError(f"Git command failed: {result.stderr}")
@@ -139,7 +141,7 @@ class ChangelogGenerator:
             # cleanup = re.sub(r'\*\*\*', '**', result.stdout.strip().split('\n'))
             #
             # r2 = result.stdout.strip().split('\n')
-            return re.sub(r'\*\*\*', '**', result.stdout).strip().split('\n')
+            return re.sub(r"\*\*\*", "**", result.stdout).strip().split("\n")
 
         except Exception as e:
             print(f"Error getting git commits: {e}")
@@ -149,20 +151,20 @@ class ChangelogGenerator:
     def _parse_commit_line(line):
         """Parse a single commit line into components."""
         try:
-            parts = line.split('|', 3)
+            parts = line.split("|", 3)
             if len(parts) != 4:
                 return None
 
             hash_id, date_str, author, message = parts
 
             # Parse date
-            commit_date = datetime.strptime(date_str, '%Y-%m-%d')
+            commit_date = datetime.strptime(date_str, "%Y-%m-%d")
 
             return {
-                'hash': hash_id,
-                'date': commit_date,
-                'author': author,
-                'message': message.strip()
+                "hash": hash_id,
+                "date": commit_date,
+                "author": author,
+                "message": message.strip(),
             }
         except Exception as e:
             print(f"Error parsing commit line '{line}': {e}")
@@ -172,14 +174,14 @@ class ChangelogGenerator:
     def _format_commit_message(message):
         """Format commit message for changelog."""
         # Remove common prefixes and clean up
-        message = re.sub(r'^(feat|fix|docs|style|refactor|test|chore):\s*', '', message)
+        message = re.sub(r"^(feat|fix|docs|style|refactor|test|chore):\s*", "", message)
 
         # Capitalize the first letter
         if message:
             message = message[0].upper() + message[1:]
 
         # Remove trailing periods and normalize
-        message = message.rstrip('.')
+        message = message.rstrip(".")
 
         return message
 
@@ -190,7 +192,7 @@ class ChangelogGenerator:
 
         for commit in commits:
             if commit:  # Skip None commits
-                date_key = commit['date'].strftime('%Y-%m-%d')
+                date_key = commit["date"].strftime("%Y-%m-%d")
                 grouped[date_key].append(commit)
 
         return grouped
@@ -205,10 +207,12 @@ class ChangelogGenerator:
         ]
 
         # Add version info if available
-        if self.project_info.get('version'):
+        if self.project_info.get("version"):
             header.append(f"## Version {self.project_info['version']}")
             header.append("")
-            (Path.cwd() / 'config' / '__version__.py').write_text(f"version = '{self.project_info['version']}'\n")
+            (Path.cwd() / "config" / "__version__.py").write_text(
+                f"version = '{self.project_info['version']}'\n"
+            )
 
         return header
 
@@ -217,8 +221,8 @@ class ChangelogGenerator:
         section = []
 
         # Convert date string to readable format
-        date_obj = datetime.strptime(date_str, '%Y-%m-%d')
-        formatted_date = date_obj.strftime('%Y-%m-%d')
+        date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+        formatted_date = date_obj.strftime("%Y-%m-%d")
 
         section.append(f"## {formatted_date}")
         section.append("")
@@ -226,7 +230,7 @@ class ChangelogGenerator:
         # Group commits by category
         categorized = defaultdict(list)
         for commit in commits:
-            category = _categorize_commit(commit['message'])
+            category = _categorize_commit(commit["message"])
             categorized[category].append(commit)
 
         # Add commits by category
@@ -236,14 +240,14 @@ class ChangelogGenerator:
             if len(category_commits) == 1:
                 # Single commit - format as a bullet point with category
                 commit = category_commits[0]
-                formatted_msg = self._format_commit_message(commit['message'])
+                formatted_msg = self._format_commit_message(commit["message"])
                 section.append(f"* **{category}**: {formatted_msg}")
             else:
                 # Multiple commits - create a subsection
                 section.append(f"**{category}**:")
                 section.append("")
                 for commit in category_commits:
-                    formatted_msg = self._format_commit_message(commit['message'])
+                    formatted_msg = self._format_commit_message(commit["message"])
                     section.append(f"  * {formatted_msg}")
                 section.append("")
 
@@ -255,24 +259,24 @@ class ChangelogGenerator:
         section = ["## Project Information", ""]
 
         info = self.project_info
-        if info.get('name'):
+        if info.get("name"):
             section.append(f"* **Project**: {info['name']}")
-        if info.get('version'):
+        if info.get("version"):
             section.append(f"* **Version**: {info['version']}")
-        if info.get('description'):
+        if info.get("description"):
             section.append(f"* **Description**: {info['description']}")
-        if info.get('authors'):
-            authors = info['authors']
+        if info.get("authors"):
+            authors = info["authors"]
             if isinstance(authors, list):
                 section.append(f"* **Author**: {authors[0]}")
             else:
                 section.append(f"* **Author**: {authors}")
 
         # Add URLs if available
-        urls = info.get('urls', {})
-        if urls.get('Repository'):
+        urls = info.get("urls", {})
+        if urls.get("Repository"):
             section.append(f"* **Repository**: {urls['Repository']}")
-        if urls.get('Homepage'):
+        if urls.get("Homepage"):
             section.append(f"* **Homepage**: {urls['Homepage']}")
 
         section.append("* **License**: See LICENSE.md")
@@ -321,18 +325,20 @@ class ChangelogGenerator:
         deduplicated_commits = []
 
         for commit in commits:
-            message = commit['message']
+            message = commit["message"]
             if message not in seen_messages:
                 seen_messages[message] = commit
                 deduplicated_commits.append(commit)
             else:
                 # Keep the more recent commit (earlier in the list since git log is reverse chronological)
                 existing_commit = seen_messages[message]
-                if commit['date'] > existing_commit['date']:
+                if commit["date"] > existing_commit["date"]:
                     # Replace the existing commit with the more recent one
                     seen_messages[message] = commit
                     # Remove the old commit and add the new one
-                    deduplicated_commits = [c for c in deduplicated_commits if c['message'] != message]
+                    deduplicated_commits = [
+                        c for c in deduplicated_commits if c["message"] != message
+                    ]
                     deduplicated_commits.append(commit)
 
         duplicates_removed = len(commits) - len(deduplicated_commits)
@@ -361,11 +367,13 @@ class ChangelogGenerator:
         # Write to a file
         output_path = self.project_root / output_file
         try:
-            with open(output_path, 'w', encoding='utf-8') as f:
-                f.write('\n'.join(changelog_lines))
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write("\n".join(changelog_lines))
 
             print(f"Changelog written to {output_path}")
-            print(f"Generated {len(grouped_commits)} date sections from {len(commits)} commits")
+            print(
+                f"Generated {len(grouped_commits)} date sections from {len(commits)} commits"
+            )
 
         except Exception as e:
             print(f"Error writing changelog: {e}")

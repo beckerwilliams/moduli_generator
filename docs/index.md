@@ -29,6 +29,20 @@ To get started with Moduli Generator:
    moduli_generator --help
    ```
 
+`moduli_generator` home directory
+
+   ```bash
+   moduli_home                 default: ${HOME}/.moduli_generator
+   - moduli_generator.cnf      moduli_generator user profile, default: "moduli_generator.cnf"
+   - .logs                     log directory, permanent
+       - moduli_generator.log  runtime log, default: "moduli_home/.logs/moduli_generator.log"
+   - .candidates               Internal generated candidate moduli, Transient
+   - .moduli                   Internal Screened and Tested Moduli, Transient
+   ```
+
+The internal directories `.candidates` and `.moduli` are the locations for the working storage of
+`ssh-keygen -m generate` and `ssh-keygen -m screen`.
+
 ## Documentation Structure
 
 - **[About](about.md)** - Learn more about the project and its purpose

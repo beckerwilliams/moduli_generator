@@ -3,7 +3,7 @@
 The sole objective of `moduli_generator` is to produce *unique and secure* SSH2 Moduli Files.
 
 The default configuration will produce a complete `/etc/ssh/moduli` file, comprised of 20 moduli for each of 5
-key-sizes, `3072`, `4096`, `6144`, `7680`, and `8192` in about 90 hours.
+key-sizes, `3072`, `4096`, `6144`, `7680`, and `8192` in about Sixty (60) hours on a quad-core i7 processor.
 
 ## /etc/ssh/moduli
 
@@ -11,7 +11,8 @@ key-sizes, `3072`, `4096`, `6144`, `7680`, and `8192` in about 90 hours.
 # aragorn.local::ModuliGenerator: ssh2 moduli generated at 2025-07-28T02:25:52.957733Z
 # timestamp,type,tests,trials,size,generator,moduli
 20241110030855 2 6 100 3071 2 C8053358B1E47DCB826BA2BCB616739EE826ADB273504CF89F8CF6F5A9946B5576F66A07012DCC10557... 
-20241110033748 2 6 100 3071 2 C8053358B1E47DCB826BA2BCB616739EE826ADB273504CF89F8CF6F5A9946B5576F66A0773504CF89FA ... 
+20241110033748 2 6 100 3071 2 C8053358B1E47DCB826BA2BCB616739EE826ADB273504CF89F8CF6F5A9946B5576F66A0773504CF89FA ...
+... 
 ```
 
 ## Default Configuration
