@@ -32,14 +32,25 @@ extra_javascript:
 
 nav:
   - Home: index.md
-  - API: API.md
+  - QuickStart: readme.md
+  - API:
+      - ModuliGenerator: moduli_generator.md
+      - Config: config.md
+      - ArgParser: argparser.md
+      - DBConnector: db.md
+      - ChangeLog Generator: changelog_generator.md
   - About: about.md
-  - Copyright: copyright.md
-  - Config: config.md
+  - Usage: usage.md
   - Documentation:
       - Analysis: moduli_generator_analysis_and_improvements.md
       - Improvements: project_improvement_recommendations.md
       - Refactoring: REFACTORING_SUMMARY.md
+      - ChangeLog Configuration Guide: CHANGELOG_CONFIGURATION.md
+      - PyCharmConfigurationStatus: PYCHARM_CONFIGURATION_STATUS.md
+      - PyCharmDocstringFormatRecommendation: PYCHARM_DOCSTRING_FORMAT_RECOMMENDATION.md
+      - MkDocs Setup: PYCHARM_MKDOCS_SETUP.md
+  - License:
+      - license.md
 
 markdown_extensions:
   - admonition

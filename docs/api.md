@@ -1,20 +1,14 @@
-# Python API
-
-## config
-
-[ModuliConfig](config.md)
-
-## db
-
-[MariaDBConnector](db.md)
-
-## moduli_generator
+# API
 
 [ModuliGenerator](moduli_generator.md)
 
-## test
+[ModuliConfig](config.md)
 
-[test](test.md)
+[ArgParser](argparser.md)
+
+[MariaDBConnector](db.md)
+
+[ChangelogGenerator](changelog_generator.md)
 
 - **Repository**: [GitHub](https://github.com/beckerwilliams/moduli_generator)
 - **Issues**: [GitHub Issues](https://github.com/beckerwilliams/moduli_generator/issues)

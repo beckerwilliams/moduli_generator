@@ -238,7 +238,7 @@ class TestModuliConfig:
     def test_init_with_base_dir(self):
         """Test ModuliConfig initialization with custom base directory."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            config = ModuliConfig(base_dir=temp_dir)
+            config = ModuliConfig(moduli_home=temp_dir)
 
             assert config.moduli_home == Path(temp_dir)
             assert config.candidates_dir == Path(temp_dir) / '.candidates'
@@ -255,7 +255,7 @@ class TestModuliConfig:
     def test_ensure_directories(self):
         """Test ensure_directories method."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            config = ModuliConfig(base_dir=temp_dir)
+            config = ModuliConfig(moduli_home=temp_dir)
 
             # Directories shouldn't exist initially
             assert not config.candidates_dir.exists()
@@ -277,7 +277,7 @@ class TestModuliConfig:
     def test_ensure_directories_existing(self):
         """Test ensure_directories when directories already exist."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            config = ModuliConfig(base_dir=temp_dir)
+            config = ModuliConfig(moduli_home=temp_dir)
 
             # Create directories manually
             config.moduli_home.mkdir(exist_ok=True)
@@ -297,7 +297,7 @@ class TestModuliConfig:
         mock_get_logger.return_value = mock_logger
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            config = ModuliConfig(base_dir=temp_dir)
+            config = ModuliConfig(moduli_home=temp_dir)
 
             result = config.get_logger()
 
@@ -324,7 +324,7 @@ class TestModuliConfig:
         with tempfile.TemporaryDirectory() as temp_dir:
             # Use a non-existent subdirectory
             nonexistent_dir = Path(temp_dir) / 'nonexistent'
-            config = ModuliConfig(base_dir=str(nonexistent_dir))
+            config = ModuliConfig(moduli_home=str(nonexistent_dir))
 
             # Ensure the directory doesn't exist
             assert not config.moduli_home.exists()

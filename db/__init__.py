@@ -197,32 +197,33 @@ def get_mysql_config_value(cnf: Dict[str, Dict[str, str]],
 
 class MariaDBConnector:
     """
-    Provides a connection pool and management functions for interacting with a MariaDB database.
+    A class that provides functionalities for managing a MariaDB connection pool,
+    executing SQL queries, handling transactions, and working with files or data.
+    It is designed to ensure resource safety and efficient interaction with a MariaDB
+    database through a connection pool.
 
-        This class wraps around the MariaDB connection pooling mechanism to offer efficient,
-        manageable access to database connections. It includes context managers for safe and
-        atomic database operations, as well as utility methods for executing queries and managing
-        transactions.
+    The class offers methods that allow SQL execution, safe transaction handling,
+    and context managers for file operations or database connections. Users can
+    initialize the class with configuration parameters and perform database operations
+    with minimal setup. It ensures proper resource cleanup and error handling
+    mechanisms in different scenarios.
 
-        :ivar mariadb_cnf: Path to the MariaDB configuration file.
-
-    Args:
-        base_dir (str): Parameter description.
-        config_id (str): Parameter description.
-        db_name (str): Parameter description.
-        delete_records_on_moduli_write (bool): Parameter description.
-        delete_records_on_read (bool): Parameter description.
-        key_lengths (List[int]): Parameter description.
-        logger (Logger): Parameter description.
-        mariadb_cnf (str): Parameter description.
-        moduli_file (Path): Parameter description.
-        moduli_file_pfx (str): Parameter description.
-        records_per_keylength (int): Parameter description.
-        table_name (str): Parameter description.
-        view_name (str): Parameter description.
+    Attributes:
+        mariadb_cnf (Path): Path to the MariaDB configuration file.
+        db_name (str): Name of the database to be used.
+        base_dir (Path): Base directory for operations.
+        moduli_file_pfx (str): Prefix of the moduli file.
+        moduli_file (Path): Path to the moduli file.
+        table_name (str): Name of the primary database table.
+        view_name (str): Name of the database view.
+        config_id (str): Identifier for the configuration.
+        key_lengths (List[int]): List of key lengths for operations.
+        records_per_keylength (int): Number of records per key length.
+        delete_records_on_moduli_write (bool): Determines if records should be deleted after moduli write.
+        delete_records_on_read (bool): Determines if records should be deleted after reading.
     """
 
-    def __enter__(self):
+    def __enter__(self) -> "MariaDBConnector":
         """
         Context manager entry method. When the managed context is entered,
                 this method is called to return the resource or object to be used
@@ -233,7 +234,7 @@ class MariaDBConnector:
         """
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
         """
         Handles the cleanup process when exiting a context manager for the object. Ensures that
                 the connection pool is properly closed if it exists and logs any errors that occur

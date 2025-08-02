@@ -79,18 +79,18 @@ def _categorize_commit(message):
 
 class ChangelogGenerator:
     """
-    Generates a detailed changelog based on git commit history and project metadata.
+    Generates changelog files for a project by extracting and parsing commit history
+    from a Git repository. It also integrates project metadata from a pyproject.toml file
+    if available. The changelog includes grouped commits by date and categorizes them
+    for better readability.
 
-        The ChangelogGenerator class is designed to parse git commit logs, extract meaningful
-        information, categorize commits by their content, organize commits by date, and
-        generate a formatted changelog in reStructuredText (RST). Additionally, it provides
-        project-specific information if available in the `pyproject.toml`.
+    Detailed description of the class, its purpose, and usage.
 
-        :ivar project_root: The root directory of the project to be analyzed.
-
-    Args:
-        project_info (dict): Parameter description.
-        project_root (pathlib.Path): Parameter description.
+    Attributes:
+        project_root (Path): The root directory of the project used for locating
+            metadata and Git operations.
+        project_info (dict): Metadata of the project parsed from the pyproject.toml file,
+            including details like the project name, version, description, and authors.
     """
 
     def __init__(self, project_root=None):
@@ -195,30 +195,32 @@ class ChangelogGenerator:
 
         return grouped
 
-    def _generate_rst_header(self):
-        """Generate the RST header section."""
-        header = ["=========", "Changelog", "=========", "",
-                  "This document tracks the changes made to the moduli_generator project.", ""]
+    def _generate_markdown_header(self):
+        """Generate the Markdown header section."""
+        header = [
+            "# Changelog",
+            "",
+            "This document tracks the changes made to the moduli_generator project.",
+            "",
+        ]
 
         # Add version info if available
         if self.project_info.get('version'):
-            header.append(f"Version {self.project_info['version']}")
-            header.append("=" * (8 + len(self.project_info['version'])))
+            header.append(f"## Version {self.project_info['version']}")
             header.append("")
             (Path.cwd() / 'config' / '__version__.py').write_text(f"version = '{self.project_info['version']}'\n")
 
         return header
 
     def _generate_date_section(self, date_str, commits):
-        """Generate an RST section for a specific date."""
+        """Generate a Markdown section for a specific date."""
         section = []
 
         # Convert date string to readable format
         date_obj = datetime.strptime(date_str, '%Y-%m-%d')
         formatted_date = date_obj.strftime('%Y-%m-%d')
 
-        section.append(formatted_date)
-        section.append("-" * len(formatted_date))
+        section.append(f"## {formatted_date}")
         section.append("")
 
         # Group commits by category
@@ -250,7 +252,7 @@ class ChangelogGenerator:
 
     def _generate_project_info_section(self):
         """Generate project information section."""
-        section = ["Project Information", "===================", ""]
+        section = ["## Project Information", ""]
 
         info = self.project_info
         if info.get('name'):
@@ -273,12 +275,12 @@ class ChangelogGenerator:
         if urls.get('Homepage'):
             section.append(f"* **Homepage**: {urls['Homepage']}")
 
-        section.append("* **License**: See LICENSE.rst")
+        section.append("* **License**: See LICENSE.md")
         section.append("")
 
         return section
 
-    def generate_changelog(self, output_file="CHANGELOG.rst", max_commits=50):
+    def generate_changelog(self, output_file="CHANGELOG.md", max_commits=50) -> None:
         """
         Generates a changelog file based on git commit history and saves it to the
                 specified output file. The changelog is formatted in reStructuredText (RST)
@@ -346,7 +348,7 @@ class ChangelogGenerator:
         changelog_lines = []
 
         # Add header
-        changelog_lines.extend(self._generate_rst_header())
+        changelog_lines.extend(self._generate_markdown_header())
 
         # Add date sections (most recent first)
         for date_str in sorted(grouped_commits.keys(), reverse=True):

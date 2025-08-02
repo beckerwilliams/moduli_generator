@@ -3,54 +3,65 @@
 Configuration module for the moduli generator project.
 Centralizes all default configuration values.
 """
-from datetime import (UTC, datetime)
-from logging import (DEBUG, basicConfig, getLogger)
+import re
+from datetime import UTC, datetime
+from logging import DEBUG, basicConfig, getLogger
 from os import environ as osenv
 from pathlib import PosixPath as Path
-from re import (sub)
 from typing import Final
 
+# Try to get version from package metadata first
 try:
     from importlib.metadata import version
 
-    __version__ = version('moduli_generator')
+    __version__ = version("moduli_generator")
 except ImportError:
     # Fallback for Python < 3.8
-    from importlib_metadata import version
+    try:
+        from importlib_metadata import version
 
-    __version__ = version('moduli_generator')
+        __version__ = version("moduli_generator")
+    except (ImportError, Exception):
+        __version__ = None
 except Exception:
-    # Final fallback to pyproject.toml
-    from get_version import get_version
+    __version__ = None
 
-    __version__ = get_version()
+# If package metadata fails, use pyproject.toml fallback
+if __version__ is None:
+    try:
+        from get_version import get_version
+
+        __version__ = get_version()
+    except Exception as e:
+        # Final fallback if all else fails
+        __version__ = "0.0.0-dev"
 
 version = __version__
 
 __all__ = [
-    'ModuliConfig',
-    'default_config',
-    'iso_utc_timestamp',
-    'iso_utc_time',
-    'strip_punction_from_datetime_str',
-    'DEFAULT_MARIADB',
-    'DEFAULT_MARIADB_CNF',
-    'DEFAULT_KEY_LENGTHS',
-    'TEST_MARIADB',
-    '__version__'
+    "ModuliConfig",
+    "default_config",
+    "iso_utc_timestamp",
+    "iso_utc_time_notzinfo",
+    "strip_punction_from_datetime_str",
+    "DEFAULT_MARIADB",
+    "DEFAULT_MARIADB_CNF",
+    "DEFAULT_KEY_LENGTHS",
+    "TEST_MARIADB",
+    "__version__",
 ]
 
 # TEST PARAMETERS
-TEST_MARIADB: Final[str] = 'test_moduli_db'
+TEST_MARIADB: Final[str] = "test_moduli_db"
 
 # Moduli Generator Module's directory structure
-DEFAULT_DIR: Final[Path] = Path.home() / '.moduli_generator'
-DEFAULT_CANDIDATES_DIR: Final[str] = '.candidates'
-DEFAULT_MODULI_DIR: Final[str] = '.moduli'
-DEFAULT_LOG_DIR: Final[str] = '.logs'
+DEFAULT_DIR: Final[Path] = Path.home() / ".moduli_generator"
+DEFAULT_CANDIDATES_DIR: Final[str] = ".candidates"
+DEFAULT_MODULI_DIR: Final[str] = ".moduli"
+DEFAULT_LOG_DIR: Final[str] = ".logs"
 
 # The only log file this module recognizes
-DEFAULT_LOG_FILE: Final[str] = 'moduli_generator.log'
+DEFAULT_LOG_FILE: Final[str] = "moduli_generator.log"
 
 # SSH-KEYGEN Generator settings
 DEFAULT_KEY_LENGTHS: Final[tuple[int, ...]] = (3072, 4096, 6144, 7680, 8192)
@@ -62,9 +73,9 @@ DEFAULT_CONFIG_ID: Final[int] = 1  # JOIN to Moduli File Constants
 DEFAULT_MARIADB_CNF: Final[str] = "moduli_generator.cnf"
 
 # Operational Database, Tables, and Views
-DEFAULT_MARIADB: Final[str] = 'moduli_db'
-DEFAULT_MARIADB_TABLE: Final[str] = 'moduli'
-DEFAULT_MARIADB_VIEW: Final[str] = 'moduli_view'
+DEFAULT_MARIADB: Final[str] = "moduli_db"
+DEFAULT_MARIADB_TABLE: Final[str] = "moduli"
+DEFAULT_MARIADB_VIEW: Final[str] = "moduli_view"
 
 # Flag to Delete Records from Moduli DB after successfully extracting and writing a complete ssh / moduli file
 DEFAULT_PRESERVE_MODULI_AFTER_DBSTORE: Final[bool] = True
@@ -74,14 +85,17 @@ DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE: Final[bool] = False
 
 # Screened Moduli File Pattern
 DEFAULT_MODULI_FILENAME_PATTERN: Final[re] = r"moduli_????_*"
-DEFAULT_CANDIDATE_IDX_FILENAME_PATTERN: Final[re] = r".candidates_????_????????????????????"
+DEFAULT_CANDIDATE_IDX_FILENAME_PATTERN: Final[re] = (
+    r".candidates_????_????????????????????"
+)
 
-DEFAULT_MODULI_PREFIX: Final[str] = f'ssh-moduli_'
+DEFAULT_MODULI_PREFIX: Final[str] = f"ssh-moduli_"
 # The number of moduli per key-length to capture in each produced moduli file
 DEFAULT_MODULI_RECORDS_PER_KEYLENGTH: Final[int] = 20
 
 
 #  ref: https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl
+
 
 def iso_utc_timestamp(compress: bool = False) -> str:
     """
@@ -95,14 +109,14 @@ def iso_utc_timestamp(compress: bool = False) -> str:
         str: The generated UTC timestamp as a string. If `compress` is True, the         timestamp will only contain numeric characters.
     """
 
-    timestamp = iso_utc_time().isoformat()
+    timestamp = iso_utc_time_notzinfo().isoformat()
     if compress:
-        return sub(r'[^0-9]', '', timestamp)
+        return re.sub(r"[^0-9]", "", timestamp)
     else:
         return timestamp
 
 
-def iso_utc_time() -> datetime:
+def iso_utc_time_notzinfo() -> datetime:
     """
     Generates and returns the current time in UTC format, stripped of timezone
         information. This function uses the UTC timezone to fetch the current time
@@ -115,7 +129,7 @@ def iso_utc_time() -> datetime:
 
 
 # The Product: a Complete ssh-moduli file
-DEFAULT_MODULI_FILE: Final[str] = f'ssh-moduli_{iso_utc_timestamp(compress=True)}'
+DEFAULT_MODULI_FILE: Final[str] = f"ssh-moduli_{iso_utc_timestamp(compress=True)}"
 
 
 # For Date Formats Sans Punctuation
@@ -130,54 +144,54 @@ def strip_punction_from_datetime_str(timestamp: datetime) -> str:
     Returns:
         str: A string representation of the given datetime with all non-numeric         characters removed.
     """
-    return sub(r'[^0-9]', '', timestamp.isoformat())
+    return re.sub(r"[^0-9]", "", timestamp.isoformat())
 
 
 class ModuliConfig:
+    """Class representing the configuration for Moduli generation and management.
+
+    This class is used to define directories, file patterns, database configurations, logging, and
+    other essential components required for handling Moduli operations.
+
+    Attributes:
+        moduli_home (Path): Base directory for Moduli files, derived from a user-provided path,
+            environment variable, or a default directory.
+        candidates_dir (Path): Directory for storing candidate files.
+        moduli_dir (Path): Directory for storing Moduli files.
+        log_dir (Path): Directory for storing log files.
+        log_file (Path): Full path to the default log file.
+        key_lengths (list): List of default key lengths for Moduli generation.
+        generator_type (str): Default generator type used during Moduli generation.
+        nice_value (int): Default "nice" value for adjusting process priority.
+        db_name (str): Name of the MariaDB database used for storing Moduli data.
+        table_name (str): Name of the MariaDB table used for Moduli storage.
+        view_name (str): Name of the MariaDB view for querying Moduli data.
+        records_per_keylength (int): Number of records generated or stored per key length.
+        config_id (int): Unique ID used to link constants in the Moduli file to the database table.
+        mariadb_cnf (Path): Path to the MariaDB configuration file.
+        moduli_file_pattern (str): Default filename pattern for Moduli files.
+        candidate_idx_pattern (str): Default filename pattern for candidate index files.
+        moduli_file_pfx (str): Prefix for naming Moduli output files.
+        moduli_file (Path): Path to the default Moduli file.
+        preserve_moduli_after_dbstore (bool): Flag indicating whether to preserve Moduli files
+            after being stored in the database.
+        delete_records_on_moduli_write (bool): Flag indicating whether to delete database records
+            after writing to Moduli files successfully.
+        version (str): The version of the Moduli project.
     """
-    Represents a configuration structure for moduli assembly, encompassing paths,
-        logs, database configurations, and default settings.
 
-        This class provides directory management, default file paths, and configuration
-        for moduli generation and related operations. It ensures the existence of required
-        directories and offers methods for logging and configuration handling.
-
-    Args:
-        base_dir (Path): Parameter description.
-        candidates_dir (Path): Parameter description.
-        config_id (str): Parameter description.
-        db_name (str): Parameter description.
-        delete_records_on_moduli_write (bool): Parameter description.
-        generator_type (str): Parameter description.
-        key_lengths (list[int]): Parameter description.
-        log_dir (Path): Parameter description.
-        log_file (Path): Parameter description.
-        mariadb_cnf (Path): Parameter description.
-        moduli_dir (Path): Parameter description.
-        moduli_file (Path): Parameter description.
-        moduli_file_pattern (str): Parameter description.
-        moduli_generator_config (Path): Parameter description.
-        nice_value (int): Parameter description.
-        records_per_keylength (int): Parameter description.
-        table_name (str): Parameter description.
-        version (str): Parameter description.
-        view_name (str): Parameter description.
-    """
-
-    def __init__(self, base_dir=None):
+    def __init__(self, base_dir: str | None = None) -> "ModuliConfig":
         """
-        Represents a configuration and directory structure for moduli assembly
-                operation, including paths for candidate files, moduli files, logs, and
-                default configurations.
-
-                Provides default values and configurations for various parameters related
-                to moduli generation and database management.
+        Class representing the configuration for Moduli generation and management. This class is used
+        to define directories, file patterns, database configurations, logging, and other essential
+        components required for handling Moduli operations.
 
         Args:
-            base_dir (Path or None): The base directory path for moduli assembly operations. If not provided,             defaults to the environment variable 'MODULI_HOME' or a preset default directory.
+            base_dir (str | None): User-provided base directory for Moduli files. Defaults to an environment
+                variable or a pre-defined directory if not specified.
         """
         # Use user-provided base dir, or env var, or default to ~/.moduli_assembly
-        self.moduli_home = Path(base_dir or osenv.get('MODULI_HOME', DEFAULT_DIR))
+        self.moduli_home = Path(base_dir or osenv.get("MODULI_HOME", DEFAULT_DIR))
 
         # Define subdirectories as properties
         self.candidates_dir = self.moduli_home / DEFAULT_CANDIDATES_DIR
@@ -217,7 +231,7 @@ class ModuliConfig:
         # Set Project Version Number
         self.version = version
 
-    def ensure_directories(self):
+    def ensure_directories(self) -> "ModuliConfig":
         """
         Ensures that a set of directories (base, candidates, moduli, and log directories) exist.
                 If they do not exist, they will be created. This method ensures all necessary directories
@@ -226,12 +240,17 @@ class ModuliConfig:
         Returns:
             Self: The current instance after ensuring directories exist.
         """
-        for dir_path in [self.moduli_home, self.candidates_dir, self.moduli_dir, self.log_dir]:
+        for dir_path in [
+            self.moduli_home,
+            self.candidates_dir,
+            self.moduli_dir,
+            self.log_dir,
+        ]:
             dir_path.mkdir(parents=True, exist_ok=True)
 
         return self
 
-    def get_logger(self):
+    def get_logger(self) -> "logging.Logger":
         """
         Initializes and returns a logger instance configured for file-based logging.
 
@@ -256,17 +275,18 @@ class ModuliConfig:
 
         # Set logging to use UTC time globally
         import logging
+
         logging.Formatter.converter = lambda *args: datetime.now(UTC).timetuple()
 
         basicConfig(
             level=DEBUG,
-            format='%(asctime)s - %(levelname)s: %(message)s',
+            format="%(asctime)s - %(levelname)s: %(message)s",
             filename=Path(self.log_file),
-            filemode='a'
+            filemode="a",
         )
         return getLogger()
 
-    def get_log_file(self, name):
+    def get_log_file(self, name) -> Path:
         """
         Retrieve the log file path, either by name or default log file path.
 
@@ -287,7 +307,7 @@ class ModuliConfig:
             return self.log_file
 
     @staticmethod
-    def with_base_dir(base_dir):
+    def with_base_dir(base_dir) -> "ModuliConfig":
         """
         Creates a new instance of ModuliConfig with the given base directory.
 
@@ -304,7 +324,7 @@ class ModuliConfig:
         return ModuliConfig(base_dir)
 
     @property
-    def __version__(self):
+    def __version__(self) -> str:
         return self.version
 
 

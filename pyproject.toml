@@ -4,10 +4,6 @@ description = "A secure, high-performance SSH moduli generator with database int
 authors = [
 	{ name = "Ron Williams", email = "becker.williams@gmail.com" }
 ]
-license = { text = "MIT" }
-keywords = ["cryptography", "ssh", "moduli", "security"]
-version = "2.1.33"
-readme = "README.rst"
 classifiers = [
 	"Development Status :: 4 - Beta",
 	"Intended Audience :: System Administrators",
@@ -31,37 +27,30 @@ classifiers = [
 	"Natural Language :: English",
 	"Typing :: Typed"
 ]
-requires-python = ">=3.11,<4.0"
 dependencies = [
 	"mariadb==1.1.13",
 	"configparser>=7.2.0",
 	"typing-extensions>=4.14.1,<5.0.0",
-	"mkdocstrings[python] (>=0.30.0,<0.31.0)",
-	"black (>=25.1.0,<26.0.0)",
+	"mkdocstrings[python]>=0.30.0,<0.31.0",
+	"black>=25.1.0,<26.0.0",
 ]
-data = "data/**/*"
+keywords = ["cryptography", "ssh", "moduli", "security"]
+license = { text = "MIT" }
+readme = "docs/README.md"
+requires-python = ">=3.11,<4.0"
+version = "2.1.33"
 packages = [
-	{ include = "moduli_generator" },
-	{ include = "db" },
-	{ include = "config" },
-	{ include = "test" }
+	"moduli_generator",
+	"db",
+	"config"
 ]
-include = [
-	"data/**/*.sql",
-	"data/**/*.conf",
-	"data/**/*.sh",
-	"data/**/*.json",
-	"doc/**/*",
-	"**/*.md",
-	"**/*.rst"
-]
+package-mode = true
 
 [project.scripts]
 moduli_generator = "moduli_generator.cli:main"
 moduli_stats = "db.scripts.moduli_stats:main"
-changelog = "changelog_generator.scripts.print:main"
+changelog = "changelog_generator.generate_changelog(max_commits=50):main"
 install_schema = "db.scripts.install_schema:main"
-build_docs = "moduli_generator.scripts.build_docs:main"
 cli = "moduli_generator.cli:main"
 
 [project.urls]
@@ -70,25 +59,25 @@ Documentation = "https://github.com/beckerwilliams/moduli_generator/blob/main/RE
 Repository = "https://github.com/beckerwilliams/moduli_generator.git"
 Issues = "https://github.com/beckerwilliams/moduli_generator/issues"
 
-
-
 [tool.poetry.group.dev.dependencies]
+black = ">=25.1.0,<26.0.0"
+configparser = "~7.2.0"
+mariadb = "1.1.13"
 mkdocs = ">=1.6.1,<2.0.0"
-mkdocs-material = ">=9.0.0,<10.0.0"
-black = ">=25.0,<26.0.0"
-configparser = "~=7.2.0"
-mariadb = "~=1.1.13"
+mkdocs-autorefs = ">=1.4.2"
+mkdocs-get-deps = ">=0.2.0"
+mkdocs-material = ">=9.6.16,<10.0.0"
+mkdocs-material-extensions = ">=1.3.1"
+mkdocstrings = ">=0.30.0"
+mkdocstrings-python = "1.16.12"
+pymdown-extensions = ">=10.16.1"
 pip-tools = ">=7.5.0,<8.0.0"
-#sphinx = ">=8.2.3"
-#sphinxcontrib-jquery = ">=4.1"
-#sphinx-rtd-theme = ">=3.0.2"
-#myst-parser = ">=2.0.0"
-pytest = "~=8.4.1"
+pytest = "~8.4.1"
 pytest-cov = ">=4.0.0"
 pytest-mock = ">=3.12.0"
 pytest-asyncio = ">=0.23.0"
 toml = ">=0.10.2"
-
+typing-extensions = ">=4.14.1,<5.0.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

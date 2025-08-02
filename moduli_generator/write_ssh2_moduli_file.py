@@ -2,7 +2,7 @@
 from sys import exit
 
 # Import the default configuration
-from config import ModuliConfig, arg_parser, iso_utc_time
+from config import ModuliConfig, arg_parser, iso_utc_time_notzinfo
 from moduli_generator import ModuliGenerator
 
 
@@ -25,7 +25,7 @@ def main(config: ModuliConfig = None):
     logger.debug(f'Using default config: {config}')
 
     # Generate, Screen, Store, and Write Moduli File
-    start_time = iso_utc_time()
+    start_time = iso_utc_time_notzinfo()
     logger.info(
         f'Starting Moduli Generation at {start_time.isoformat()}, with {config.key_lengths} as moduli key-lengths')
 
@@ -42,7 +42,7 @@ def main(config: ModuliConfig = None):
         return 2
     else:
         # Stats and Cleanup
-        end_time = iso_utc_time()
+        end_time = iso_utc_time_notzinfo()
         duration = (end_time - start_time).total_seconds()
         logger.info(f'Moduli Generation Complete @{end_time.isoformat()}: Seconds: {int(duration)}')
         return 0

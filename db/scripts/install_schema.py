@@ -1,10 +1,12 @@
 from pathlib import Path
+from argparse import ArgumentParser
 
 from config import DEFAULT_MARIADB
-from db import (Error, MariaDBConnector)
+from db import Error, MariaDBConnector
 from db.scripts.db_schema_for_named_db import get_moduli_generator_schema_statements
+from config import default_config
 
-__all__ = ['InstallSchema']
+__all__ = ["InstallSchema"]
 
 
 class InstallSchema(object):
@@ -38,7 +40,7 @@ class InstallSchema(object):
         self.db_conn = db_connector
         self.db_name = db_name
         self.schema_statements = get_moduli_generator_schema_statements(db_name)
-        print(f'Installing schema for database: {db_name}')
+        print(f"Installing schema for database: {db_name}")
 
     def install_schema(self) -> bool:
         """
@@ -57,15 +59,17 @@ class InstallSchema(object):
         """
         try:
             for i, statement_info in enumerate(self.schema_statements):
-                query = statement_info['query']
-                params = statement_info.get('params')
-                fetch = statement_info.get('fetch', False)
+                query = statement_info["query"]
+                params = statement_info.get("params")
+                fetch = statement_info.get("fetch", False)
 
                 # Skip empty statements
                 if not query.strip():
                     continue
 
-                print(f"Executing statement {i + 1}/{len(self.schema_statements)}: {query[:50]}...")
+                print(
+                    f"Executing statement {i + 1}/{len(self.schema_statements)}: {query[:50]}..."
+                )
 
                 # Execute the statement with parameters
                 self.db_conn.sql(query, params, fetch)
@@ -97,8 +101,8 @@ class InstallSchema(object):
             params_list = []
 
             for statement_info in self.schema_statements:
-                query = statement_info['query']
-                params = statement_info.get('params')
+                query = statement_info["query"]
+                params = statement_info.get("params")
 
                 if query.strip():
                     queries.append(query)
@@ -139,14 +143,16 @@ class InstallSchema(object):
                 return False
 
             # Read the SQL schema file
-            with open(schema_file, 'r') as sql_f:
+            with open(schema_file, "r") as sql_f:
                 schema_content = sql_f.read()
 
             # Split into statements and execute
-            sql_statements = [stmt.strip() for stmt in schema_content.split(';') if stmt.strip()]
+            sql_statements = [
+                stmt.strip() for stmt in schema_content.split(";") if stmt.strip()
+            ]
 
             for statement in sql_statements:
-                if statement.startswith('#') or not statement.strip():
+                if statement.startswith("#") or not statement.strip():
                     continue
 
                 print(f"Executing SQL statement: {statement[:50]}...")
@@ -162,39 +168,38 @@ class InstallSchema(object):
 
 def main():
     """
-    Main function to parse command-line arguments and handle the installation
-    of the SSH Moduli Schema into the specified MariaDB database.
-"""
-Main function to parse command-line arguments and handle the installation
-    of the SSH Moduli Schema into the specified MariaDB database.
+    Parses command-line arguments, configures the database connection, and installs the
+    schema for a specified database using the provided MariaDB configuration file.
 
-    This function utilizes the `argparse` library to define and parse command-line
-    arguments and performs the schema installation based on the provided
-    parameters. It supports an optional batch execution mode for improved performance.
+    This script supports both regular and batch modes for schema installation. The batch
+    mode is optimized for better performance when processing large datasets.
 
-Args:
-    None: This function takes no direct parameters through function calls but                  relies on command-line arguments for configuration.
+    Raises:
+        SystemExit: If required arguments are missing or parsing fails.
 
-Returns:
-    None: None
+    Args:
+        mariadb_cnf (str): Path to the MariaDB configuration file.
+        --batch (bool): Optional flag to enable batch execution mode for better performance.
+        --moduli-db-name (str): Name of the database to create (default: DEFAULT_MARIADB).
 
-Raises:
-    SystemExit: If argument parsing fails or invalid arguments are provided.
-    Exception: If the schema installation process encounters an error.
-"""
-        type=str,
-        help='Path to MariaDB configuration file'
+    Returns:
+        None: This function does not return a value.
+    """
+
+    argparse = ArgumentParser(description="Install SSH Moduli Schema")
+    argparse.add_argument(
+        "mariadb_cnf", type=str, help="Path to MariaDB configuration file"
     )
     argparse.add_argument(
-        '--batch',
-        action='store_true',
-        help='Use batch execution mode for better performance'
+        "--batch",
+        action="store_true",
+        help="Use batch execution mode for better performance",
     )
     argparse.add_argument(
-        '--moduli-db-name',
+        "--moduli-db-name",
         type=str,
         default=DEFAULT_MARIADB,
-        help='Name of the database to create'
+        help="Name of the database to create",
     )
     args = argparse.parse_args()
 

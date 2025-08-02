@@ -6,6 +6,12 @@ from db import MariaDBConnector
 
 
 def argparse():
+    """
+    Parse command line arguments for the moduli generator user creation script.
+
+    Returns:
+        argparse.Namespace: Parsed command line arguments containing mariadb_cnf path and batch flag.
+    """
     argparse = ArgumentParser(description='Install SSH Moduli Schema')
     argparse.add_argument(
         'mariadb_cnf',
@@ -21,6 +27,15 @@ def argparse():
 
 
 def create_moduli_generator_user(mg_password: str = "<PASSWORD>"):
+    """
+    Generate SQL statements to create a moduli_generator database user with appropriate privileges.
+
+    Args:
+        mg_password (str): Password for the moduli_generator user. Defaults to "<PASSWORD>".
+
+    Returns:
+        list[str]: List of SQL statements to create user, grant privileges, and flush privileges.
+    """
     return [
         "CREATE USER IF NOT EXISTS 'moduli_generator'@'%' " +
         f"IDENTIFIED BY '{mg_password}' " +
@@ -33,6 +48,11 @@ def create_moduli_generator_user(mg_password: str = "<PASSWORD>"):
 
 
 def main():
+    """
+    Main function to create the moduli_generator database user.
+
+    Parses command line arguments, connects to MariaDB, and executes the user creation SQL statements.
+    """
     args = argparse()
 
     db = MariaDBConnector()

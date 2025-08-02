@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 import concurrent.futures
+import logging
 import subprocess
 from json import dump
 from logging import (DEBUG, INFO)
 from pathlib import PosixPath as Path
 from typing import (Any, Dict, List)
 
-from config import (default_config, iso_utc_timestamp)
+from config import ModuliConfig, default_config, iso_utc_timestamp
 from db import (Error, MariaDBConnector)
 from moduli_generator.validators import validate_subprocess_args
 
@@ -36,24 +37,18 @@ class ModuliGenerator:
             created as needed.
     """
 
-    def __init__(self, conf=default_config):
-        """Initializes the ModuliGenerator with a configuration object.
-        
-        This configuration includes various paths and settings necessary for operation,
-        such as directories for modules, log files, and the MariaDB configuration. 
-        Also sets up a logger specifically configured for the application and logs 
-        the key paths in use.
-        
-        The class maintains an internal placeholder for the database instance, which
-        is not initialized until required.
-        
-        Args:
-            conf: Configuration object to initialize the instance. Contains paths 
-                and settings used for logging, database configurations, and other 
-                operational needs. Defaults to default_config.
+    def __init__(self, config: ModuliConfig = default_config) -> "ModuliGenerator":
         """
-        self.config = conf
-        self.version = conf.version
+        Class responsible for managing moduli configuration and related utilities. Handles
+        logging configuration paths and supports lazy database initialization to optimize
+        resource usage. Leverages the provided configuration to set up essential properties
+        and integrate logging behavior.
+
+        Args:
+            config (ModuliConfig): Configuration instance that contains moduli settings and utilities.
+        """
+        self.config = config
+        self.version = config.version
         self.logger = self.config.get_logger()
         self.logger.name = __name__
 
@@ -72,7 +67,7 @@ class ModuliGenerator:
         self._db = None
 
     @property
-    def db(self):
+    def db(self) -> MariaDBConnector:
         """Lazy initialization of the database connection property.
         
         This property ensures that the database connection is initialized only once,
@@ -86,7 +81,7 @@ class ModuliGenerator:
         return self._db
 
     @property
-    def __version__(self):
+    def __version__(self) -> str:
         """
         Represents the version property of a class that retrieves
                 the version information of the instance.
@@ -100,11 +95,12 @@ class ModuliGenerator:
         return self.version
 
     @staticmethod
-    def _run_subprocess_with_logging(command,
-                                     logger,
-                                     info_level=INFO,
-                                     debug_level=DEBUG
-                                     ) -> subprocess.CompletedProcess:
+    def _run_subprocess_with_logging(
+        command: str,
+        logger: logging.Logger,
+        info_level: int = INFO,
+        debug_level: int = DEBUG,
+    ) -> subprocess.CompletedProcess:
         """
         Executes a subprocess command with real-time logging for both `stdout` and `stderr`. This method
                 handles the logging of subprocess output streams directly as they are produced and employs a
@@ -190,7 +186,7 @@ class ModuliGenerator:
             raise subprocess.CalledProcessError(1, command) from e
 
     @staticmethod
-    def _generate_candidates_static(config, key_length: int) -> Path:
+    def _generate_candidates_static(config: ModuliConfig, key_length: int) -> Path:
         """
         Generate a moduli candidate file using the SSH key generation utility.
 
@@ -232,7 +228,7 @@ class ModuliGenerator:
         return candidates_file
 
     @staticmethod
-    def _screen_candidates_static(config, candidates_file: Path) -> Path:
+    def _screen_candidates_static(config: ModuliConfig, candidates_file: Path) -> Path:
         """
         Screen candidate moduli files using the provided configuration and the `ssh-keygen` tool.
                 This method takes a configuration object and a path to a candidate moduli file and processes
@@ -454,8 +450,6 @@ class ModuliGenerator:
             ModuliGenerator: self
         """
         screened_moduli = self._parse_moduli_files()
-
-        # tbd - Verify Successful DB Load prior to Deletion
         try:
             self.db.export_screened_moduli(screened_moduli)
 
@@ -464,7 +458,6 @@ class ModuliGenerator:
             if len(moduli_files) and not self.config.preserve_moduli_after_dbstore:
                 for file in moduli_files:
                     file.unlink()
-
         except Error as err:
             self.logger.error(f'Error storing moduli: {err}')
 

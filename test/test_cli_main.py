@@ -17,9 +17,9 @@ class TestCLIMain:
     """Test cases for the CLI main function."""
 
     @pytest.mark.unit
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('moduli_generator.cli.arg_parser')
-    @patch('moduli_generator.cli.iso_utc_time')
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("moduli_generator.cli.arg_parser")
+    @patch("moduli_generator.cli.iso_utc_time_notzinfo")
     def test_main_success_with_default_config(self, mock_iso_utc_time, mock_arg_parser, mock_moduli_generator):
         """Test main function success with default configuration."""
         # Setup mocks
@@ -29,7 +29,7 @@ class TestCLIMain:
         mock_config.key_lengths = [4096, 8192]
         mock_arg_parser.local_config.return_value = mock_config
 
-        # Mock iso_utc_time for timing
+        # Mock iso_utc_time_notzinfo for timing
         start_time = datetime(2024, 1, 1, 12, 0, 0)
         end_time = datetime(2024, 1, 1, 12, 0, 30)  # 30 seconds later
         mock_iso_utc_time.side_effect = [start_time, end_time]
@@ -54,8 +54,8 @@ class TestCLIMain:
         mock_logger.info.assert_any_call('Moduli Generation Complete')
 
     @pytest.mark.unit
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('moduli_generator.cli.iso_utc_time')
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("moduli_generator.cli.iso_utc_time_notzinfo")
     def test_main_success_with_provided_config(self, mock_iso_utc_time, mock_moduli_generator):
         """Test main function success with provided configuration."""
         # Setup mocks
@@ -64,7 +64,7 @@ class TestCLIMain:
         mock_config.get_logger.return_value = mock_logger
         mock_config.key_lengths = [3072]
 
-        # Mock iso_utc_time for timing
+        # Mock iso_utc_time_notzinfo for timing
         start_time = datetime(2024, 1, 1, 12, 0, 0)
         end_time = datetime(2024, 1, 1, 12, 1, 0)  # 60 seconds later
         mock_iso_utc_time.side_effect = [start_time, end_time]
@@ -189,9 +189,9 @@ class TestCLILoggingAndTiming:
     """Test cases for CLI logging and timing functionality."""
 
     @pytest.mark.unit
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('moduli_generator.cli.arg_parser')
-    @patch('moduli_generator.cli.iso_utc_time')
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("moduli_generator.cli.arg_parser")
+    @patch("moduli_generator.cli.iso_utc_time_notzinfo")
     def test_main_timing_and_logging(self, mock_iso_utc_time, mock_arg_parser, mock_moduli_generator):
         """Test main function timing and logging functionality."""
         # Setup mocks
@@ -363,9 +363,9 @@ class TestCLIIntegrationScenarios:
     """Test cases for CLI integration scenarios."""
 
     @pytest.mark.integration
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('moduli_generator.cli.arg_parser')
-    @patch('moduli_generator.cli.iso_utc_time')
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("moduli_generator.cli.arg_parser")
+    @patch("moduli_generator.cli.iso_utc_time_notzinfo")
     def test_complete_workflow_integration(self, mock_iso_utc_time, mock_arg_parser, mock_moduli_generator):
         """Test complete CLI workflow integration."""
         # Setup comprehensive mocks
