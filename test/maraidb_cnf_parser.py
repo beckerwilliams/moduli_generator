@@ -9,8 +9,12 @@ def get_mysql_config_value(config, section: str, key: str, default: Any = None) 
     if config is None:
         raise TypeError("config cannot be None")
 
-    if not isinstance(config, (configparser.ConfigParser, configparser.RawConfigParser, dict)):
-        raise TypeError(f"config must be ConfigParser, RawConfigParser, or dict, got {type(config).__name__}")
+    if not isinstance(
+        config, (configparser.ConfigParser, configparser.RawConfigParser, dict)
+    ):
+        raise TypeError(
+            f"config must be ConfigParser, RawConfigParser, or dict, got {type(config).__name__}"
+        )
 
     if not isinstance(section, str):
         raise TypeError(f"section must be string, got {type(section).__name__}")
@@ -20,7 +24,7 @@ def get_mysql_config_value(config, section: str, key: str, default: Any = None) 
 
     try:
         # Handle both ConfigParser objects and dicts
-        if hasattr(config, 'sections'):
+        if hasattr(config, "sections"):
             # It's a ConfigParser object
             if section in config and key in config[section]:
                 value = config[section][key]
@@ -39,26 +43,26 @@ def parse_mysql_config(config_path: Union[str, Path]) -> configparser.ConfigPars
     """Parse MySQL/MariaDB configuration file with proper error handling."""
 
     # Handle file-like objects
-    if hasattr(config_path, 'read'):
+    if hasattr(config_path, "read"):
         try:
             # Read the content and process inline comments manually
             content = config_path.read()
-            if hasattr(config_path, 'seek'):
+            if hasattr(config_path, "seek"):
                 config_path.seek(0)  # Reset file pointer
 
             # Process inline comments manually - this is the key fix
             processed_lines = []
-            for line in content.split('\n'):
+            for line in content.split("\n"):
                 # Handle inline comments properly
-                if '#' in line and not line.strip().startswith('#'):
+                if "#" in line and not line.strip().startswith("#"):
                     # Find the position of # that's not at the start of the line
-                    comment_pos = line.find('#')
+                    comment_pos = line.find("#")
                     # Only strip if there's actual content before the #
                     if comment_pos > 0 and line[:comment_pos].strip():
                         line = line[:comment_pos].rstrip()
                 processed_lines.append(line)
 
-            processed_content = '\n'.join(processed_lines)
+            processed_content = "\n".join(processed_lines)
 
             config = configparser.ConfigParser(allow_no_value=True)
             config.read_string(processed_content)
@@ -82,17 +86,17 @@ def parse_mysql_config(config_path: Union[str, Path]) -> configparser.ConfigPars
 
         # Process inline comments manually - this is the key fix
         processed_lines = []
-        for line in content.split('\n'):
+        for line in content.split("\n"):
             # Handle inline comments properly
-            if '#' in line and not line.strip().startswith('#'):
+            if "#" in line and not line.strip().startswith("#"):
                 # Find the position of # that's not at the start of the line
-                comment_pos = line.find('#')
+                comment_pos = line.find("#")
                 # Only strip if there's actual content before the #
                 if comment_pos > 0 and line[:comment_pos].strip():
                     line = line[:comment_pos].rstrip()
             processed_lines.append(line)
 
-        processed_content = '\n'.join(processed_lines)
+        processed_content = "\n".join(processed_lines)
 
         config = configparser.ConfigParser(allow_no_value=True)
         config.read_string(processed_content)
@@ -114,30 +118,30 @@ def _parse_config_with_duplicate_sections(file_path: Path) -> configparser.Confi
         sections = {}
         current_section = None
 
-        for line_num, line in enumerate(content.split('\n'), 1):
+        for line_num, line in enumerate(content.split("\n"), 1):
             original_line = line
             line = line.strip()
 
             # Skip empty lines and comments
-            if not line or line.startswith('#'):
+            if not line or line.startswith("#"):
                 continue
 
             # Handle section headers
-            if line.startswith('[') and line.endswith(']'):
+            if line.startswith("[") and line.endswith("]"):
                 current_section = line[1:-1]
                 if current_section not in sections:
                     sections[current_section] = {}
                 continue
 
             # Handle key-value pairs
-            if current_section and '=' in line:
+            if current_section and "=" in line:
                 # Handle inline comments properly
-                if '#' in line and not line.startswith('#'):
-                    comment_pos = line.find('#')
+                if "#" in line and not line.startswith("#"):
+                    comment_pos = line.find("#")
                     if comment_pos > 0:
                         line = line[:comment_pos].rstrip()
 
-                key, value = line.split('=', 1)
+                key, value = line.split("=", 1)
                 key = key.strip()
                 value = value.strip()
                 sections[current_section][key] = value

@@ -22,29 +22,31 @@ def main(config: ModuliConfig = None):
 
     logger = config.get_logger()
     logger.name = __name__
-    logger.debug(f'Using default config: {config}')
+    logger.debug(f"Using default config: {config}")
 
     # Generate, Screen, Store, and Write Moduli File
     start_time = iso_utc_time_notzinfo()
     logger.info(
-        f'Starting Moduli Generation at {start_time.isoformat()}, with {config.key_lengths} as moduli key-lengths')
+        f"Starting Moduli Generation at {start_time.isoformat()}, with {config.key_lengths} as moduli key-lengths"
+    )
 
     # The Invocation
     try:
-        (ModuliGenerator(config)
-         .write_moduli_file())
+        (ModuliGenerator(config).write_moduli_file())
 
     except ValueError as err:
-        logger.error(f'Moduli Generation Failed: {err}')
+        logger.error(f"Moduli Generation Failed: {err}")
         return 1
     except Exception as err:
-        logger.error(f'Moduli Generation Failed: {err}')
+        logger.error(f"Moduli Generation Failed: {err}")
         return 2
     else:
         # Stats and Cleanup
         end_time = iso_utc_time_notzinfo()
         duration = (end_time - start_time).total_seconds()
-        logger.info(f'Moduli Generation Complete @{end_time.isoformat()}: Seconds: {int(duration)}')
+        logger.info(
+            f"Moduli Generation Complete @{end_time.isoformat()}: Seconds: {int(duration)}"
+        )
         return 0
 
 

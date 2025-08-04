@@ -1,4 +1,4 @@
-# Moduli Generator
+# `Moduli Generator`
 
 Welcome to the Moduli Generator documentation!
 
@@ -15,35 +15,47 @@ key exchange process to provide secure communication channels.
 - Performance optimization and testing capabilities
 - Comprehensive configuration management
 
-## Quick Start
+## Quick Start*
 
-To get started with Moduli Generator:
+```bash
+moduli_generator &
+```
 
-1. Install the package:
-   ```bash
-   pip install moduli_generator
-   ```
+### What does it do?
 
-2. Run the basic command:
-   ```bash
-   moduli_generator --help
-   ```
+- Produces /etc/ssh/moduli
+    - `20` unique moduli for each of key lengths `3071`, `4095`, `6143`, and `8191`
+    - `100` unique moduli per file
 
-`moduli_generator` home directory
+\* _assumes_ `Moduli Generator`'s `database schema` _and_ `user profile` _have been previously installed and
+configured._
 
-   ```bash
-   moduli_home                 default: ${HOME}/.moduli_generator
-   - moduli_generator.cnf      moduli_generator user profile, default: "moduli_generator.cnf"
-   - .logs                     log directory, permanent
-       - moduli_generator.log  runtime log, default: "moduli_home/.logs/moduli_generator.log"
-   - .candidates               Internal generated candidate moduli, Transient
-   - .moduli                   Internal Screened and Tested Moduli, Transient
-   ```
+## Moduli Generator Home (Default) Directory
+
+### `MODULI_GENRATOR_HOME = ${HOME}/.moduli_generator`
+
+- Linux: `${HOME}/.moduli_generator`
+- MacOS: `${HOME}/.moduli_generator`
+- _Windows_: `not_supported`
+
+## Moduli Generator Database Profile
+
+- All O/S: `${MODULI_HOME}/moduli_generator.cnf`
+
+## Moduli Generator Runtime Logfile
+
+- Runtime Log: `${MODULI_HOME}/.logs/moduli_generator.log`
+
+## SSH2 Moduli Files:
+
+- `${MODULI_HOME}/ssh2-moduli_<timestamp>`
 
 The internal directories `.candidates` and `.moduli` are the locations for the working storage of
 `ssh-keygen -m generate` and `ssh-keygen -m screen`.
 
 ## Documentation Structure
+
+# tbd - Refactor when balance complete
 
 - **[About](about.md)** - Learn more about the project and its purpose
 - **[Analysis](moduli_generator_analysis_and_improvements.md)** - Technical analysis and improvements

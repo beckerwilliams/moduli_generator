@@ -5,12 +5,12 @@ This module tests the basic database configuration parsing functions
 without complex MariaDBConnector mocking.
 """
 
-import pytest
-from unittest.mock import patch, mock_open
 from pathlib import Path
-import configparser
+from unittest.mock import mock_open, patch
 
-from db import parse_mysql_config, get_mysql_config_value
+import pytest
+
+from db import get_mysql_config_value, parse_mysql_config
 
 
 class TestDatabaseConfigParsing:
@@ -37,7 +37,7 @@ quick
 max_allowed_packet = 16M
 """
 
-        with patch('builtins.open', mock_open(read_data=config_content)):
+        with patch("builtins.open", mock_open(read_data=config_content)):
             result = parse_mysql_config(Path("/test/my.cnf"))
 
         # Verify the structure
@@ -64,7 +64,7 @@ max_allowed_packet = 16M
     @pytest.mark.integration
     def test_parse_mysql_config_file_not_found(self):
         """Test parsing when configuration file doesn't exist."""
-        with patch('builtins.open', side_effect=FileNotFoundError("File not found")):
+        with patch("builtins.open", side_effect=FileNotFoundError("File not found")):
             result = parse_mysql_config(Path("/nonexistent/my.cnf"))
 
         assert result == {}
@@ -72,7 +72,7 @@ max_allowed_packet = 16M
     @pytest.mark.integration
     def test_parse_mysql_config_permission_error(self):
         """Test parsing when configuration file has permission issues."""
-        with patch('builtins.open', side_effect=PermissionError("Permission denied")):
+        with patch("builtins.open", side_effect=PermissionError("Permission denied")):
             result = parse_mysql_config(Path("/restricted/my.cnf"))
 
         assert result == {}
@@ -95,7 +95,7 @@ host = localhost
 port = 3307
 """
 
-        with patch('builtins.open', mock_open(read_data=config_content)):
+        with patch("builtins.open", mock_open(read_data=config_content)):
             result = parse_mysql_config(Path("/test/my.cnf"))
 
         assert result["client"]["user"] == "testuser"
@@ -114,7 +114,7 @@ invalid line without equals
 port = 3307
 """
 
-        with patch('builtins.open', mock_open(read_data=malformed_content)):
+        with patch("builtins.open", mock_open(read_data=malformed_content)):
             # Should raise ValueError on parsing error
             with pytest.raises(ValueError, match="Error parsing configuration file"):
                 parse_mysql_config(Path("/test/malformed.cnf"))
@@ -122,7 +122,7 @@ port = 3307
     @pytest.mark.integration
     def test_parse_mysql_config_empty_file(self):
         """Test parsing empty configuration file."""
-        with patch('builtins.open', mock_open(read_data="")):
+        with patch("builtins.open", mock_open(read_data="")):
             result = parse_mysql_config(Path("/test/empty.cnf"))
 
         assert result == {}
@@ -136,7 +136,7 @@ port = 3307
 [mysqldump]
 """
 
-        with patch('builtins.open', mock_open(read_data=config_content)):
+        with patch("builtins.open", mock_open(read_data=config_content)):
             result = parse_mysql_config(Path("/test/sections_only.cnf"))
 
         assert "client" in result
@@ -158,12 +158,9 @@ class TestGetMySQLConfigValue:
                 "user": "testuser",
                 "password": "testpass",
                 "host": "localhost",
-                "port": "3306"
+                "port": "3306",
             },
-            "mysqld": {
-                "port": "3307",
-                "bind-address": "127.0.0.1"
-            }
+            "mysqld": {"port": "3307", "bind-address": "127.0.0.1"},
         }
 
         # Test client section values
@@ -179,33 +176,29 @@ class TestGetMySQLConfigValue:
     @pytest.mark.integration
     def test_get_nonexistent_key(self):
         """Test getting a non-existent configuration key."""
-        config = {
-            "client": {
-                "user": "testuser",
-                "password": "testpass"
-            }
-        }
+        config = {"client": {"user": "testuser", "password": "testpass"}}
 
         # Test non-existent key in existing section
         assert get_mysql_config_value(config, "client", "nonexistent") is None
 
         # Test with default value
-        assert get_mysql_config_value(config, "client", "nonexistent", "default") == "default"
+        assert (
+            get_mysql_config_value(config, "client", "nonexistent", "default")
+            == "default"
+        )
 
     @pytest.mark.integration
     def test_get_value_from_nonexistent_section(self):
         """Test getting value from non-existent section."""
-        config = {
-            "client": {
-                "user": "testuser"
-            }
-        }
+        config = {"client": {"user": "testuser"}}
 
         # Test non-existent section
         assert get_mysql_config_value(config, "nonexistent", "key") is None
 
         # Test with default value
-        assert get_mysql_config_value(config, "nonexistent", "key", "default") == "default"
+        assert (
+            get_mysql_config_value(config, "nonexistent", "key", "default") == "default"
+        )
 
     @pytest.mark.integration
     def test_get_value_from_empty_config(self):
@@ -221,11 +214,20 @@ class TestGetMySQLConfigValue:
         config = {"client": {"user": "testuser"}}
 
         # Test different default types
-        assert get_mysql_config_value(config, "client", "missing", "string_default") == "string_default"
+        assert (
+            get_mysql_config_value(config, "client", "missing", "string_default")
+            == "string_default"
+        )
         assert get_mysql_config_value(config, "client", "missing", 123) == 123
         assert get_mysql_config_value(config, "client", "missing", True) is True
-        assert get_mysql_config_value(config, "client", "missing", [1, 2, 3]) == [1, 2, 3]
-        assert get_mysql_config_value(config, "client", "missing", {"key": "value"}) == {"key": "value"}
+        assert get_mysql_config_value(config, "client", "missing", [1, 2, 3]) == [
+            1,
+            2,
+            3,
+        ]
+        assert get_mysql_config_value(
+            config, "client", "missing", {"key": "value"}
+        ) == {"key": "value"}
 
     @pytest.mark.integration
     def test_get_value_case_sensitivity(self):
@@ -235,7 +237,7 @@ class TestGetMySQLConfigValue:
                 "User": "testuser",
                 "user": "lowercase_user",
                 "PASSWORD": "uppercase_pass",
-                "password": "lowercase_pass"
+                "password": "lowercase_pass",
             }
         }
 
@@ -252,12 +254,7 @@ class TestGetMySQLConfigValue:
     @pytest.mark.integration
     def test_get_value_with_none_values(self):
         """Test getting configuration values that are None."""
-        config = {
-            "client": {
-                "user": None,
-                "password": "testpass"
-            }
-        }
+        config = {"client": {"user": None, "password": "testpass"}}
 
         # None values should be returned as-is
         assert get_mysql_config_value(config, "client", "user") is None
@@ -269,12 +266,7 @@ class TestGetMySQLConfigValue:
     @pytest.mark.integration
     def test_get_value_with_empty_string_values(self):
         """Test getting configuration values that are empty strings."""
-        config = {
-            "client": {
-                "user": "",
-                "password": "testpass"
-            }
-        }
+        config = {"client": {"user": "", "password": "testpass"}}
 
         # Empty strings should be returned as-is
         assert get_mysql_config_value(config, "client", "user") == ""
@@ -303,7 +295,7 @@ bind-address = 0.0.0.0
 max_connections = 100
 """
 
-        with patch('builtins.open', mock_open(read_data=config_content)):
+        with patch("builtins.open", mock_open(read_data=config_content)):
             # Parse the configuration
             config = parse_mysql_config(Path("/etc/mysql/my.cnf"))
 
@@ -315,7 +307,9 @@ max_connections = 100
 
             server_port = get_mysql_config_value(config, "mysqld", "port")
             bind_address = get_mysql_config_value(config, "mysqld", "bind-address")
-            max_connections = get_mysql_config_value(config, "mysqld", "max_connections")
+            max_connections = get_mysql_config_value(
+                config, "mysqld", "max_connections"
+            )
 
             # Verify all values
             assert db_user == "production_user"
@@ -337,12 +331,14 @@ host = localhost
 # port is missing
 """
 
-        with patch('builtins.open', mock_open(read_data=config_content)):
+        with patch("builtins.open", mock_open(read_data=config_content)):
             config = parse_mysql_config(Path("/test/partial.cnf"))
 
             # Get values with defaults
             user = get_mysql_config_value(config, "client", "user", "default_user")
-            password = get_mysql_config_value(config, "client", "password", "default_password")
+            password = get_mysql_config_value(
+                config, "client", "password", "default_password"
+            )
             host = get_mysql_config_value(config, "client", "host", "localhost")
             port = get_mysql_config_value(config, "client", "port", "3306")
 
@@ -356,12 +352,14 @@ host = localhost
     def test_error_handling_workflow(self):
         """Test error handling in the complete workflow."""
         # Test with non-existent file
-        with patch('builtins.open', side_effect=FileNotFoundError()):
+        with patch("builtins.open", side_effect=FileNotFoundError()):
             config = parse_mysql_config(Path("/nonexistent/my.cnf"))
 
             # Should handle gracefully with defaults
             user = get_mysql_config_value(config, "client", "user", "fallback_user")
-            password = get_mysql_config_value(config, "client", "password", "fallback_password")
+            password = get_mysql_config_value(
+                config, "client", "password", "fallback_password"
+            )
 
             assert user == "fallback_user"
             assert password == "fallback_password"

@@ -117,7 +117,7 @@ def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
                 # Check if it's a directory
                 if mysql_cnf.is_dir():
                     raise ValueError(
-                        f"Error parsing configuration file: [Errno 21] Is a directory: '{mysql_cnf}'"
+                        f"Error parsing configuration file: [Errno 21] Is a directory: {mysql_cnf}"
                     )
 
                 # Check if the file is empty
@@ -228,7 +228,7 @@ class MariaDBConnector:
         config_id (str): Identifier for the configuration.
         key_lengths (List[int]): List of key lengths for operations.
         records_per_keylength (int): Number of records per key length.
-        delete_records_on_moduli_write (bool): Determines if records should be deleted after moduli write.
+        delete_records_on_moduli_write (bool): Determines if records should be deleted after writing the moduli file.
         delete_records_on_read (bool): Determines if records should be deleted after reading.
     """
 
@@ -239,7 +239,7 @@ class MariaDBConnector:
                 within the context.
 
         Returns:
-            The same type as the class implementing this method.: The object or resource that should be used within the managed             context.
+            The MariaDBConnector object itself.
         """
         return self
 
@@ -293,7 +293,8 @@ class MariaDBConnector:
                 transaction is properly committed or rolled back and manages logging for the process.
 
         Args:
-            connection (Optional): Optional existing connection to be used in the transaction. If not             provided, a new connection will be retrieved from the connection pool.
+            connection (Optional): Optional existing connection to be used in the transaction. If not
+                            provided, a new connection will be retrieved from the connection pool.
 
         Returns:
             ContextManager: Yields the database connection within the transaction context.
@@ -351,7 +352,9 @@ class MariaDBConnector:
                 module using the provided logger in the configuration.
 
         Args:
-            config (ModuliConfig): Configuration object containing necessary properties for initialization                        such as MariaDB setup, table/view names, logging preferences, and other                        settings.
+            config (ModuliConfig): Configuration object containing necessary properties for initialization
+                                    such as MariaDB setup, table/view names, logging preferences, and other
+                                    settings.
 
         Raises:
             RuntimeError: If the connection pool creation fails due to database-related issues.
@@ -418,7 +421,7 @@ class MariaDBConnector:
             raise RuntimeError(f"Connection pool creation failed: {err}")
 
         # Validate DB Schema Prior to completion of object instantiation
-        # Skip schema verification if using mock objects or in test environment
+        # Skip schema verification if using mock objects or in the test environment
         try:
             is_test_env = (
                 hasattr(config, "__class__")
@@ -457,7 +460,7 @@ class MariaDBConnector:
             else:
                 if isinstance(err, NameError):
                     self.logger.error(
-                        f'view_name, {getattr(config, "view_name", "unknown")} not defined in `config`'
+                        f"view_name, {getattr(config, 'view_name', 'unknown')} not defined in `config`"
                     )
                 self.logger.warning(
                     f"Schema verification failed: {err}, but continuing initialization"
@@ -475,12 +478,14 @@ class MariaDBConnector:
                 for enhanced security against SQL injection.
 
         Args:
-            fetch (bool): A flag indicating whether to fetch and return query results             (True) or not (False). Defaults to True.
+            fetch (bool): A flag indicating whether to fetch and return query results
+            (True) or not (False). Defaults to True.
             params (Optional[tuple]): Optional tuple of parameters for the query, default is None.
             query (str): The SQL query to be executed.
 
         Returns:
-            Optional[List[Dict]]: A list of results as dictionaries if fetch is True, or None if             fetch is False.
+            Optional[List[Dict]]: A list of results as dictionaries if fetch is True, or None if
+                         fetch is False.
 
         Raises:
             RuntimeError: If an error occurs during query execution.
@@ -520,7 +525,8 @@ class MariaDBConnector:
                 from the database.
 
         Args:
-            params (Optional[tuple]): A tuple of optional parameters to use during query execution,             defaults to None.
+            params (Optional[tuple]): A tuple of optional parameters to use during query execution,
+                         defaults to None.
             query (str): The SQL query to be executed.
 
         Returns:
@@ -591,14 +597,16 @@ class MariaDBConnector:
                 have associated parameter tuples for execution.
 
         Args:
-            params_list (Optional[List[tuple]]): A list of tuples containing parameters to             correspond with each query. If provided, its length should not             exceed the length of the queries list. Defaults to None.
+            params_list (Optional[List[tuple]]): A list of tuples containing parameters to
+                         correspond with each query. If provided, its length should not
+                         exceed the length of the queries list. Defaults to None.
             queries (List[str]): A list of SQL query strings to be executed in a batch.
 
         Returns:
             bool: Boolean indicating whether the batch execution was successful.
 
         Raises:
-            RuntimeError: If any error occurs during the execution of             the batch queries.
+            RuntimeError: If any error occurs during the execution of the batch queries.
         """
         try:
             with self.get_connection() as connection:
@@ -711,10 +719,13 @@ class MariaDBConnector:
                 the error is logged, and the function returns False.
 
         Args:
-            records (List[tuple]): A list of tuples, where each tuple represents a record to             be inserted. Each record should contain the timestamp, key size, and             modulus values.
+            records (List[tuple]): A list of tuples, where each tuple represents a record to
+                         be inserted. Each record should contain the timestamp, key size, and
+                         modulus values.
 
         Returns:
-            bool: A boolean indicating whether the batch operation was successful.             Returns True if successful, False otherwise.
+            bool: A boolean indicating whether the batch operation was successful.
+            Returns True if successful, False otherwise.
         """
         if not (
             is_valid_identifier_sql(self.db_name)
@@ -754,7 +765,8 @@ class MariaDBConnector:
 
         Args:
             table_name (str): The name of the table from which records are to be deleted.
-            where_clause (str, optional): An optional SQL WHERE clause to specify the conditions             for the DELETE operation. Defaults to None.
+            where_clause (str, optional): An optional SQL WHERE clause to specify the conditions
+            for the DELETE operation. Defaults to None.
 
         Returns:
             int: The number of rows deleted from the table.
@@ -799,7 +811,8 @@ class MariaDBConnector:
             screened_moduli (dict): A dictionary containing moduli installers mapped to corresponding keys.
 
         Returns:
-            int: An integer indicating the status of the operation,                  where 0 indicates success and 1 indicates failure.
+            int: An integer indicating the status of the operation,
+            where 0 indicates success and 1 indicates failure.
         """
         with self.get_connection() as connection:
             with self.transaction(connection):
@@ -959,7 +972,7 @@ class MariaDBConnector:
                 raise RuntimeError("Invalid database name")
 
             # Build the SQL query that does all counting within the query
-            # table = f"{self.db_name}.moduli"
+            # table = f'{self.db_name}.moduli'
             table = ".".join((self.db_name, self.table_name))
             query = f"""
                 SELECT size, COUNT(*) as count
@@ -1048,7 +1061,7 @@ class MariaDBConnector:
 
             if not verification_results["database_exists"]:
                 verification_results["errors"].append(
-                    f"Database '{self.db_name}' does not exist"
+                    f"Database `{self.db_name}` does not exist"
                 )
                 return verification_results
 
@@ -1069,7 +1082,7 @@ class MariaDBConnector:
                 verification_results["tables"][table] = table_exists
                 if not table_exists:
                     verification_results["errors"].append(
-                        f"Table '{self.db_name}.{table}' does not exist"
+                        f"Table `{self.db_name}.{table}` does not exist"
                     )
 
             # Check views
@@ -1084,7 +1097,7 @@ class MariaDBConnector:
 
             if not verification_results["views"]["moduli_view"]:
                 verification_results["errors"].append(
-                    f"View '{self.db_name}.moduli_view' does not exist"
+                    f"View `{self.db_name}.moduli_view` does not exist"
                 )
 
             # Check indexes
@@ -1113,7 +1126,7 @@ class MariaDBConnector:
                 verification_results["indexes"][index_name] = index_exists
                 if not index_exists:
                     verification_results["warnings"].append(
-                        f"Index '{index_name}' on table '{table_name}' does not exist"
+                        f"Index `{index_name}` on table `{table_name}` does not exist"
                     )
 
             # Check foreign key constraints
@@ -1141,7 +1154,7 @@ class MariaDBConnector:
                 verification_results["foreign_keys"][fk_key] = fk_exists
                 if not fk_exists:
                     verification_results["errors"].append(
-                        f"Foreign key constraint '{fk_key}' does not exist"
+                        f"Foreign key constraint `{fk_key}` does not exist"
                     )
 
             # Check configuration data

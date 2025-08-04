@@ -27,32 +27,30 @@ def main(config: ModuliConfig = None):
 
     logger = config.get_logger()
     logger.name = __name__
-    logger.debug(f'Using default config: {config}')
+    logger.debug(f"Using default config: {config}")
 
     # Generate, Screen, Store, and Write Moduli File
     start_time = iso_utc_time_notzinfo()
     logger.info(
-        f'Starting Moduli Generation at {start_time.strftime("%Y-%m-%d %H:%M:%S")}, with {config.key_lengths} as moduli key-lengths')
+        f'Starting Moduli Generation at {start_time.strftime("%Y-%m-%d %H:%M:%S")}, with {config.key_lengths} as moduli key-lengths'
+    )
 
-    # The Invocation
+    # The Invocation - Generates Candidates and Screens for High Qualtiy Diffie Helman Group Exchane Moduli
     try:
-        (ModuliGenerator(config)
-         .generate_moduli()
-         .store_moduli()
-         .write_moduli_file())
+        (ModuliGenerator(config).generate_moduli().store_moduli().write_moduli_file())
 
     except ValueError as err:
-        logger.error(f'Moduli Generation Failed: {err}')
+        logger.error(f"Moduli Generation Failed: {err}")
         return 1
     except Exception as err:
-        logger.error(f'Moduli Generation Failed: {err}')
+        logger.error(f"Moduli Generation Failed: {err}")
         return 2
     else:
         # Stats and Cleanup
         end_time = iso_utc_time_notzinfo()
         duration = (end_time - start_time).total_seconds()
-        logger.info(f'Moduli Generation Complete. Time taken: {int(duration)} seconds')
-        logger.info('Moduli Generation Complete')
+        logger.info(f"Moduli Generation Complete. Time taken: {int(duration)} seconds")
+        logger.info("Moduli Generation Complete")
         return 0
 
 

@@ -25,22 +25,26 @@ def get_version() -> str:
             raise RuntimeError("pyproject.toml file not found in project root.")
 
         # Parse the TOML file
-        with open(pyproject_path, 'r') as f:
+        with open(pyproject_path, "r") as f:
             pyproject_data = toml.load(f)
 
         # First try to extract version from the [project] section (PEP 621 standard)
-        version = pyproject_data.get('project', {}).get('version')
+        version = pyproject_data.get("project", {}).get("version")
 
         # If not found, fall back to [tool.poetry] section for backward compatibility
         if not version:
-            version = pyproject_data.get('tool', {}).get('poetry', {}).get('version')
+            version = pyproject_data.get("tool", {}).get("poetry", {}).get("version")
 
         if not version:
-            raise RuntimeError("Version not found in pyproject.toml [project] or [tool.poetry] section.")
+            raise RuntimeError(
+                "Version not found in pyproject.toml [project] or [tool.poetry] section."
+            )
 
         return version
 
     except ImportError:
-        raise RuntimeError("toml package is required to read pyproject.toml. Please install it with: pip install toml")
+        raise RuntimeError(
+            "toml package is required to read pyproject.toml. Please install it with: pip install toml"
+        )
     except Exception as e:
         raise RuntimeError(f"Unable to read version from pyproject.toml: {str(e)}")

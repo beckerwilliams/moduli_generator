@@ -11,7 +11,11 @@ class TestModuliGeneratorShowStats(unittest.TestCase):
         # Create a mock database connector
         self.mock_db = MagicMock(spec=MariaDBConnector)
         self.mock_db.moduli_query_sizes = [1024, 2048, 4096]  # Add this attribute
-        self.mock_db.key_lengths = [1024, 2048, 4096]  # Make sure this is also available
+        self.mock_db.key_lengths = [
+            1024,
+            2048,
+            4096,
+        ]  # Make sure this is also available
         self.mock_db.db_name = "moduli_db_test"
         self.mock_db.view_name = "moduli_view"
         self.mock_db.logger = MagicMock()
@@ -19,7 +23,9 @@ class TestModuliGeneratorShowStats(unittest.TestCase):
         # Mock cursor and connection
         self.mock_cursor = MagicMock()
         self.mock_connection = MagicMock()
-        self.mock_connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+        self.mock_connection.cursor.return_value.__enter__.return_value = (
+            self.mock_cursor
+        )
         self.mock_db.connection = self.mock_connection
 
         # Mock the SQL method
@@ -44,7 +50,9 @@ class TestModuliGeneratorShowStats(unittest.TestCase):
         self.assertEqual(self.mock_cursor.execute.call_count, 3)
 
         # Verify that logger.info was called for each size
-        self.assertEqual(self.mock_db.logger.info.call_count, 4)  # 3 for sizes + 1 for final SQL
+        self.assertEqual(
+            self.mock_db.logger.info.call_count, 4
+        )  # 3 for sizes + 1 for final SQL
 
         # Verify SQL was called with the last query
         self.mock_db.sql.assert_called_once()
@@ -52,7 +60,9 @@ class TestModuliGeneratorShowStats(unittest.TestCase):
     def test_show_stats_db_error(self):
         """Test that stats handles database errors properly"""
         # Set up the mock cursor to raise an Error
-        self.mock_connection.cursor.return_value.__enter__.side_effect = Error("Test DB error")
+        self.mock_connection.cursor.return_value.__enter__.side_effect = Error(
+            "Test DB error"
+        )
 
         # Call the method and check for the expected exception
         with self.assertRaises(RuntimeError):
@@ -86,7 +96,11 @@ class TestModuliGeneratorShowStats(unittest.TestCase):
                             """
 
         # Verify execute was called with the correct query 3 times (once per size)
-        expected_calls = [call(expected_query, )] * 3
+        expected_calls = [
+            call(
+                expected_query,
+            )
+        ] * 3
         self.mock_cursor.execute.assert_has_calls(expected_calls)
 
         # Verify that SQL was called with the same query at the end

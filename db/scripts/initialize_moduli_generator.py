@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 from pathlib import PosixPath as Path
 from sys import exit
 
-from config import (DEFAULT_MARIADB_CNF, TEST_MARIADB, default_config)
+from config import DEFAULT_MARIADB_CNF, TEST_MARIADB, default_config
 from db.scripts.install_schema import InstallSchema
 from moduli_generator import ModuliGenerator
 
@@ -19,28 +19,28 @@ def arg_parser():
     Returns:
         argparse.Namespace: Parsed command-line arguments
     """
-    argparse = ArgumentParser(description='Install SSH Moduli Schema')
+    argparse = ArgumentParser(description="Install SSH Moduli Schema")
     argparse.add_argument(
-        '--moduli-home',
+        "--moduli-home",
         default=str(default_config.moduli_home),
-        help=f'Change the Base directory for moduli generation and storage: default {default_config.moduli_home}'
+        help=f"Change the Base directory for moduli generation and storage: default {default_config.moduli_home}",
     )
     argparse.add_argument(
-        '--mariadb-cnf',
+        "--mariadb-cnf",
         type=str,
         default=str(Path.home() / DEFAULT_MARIADB_CNF),
-        help='Path to MariaDB configuration file'
+        help="Path to MariaDB configuration file",
     )
     argparse.add_argument(
-        '--mariadb-name',
+        "--mariadb-name",
         type=str,
         default=TEST_MARIADB,
-        help='Name of the database to create and Initialize'
+        help="Name of the database to create and Initialize",
     )
     argparse.add_argument(
-        '--batch',
-        action='store_true',
-        help='Use batch execution mode for better performance'
+        "--batch",
+        action="store_true",
+        help="Use batch execution mode for better performance",
     )
     return argparse.parse_args()
 
@@ -68,14 +68,22 @@ def create_moduli_generator_home():
     if Path(args.mariadb_cnf).exists():
         """
         Copy  file from arguments to .moduli_generator base directory
-        Default Location for `moduli_generator.cnf` is user's Home Directory 
+        Default Location for `moduli_generator.cnf` is user's Home Directory
         """
         if not Path(generator.config.mariadb_cnf).exists():
-            Path(generator.config.mariadb_cnf).write_text(Path(args.mariadb_cnf).read_text())
+            Path(generator.config.mariadb_cnf).write_text(
+                Path(args.mariadb_cnf).read_text()
+            )
 
         # Now let's Initialize the MariaDB Database
-        installer = InstallSchema(generator.db,
-                                  generator.config.db_name if hasattr(generator.config, 'db_name') else 'moduli_db')
+        installer = InstallSchema(
+            generator.db,
+            (
+                generator.config.db_name
+                if hasattr(generator.config, "db_name")
+                else "moduli_db"
+            ),
+        )
         if args.batch:
             installer.install_schema_batch()
         else:

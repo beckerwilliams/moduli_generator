@@ -21,9 +21,9 @@ In the Moduli Generator pre-Install below, we'll
 - **MacOsX** - homebrew - `brew install mariadb@11.4`
 - **FreeBSD >=14.2** - portmaster - `portmaster databases/mariadb114-server`
 
-## Configure MariaDB
+## Configuring MariaDB for `Moduli Generator`
 
-#### Moduli Generator's User and DB
+### Moduli Generator's User and DB
 
 Moduli Generator will install its database schema into the MariaDB instance indicated by the _privileged_ user's
 configuration
@@ -33,12 +33,7 @@ file, `${CWD}/privileged_mariadb.cnf`
 
   `CREATE`, `CREATE USER`, and `WITH GRANT OPTION` on `*.*`
 
-_For simplicity_, just grant the privileged user the following:
-
-    GRANT ALL ON *.* TO <PRIVILEGED_USER_NAME> WITH GRANT;
-    FLUSH PRIVILEGES;
-
-**Privileged MariaDB User Profile**: `${cwd}/privileged_mariadb.cnf`
+**Privileged MariaDB User Profile (temporary/configuration only)**: `${cwd}/privileged_mariadb.cnf`
 
 ```priuileged_mariadb.cnf
 #
@@ -75,38 +70,51 @@ ssl                                 = true
 _**Replace**_ `<HOSTNAME>`, `<USERNAME>`, and `<PASSWORD>` above, with credentials as configured in your MariaDB
 Instance.
 
+____
+
 ## Install `Moduli Generator` Schema
 
-Pre-requisites:
+### Pre-requisites
 
 - Python Virtual Environment: ${cwd}/.venv
 - `moduli_generator` installed in virtual environment
+
+### Install
 
 Navigate to your chosen runtime directory (where .venv is installed): `${cwd}`
 At the command line, type
 
 ```bash
 source .venv/bin/activate
-install_schema --moduli-db-name moduli_db
+install_schema <privileged_mariadb.cnf> --moduli-db-name moduli_db
 ```
 
-Upon successful completion, you will observe be New MariaDB named `moduli_db`, having tables `moduli`, `mod-fl-consts`,
+Upon successful completion, you will observe a new MariaDB database named `moduli_db`, having tables `moduli`,
+`mod-fl-consts`,
 and
-`moduli_archive`, and a view named `moduli_view`. At which point, _**You're Live!**_
+`moduli_archive`, and a view named `moduli_view`. At which point, **You're Live!**
 
 ____
 
-## Configure `moduli_generator` User
+## Create `Moduli Generator` Application Owner
+
+### The `'moduli_generator'@'%'` user
 
 You can create the user manually, from a privileged account, with the following SQl:
 
-```mysql
 
+```mysql
+CREATE USER IF NOT EXISTS 'moduli_generator'@'%'
+IDENTIFIED BY '<MODULI_GENERATOR_PASSWORD>'
+WITH MAX_QUERIES_PER_HOUR 500
+MAX_CONNECTIONS_PER_HOUR 100
+MAX_UPDATES_PER_HOUR 200
+MAX_USER_CONNECTIONS 50;
+GRANT ALL PRIVILEGES ON 'moduli_db.*' TO 'moduli_generator'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
 ```
 
-## Configure MariaDB for Moduli Generator
-
-### The `'moduli_generator'@'%'` user
+Replace '<MODULI_GENERATOR_PASSWORD>' with your chosen `moduli_generator` user password.
 
 ### Pre-Requisites
 
@@ -118,29 +126,8 @@ MariaDB >=11.8.2
 python -m moduli_generator.scripts.install_schema
 ```
 
-or from the virtual environment
+or from the script
 
 ```bash
 install_schema
-```
-
-Assuming a MariaDB has been installed and is operational, we need to install moduli_generator's db schema and configure
-the user with ALL PRIVILEGES WITH GRANT on the moduli_generator db.
-
-1. Configure 'moduli_generator'@'%'
-
-## Install Schema
-
-`moduli_generator.scripts.install_schema` installs a schema in a database named `moduli_db` having three tables,
-`moduli`, `moduli_view`, and `mod_fl_consts`.
-
-The user `'moduli_generator'@'%'` is granted ALL PRIVILEGES on `'moduli_db'.'*'` with GRANT. No other access for this
-user should be allowed.
-
-install_schema privileged_mariadb.cnf --moduli-db-name test_moduli_db --batch
-
-## Command
-
-```bash
-poetry run install_schema
 ```

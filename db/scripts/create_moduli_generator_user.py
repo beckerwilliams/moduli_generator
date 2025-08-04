@@ -24,19 +24,19 @@ def argparse():
     return argparse.parse_args()
 
 
-def create_moduli_generator_user(mg_password: str = "<PASSWORD>"):
+def create_moduli_generator_user(moduli_generator_owner_pw: str = "<PASSWORD>"):
     """
     Generate SQL statements to create a moduli_generator database user with appropriate privileges.
 
     Args:
-        mg_password (str): Password for the moduli_generator user. Defaults to "<PASSWORD>".
+        moduli_generator_owner_pw (str): Password for the moduli_generator user. Defaults to "<PASSWORD>".
 
     Returns:
         list[str]: List of SQL statements to create user, grant privileges, and flush privileges.
     """
     return [
         "CREATE USER IF NOT EXISTS 'moduli_generator'@'%' "
-        + f"IDENTIFIED BY '{mg_password}' "
+        + f"IDENTIFIED BY '{moduli_generator_owner_pw}' "
         + "MAX_CONNECTIONS_PER_HOUR 100 "
         + "MAX_UPDATES_PER_HOUR 200 "
         + "MAX_USER_CONNECTIONS 50; ",

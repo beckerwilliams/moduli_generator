@@ -25,7 +25,10 @@ class TestModuliGeneratorShowStats:
         mock_db_connector.connection.cursor.assert_called_with(dictionary=True)
 
         # Verify that execute was called for each key size (5 sizes)
-        assert mock_db_connector.connection.cursor.return_value.__enter__.return_value.execute.call_count == 5
+        assert (
+            mock_db_connector.connection.cursor.return_value.__enter__.return_value.execute.call_count
+            == 5
+        )
 
         # Verify that logger.info was called for each size (5 for sizes)
         assert mock_db_connector.logger.info.call_count == 5
@@ -38,7 +41,9 @@ class TestModuliGeneratorShowStats:
     def test_show_stats_db_error(self, mock_db_connector):
         """Test that stats handle database errors properly."""
         # Set up the mock cursor to raise an Error
-        mock_db_connector.connection.cursor.return_value.__enter__.side_effect = Error("Test DB error")
+        mock_db_connector.connection.cursor.return_value.__enter__.side_effect = Error(
+            "Test DB error"
+        )
 
         # Call the method and check for the expected exception
         with pytest.raises(RuntimeError):
@@ -52,7 +57,9 @@ class TestModuliGeneratorShowStats:
     def test_show_stats_empty_result(self, mock_db_connector):
         """Test that stats handle empty results correctly."""
         # Set up the mock cursor to return empty count results
-        mock_cursor = mock_db_connector.connection.cursor.return_value.__enter__.return_value
+        mock_cursor = (
+            mock_db_connector.connection.cursor.return_value.__enter__.return_value
+        )
         mock_cursor.fetchone.return_value = {"COUNT(*)": 0}
 
         # Call the method
@@ -77,7 +84,9 @@ class TestModuliGeneratorShowStats:
                             """
 
         # Get the mock cursor
-        mock_cursor = mock_db_connector.connection.cursor.return_value.__enter__.return_value
+        mock_cursor = (
+            mock_db_connector.connection.cursor.return_value.__enter__.return_value
+        )
 
         # Verify execute was called with the correct query 5 times (once per size)
         expected_calls = [call(expected_query)] * 5
@@ -98,8 +107,12 @@ class TestModuliGeneratorShowStats:
         mock_db_connector.show_stats()
 
         # Verify that execute was called once for each key size (5)
-        mock_cursor = mock_db_connector.connection.cursor.return_value.__enter__.return_value
-        assert mock_cursor.execute.call_count == len(mock_db_connector.moduli_query_sizes)
+        mock_cursor = (
+            mock_db_connector.connection.cursor.return_value.__enter__.return_value
+        )
+        assert mock_cursor.execute.call_count == len(
+            mock_db_connector.moduli_query_sizes
+        )
 
     @pytest.mark.unit
     @pytest.mark.integration
@@ -138,7 +151,9 @@ class TestModuliGeneratorShowStats:
     def test_show_stats_various_count_results(self, mock_db_connector, count_result):
         """Test stats with various count results."""
         # Set up the mock cursor to return a specific count
-        mock_cursor = mock_db_connector.connection.cursor.return_value.__enter__.return_value
+        mock_cursor = (
+            mock_db_connector.connection.cursor.return_value.__enter__.return_value
+        )
         mock_cursor.fetchone.return_value = {"COUNT(*)": count_result}
 
         # Call the method
@@ -167,7 +182,9 @@ class TestModuliGeneratorShowStats:
     def test_show_stats_error_logging(self, mock_db_connector):
         """Test that stats log errors appropriately."""
         # Set up the mock to raise an error
-        mock_db_connector.connection.cursor.return_value.__enter__.side_effect = Error("Database connection failed")
+        mock_db_connector.connection.cursor.return_value.__enter__.side_effect = Error(
+            "Database connection failed"
+        )
 
         # Call the method and expect it to raise RuntimeError
         with pytest.raises(RuntimeError):

@@ -26,6 +26,30 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
+  font:
+    text: IBM Plex Sans
+    code: IBM Plex Mono
+    #
+    #    text: Roboto        # Font for body text
+    #    code: Roboto Mono   # Font for code blocks
+    #
+    #      text: Inter
+    #      code: JetBrains Mono
+    #
+    # Classic and readable
+#      text: Open Sans
+#      code: Source Code Pro
+#
+#    # Elegant and professional
+#      text: Lato
+#      code: Fira Code
+#
+#    # System fonts (no web fonts loaded)
+#      text: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, i
+#      code: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace
+
+
+
 
 extra_javascript:
   - javascript/readthedocs.js
@@ -33,24 +57,27 @@ extra_javascript:
 nav:
   - Home: index.md
   - QuickStart: readme.md
-  - API:
-      - ModuliGenerator: moduli_generator.md
-      - Config: config.md
-      - ArgParser: argparser.md
-      - DBConnector: db.md
-      - ChangeLog Generator: changelog_generator.md
+  - usage: usage.md
+  - api: api.md
   - About: about.md
-  - Usage: usage.md
-  - Documentation:
-      - Analysis: moduli_generator_analysis_and_improvements.md
-      - Improvements: project_improvement_recommendations.md
-      - Refactoring: REFACTORING_SUMMARY.md
-      - ChangeLog Configuration Guide: CHANGELOG_CONFIGURATION.md
-      - PyCharmConfigurationStatus: PYCHARM_CONFIGURATION_STATUS.md
-      - PyCharmDocstringFormatRecommendation: PYCHARM_DOCSTRING_FORMAT_RECOMMENDATION.md
-      - MkDocs Setup: PYCHARM_MKDOCS_SETUP.md
-  - License:
-      - license.md
+#  - API:
+#      - ModuliGenerator: moduli_generator.md
+#      - Config: config.md
+#      - ArgParser: argparser.md
+#      - DBConnector: db.md
+#      - ChangeLog Generator: changelog_generator.md
+#  - About: about.md
+#  - Usage: usage.md
+#  - Documentation:
+#      - Analysis: moduli_generator_analysis_and_improvements.md
+#      - Improvements: project_improvement_recommendations.md
+#      - Refactoring: REFACTORING_SUMMARY.md
+#      - ChangeLog Configuration Guide: CHANGELOG_CONFIGURATION.md
+#      - PyCharmConfigurationStatus: PYCHARM_CONFIGURATION_STATUS.md
+#      - PyCharmDocstringFormatRecommendation: PYCHARM_DOCSTRING_FORMAT_RECOMMENDATION.md
+#      - MkDocs Setup: PYCHARM_MKDOCS_SETUP.md
+#  - License:
+#      - license.md
 
 markdown_extensions:
   - admonition

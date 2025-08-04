@@ -1,6 +1,4 @@
-# Moduli Generator
-
-## QuickStart
+# `Moduli Generator` QuickStart
 
 A Python tool for generating SSH moduli files for secure communication.
 
@@ -11,8 +9,9 @@ formatted in an `ssh/moduli` file, containing 20 moduli per key lengths 3072, 40
 
 ## Features
 
-- Generate SSH moduli files with configurable parameters
-- Database integration using MariaDB for moduli storage
+- Runs to completion to produce sufficient moduli, twenty (20) moduli/key-length, for a complete /etc/ssh/moduli,
+  across key lengths `3072`, `4096`, `6144`, `7680`, `8192`
+- Database integration with MariaDB for moduli storage
 - Command-line interface for easy usage
 - Performance optimization and testing capabilities
 - Comprehensive configuration management
@@ -25,10 +24,7 @@ formatted in an `ssh/moduli` file, containing 20 moduli per key lengths 3072, 40
 
   Sequoia >=15.5
 
-
-- FreeBSD:
-
-  FreeBSD >=14.2
+- FreeBSD >14.2
 
 - Linux:
 
@@ -40,26 +36,25 @@ formatted in an `ssh/moduli` file, containing 20 moduli per key lengths 3072, 40
 
 #### O/S Installed Applications
 
-- openssh>=9.9p2
+- openssh>=9.9p2 (Provides `ssh-keygen`)
 
 #### Python
 
 - mariadb==1.1.13
 - configparser>=7.2.0
 - typing-extensions>=4.14.1,<5.0.0
-- mkdocstrings[python]>=0.30.0,<0.31.0,
-- black>=25.1.0,<26.0.0"
 
 ### Database
 
 #### MariaDB Version Requirement
 
-    mariadb >=11.8.2
+    mariadb >=11.4.0
 
 MariaDB is used as the supported replacement for MySql. MariaDB uses the same style of configuration file as does MySql.
 
-Access to the MariaDB Instance is controlled by user, `'moduli_generator'@'%'`. Moduli Generator provides the schema to
-creates the user, granting the user with `GRANT ALL PRIVILEGES on moduli_db.*`.
+Access to the MariaDB Instance is controlled by mariadb user, `'moduli_generator'@'%'`. Moduli Generator provides the
+schema to
+create and grant to the user `GRANT ALL PRIVILEGES on moduli_db.*`.
 
 ##### MariaDB Installation Guide
 
@@ -68,7 +63,7 @@ creates the user, granting the user with `GRANT ALL PRIVILEGES on moduli_db.*`.
 
 ____
 
-##### Preparing MariaDB for Moduli Generator
+### Preparing MariaDB for Moduli Generator
 
 [Preparing the MariaDB Instance](MARIADB.md)
 
@@ -78,7 +73,7 @@ ____
 - Prepare Credentials for chosen MariaDB Instance, both privileged and application owner
 - Install `Moduli Generator` SQL Schema
 - Create and Grant privileges to Application Owner `'moduli_generator'@'%'`
-- Test install to verify successful operation
+- Test installation to verify successful operation
 
 
 1. Create, activate, and update `python` virtual environment
@@ -112,10 +107,34 @@ source .venv/bin/activate
 
 _This will assure `moduli_generator`'s scripts are available in your $PATH_
 
-### Test initial install
+### Verify that `install_schema` is Available
+
+At the comand line, in your chosen directory, type:
+
+```bash
+install_schema -h
+```
+
+will yeild _if_ `moduli_generator is properly installed`
+
+```bash
+usage: install_schema [-h] [--batch] [--moduli-db-name MODULI_DB_NAME] mariadb_cnf
+
+Install SSH Moduli Schema
+
+positional arguments:
+  mariadb_cnf           Path to MariaDB configuration file
+
+options:
+  -h, --help            show this help message and exit
+  --batch               Use batch execution mode for better performance
+  --moduli-db-name MODULI_DB_NAME
+                        Name of the database to create
 
 ```
 
+```bash
+install_schema privileged_mariadb.cnf --moduli-db-name test_moduli_db --batch
 ```
 
 ### Install `moduli_generator` SQL Schema

@@ -6,11 +6,15 @@ input handling for the moduli generator, particularly focusing on preventing
 command injection attacks.
 """
 
-import pytest
 from unittest.mock import patch
 
+import pytest
+
 # Import the validation functions from the production module
-from moduli_generator.validators import validate_integer_parameters, validate_subprocess_args
+from moduli_generator.validators import (
+    validate_integer_parameters,
+    validate_subprocess_args,
+)
 
 
 class TestValidateIntegerParameters:
@@ -77,7 +81,9 @@ class TestValidateIntegerParameters:
     @pytest.mark.security
     def test_invalid_key_length_not_numeric(self):
         """Test validation fails for non-numeric key length."""
-        with pytest.raises(ValueError, match="key_length must be convertible to integer"):
+        with pytest.raises(
+            ValueError, match="key_length must be convertible to integer"
+        ):
             validate_integer_parameters("not_a_number", 10)
 
     @pytest.mark.unit
@@ -91,21 +97,27 @@ class TestValidateIntegerParameters:
     @pytest.mark.security
     def test_invalid_nice_value_too_high(self):
         """Test validation fails for nice value too high."""
-        with pytest.raises(ValueError, match="nice_value 25 must be between -20 and 19"):
+        with pytest.raises(
+            ValueError, match="nice_value 25 must be between -20 and 19"
+        ):
             validate_integer_parameters(4096, 25)
 
     @pytest.mark.unit
     @pytest.mark.security
     def test_invalid_nice_value_too_low(self):
         """Test validation fails for nice value too low."""
-        with pytest.raises(ValueError, match="nice_value -25 must be between -20 and 19"):
+        with pytest.raises(
+            ValueError, match="nice_value -25 must be between -20 and 19"
+        ):
             validate_integer_parameters(4096, -25)
 
     @pytest.mark.unit
     @pytest.mark.security
     def test_invalid_nice_value_not_numeric(self):
         """Test validation fails for non-numeric nice value."""
-        with pytest.raises(ValueError, match="nice_value must be convertible to integer"):
+        with pytest.raises(
+            ValueError, match="nice_value must be convertible to integer"
+        ):
             validate_integer_parameters(4096, "invalid")
 
     @pytest.mark.unit
@@ -117,14 +129,19 @@ class TestValidateIntegerParameters:
 
     @pytest.mark.unit
     @pytest.mark.security
-    @pytest.mark.parametrize("key_length,nice_value,expected_key,expected_nice", [
-        (4096, 10, 4096, 10),
-        ("4096", "15", 4096, 15),
-        (3072, -5, 3072, -5),
-        (8192, 0, 8192, 0),
-        ("7168", "-10", 7168, -10),
-    ])
-    def test_valid_parameter_combinations(self, key_length, nice_value, expected_key, expected_nice):
+    @pytest.mark.parametrize(
+        "key_length,nice_value,expected_key,expected_nice",
+        [
+            (4096, 10, 4096, 10),
+            ("4096", "15", 4096, 15),
+            (3072, -5, 3072, -5),
+            (8192, 0, 8192, 0),
+            ("7168", "-10", 7168, -10),
+        ],
+    )
+    def test_valid_parameter_combinations(
+        self, key_length, nice_value, expected_key, expected_nice
+    ):
         """Test various valid parameter combinations."""
         result_key, result_nice = validate_integer_parameters(key_length, nice_value)
         assert result_key == expected_key
@@ -151,14 +168,18 @@ class TestValidateSubprocessArgs:
     @pytest.mark.security
     def test_subprocess_args_none_key_length(self):
         """Test subprocess validation fails when key_length is None."""
-        with pytest.raises(ValueError, match="key_length is required for subprocess validation"):
+        with pytest.raises(
+            ValueError, match="key_length is required for subprocess validation"
+        ):
             validate_subprocess_args(None, 10)
 
     @pytest.mark.unit
     @pytest.mark.security
     def test_subprocess_args_none_nice_value(self):
         """Test subprocess validation fails when nice_value is None."""
-        with pytest.raises(ValueError, match="nice_value is required for subprocess validation"):
+        with pytest.raises(
+            ValueError, match="nice_value is required for subprocess validation"
+        ):
             validate_subprocess_args(4096, None)
 
     @pytest.mark.unit
@@ -170,7 +191,9 @@ class TestValidateSubprocessArgs:
             validate_subprocess_args(256, 10)
 
         # Test invalid nice value
-        with pytest.raises(ValueError, match="nice_value 25 must be between -20 and 19"):
+        with pytest.raises(
+            ValueError, match="nice_value 25 must be between -20 and 19"
+        ):
             validate_subprocess_args(4096, 25)
 
     @pytest.mark.unit
@@ -185,19 +208,25 @@ class TestValidateSubprocessArgs:
 
         # Verify they match expected patterns
         import re
-        assert re.match(r'^\d+$', safe_key)
-        assert re.match(r'^-?\d+$', safe_nice)
+
+        assert re.match(r"^\d+$", safe_key)
+        assert re.match(r"^-?\d+$", safe_nice)
 
     @pytest.mark.unit
     @pytest.mark.security
-    @pytest.mark.parametrize("key_length,nice_value,expected_key,expected_nice", [
-        (4096, 10, "4096", "10"),
-        (4096, -5, "4096", "-5"),
-        ("3072", "0", "3072", "0"),
-        (8192, 19, "8192", "19"),
-        ("7168", "-20", "7168", "-20"),
-    ])
-    def test_subprocess_args_parameter_combinations(self, key_length, nice_value, expected_key, expected_nice):
+    @pytest.mark.parametrize(
+        "key_length,nice_value,expected_key,expected_nice",
+        [
+            (4096, 10, "4096", "10"),
+            (4096, -5, "4096", "-5"),
+            ("3072", "0", "3072", "0"),
+            (8192, 19, "8192", "19"),
+            ("7168", "-20", "7168", "-20"),
+        ],
+    )
+    def test_subprocess_args_parameter_combinations(
+        self, key_length, nice_value, expected_key, expected_nice
+    ):
         """Test various valid subprocess argument combinations."""
         safe_key, safe_nice = validate_subprocess_args(key_length, nice_value)
         assert safe_key == expected_key
@@ -248,10 +277,10 @@ class TestSecurityValidation:
         """Test that validation prevents integer overflow attacks."""
         # Test very large numbers that could cause overflow
         large_numbers = [
-            2 ** 63,  # Large positive number
-            -(2 ** 63),  # Large negative number
-            float('inf'),  # Infinity
-            float('-inf'),  # Negative infinity
+            2**63,  # Large positive number
+            -(2**63),  # Large negative number
+            float("inf"),  # Infinity
+            float("-inf"),  # Negative infinity
         ]
 
         for large_num in large_numbers:
@@ -298,7 +327,7 @@ class TestRegexValidationCoverage:
     def test_regex_validation_key_length_failure(self):
         """Test regex validation failure for key_length (line 91 coverage)."""
         # Mock re.match to return None for key_length regex check
-        with patch('re.match') as mock_match:
+        with patch("re.match") as mock_match:
             # First call (key_length check) returns None, second call (nice_value check) returns True
             mock_match.side_effect = [None, True]
 
@@ -311,7 +340,7 @@ class TestRegexValidationCoverage:
     def test_regex_validation_nice_value_failure(self):
         """Test regex validation failure for nice_value (line 93 coverage)."""
         # Mock re.match to return True for key_length check, None for nice_value check
-        with patch('re.match') as mock_match:
+        with patch("re.match") as mock_match:
             # First call (key_length check) returns True, second call (nice_value check) returns None
             mock_match.side_effect = [True, None]
 

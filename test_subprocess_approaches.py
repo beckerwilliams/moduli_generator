@@ -10,7 +10,9 @@ import threading
 import time
 
 # Setup logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -20,22 +22,17 @@ def current_approach_capture_then_log(command):
     start_time = time.time()
 
     try:
-        result = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            check=True
-        )
+        result = subprocess.run(command, capture_output=True, text=True, check=True)
 
         # Log stdout if present (after completion)
         if result.stdout:
-            for line in result.stdout.strip().split('\n'):
+            for line in result.stdout.strip().split("\n"):
                 if line.strip():
                     logger.info(f"STDOUT: {line.strip()}")
 
         # Log stderr if present (after completion)
         if result.stderr:
-            for line in result.stderr.strip().split('\n'):
+            for line in result.stderr.strip().split("\n"):
                 if line.strip():
                     logger.debug(f"STDERR: {line.strip()}")
 
@@ -58,7 +55,7 @@ def streaming_approach_real_time_log(command):
 
     def log_stream(stream, log_func, prefix):
         """Helper to log stream output in real-time"""
-        for line in iter(stream.readline, ''):
+        for line in iter(stream.readline, ""):
             if line.strip():
                 log_func(f"{prefix}: {line.strip()}")
 
@@ -69,17 +66,15 @@ def streaming_approach_real_time_log(command):
             stderr=subprocess.PIPE,
             text=True,
             bufsize=1,  # Line buffered
-            universal_newlines=True
+            universal_newlines=True,
         )
 
         # Start threads to handle stdout and stderr streams
         stdout_thread = threading.Thread(
-            target=log_stream,
-            args=(process.stdout, logger.info, "STDOUT")
+            target=log_stream, args=(process.stdout, logger.info, "STDOUT")
         )
         stderr_thread = threading.Thread(
-            target=log_stream,
-            args=(process.stderr, logger.debug, "STDERR")
+            target=log_stream, args=(process.stderr, logger.debug, "STDERR")
         )
 
         stdout_thread.start()
@@ -116,7 +111,10 @@ def streaming_approach_real_time_log(command):
 def test_with_sample_command():
     """Test both approaches with a sample command that produces output"""
     # Use a command that produces some output over time
-    test_command = ['python3', '-c', '''
+    test_command = [
+        "python3",
+        "-c",
+        """
 import time
 import sys
 for i in range(5):
@@ -127,7 +125,8 @@ for i in range(5):
         sys.stderr.flush()
     time.sleep(0.5)
 print("Final output line")
-''']
+""",
+    ]
 
     print("Testing subprocess output handling approaches...")
 

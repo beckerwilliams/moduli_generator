@@ -41,7 +41,7 @@ socket=/var/run/mysqld/mysqld.sock
 @pytest.fixture
 def duplicate_section_temp_file(duplicate_section_config_content):
     """Create a temporary file with duplicate sections for testing."""
-    with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.cnf') as f:
+    with tempfile.NamedTemporaryFile(mode="w+", delete=False, suffix=".cnf") as f:
         f.write(duplicate_section_config_content)
         f.flush()
         yield f.name
@@ -57,42 +57,55 @@ class TestGetMariaDBConfigValue:
     def test_get_mysql_config_value_existing(self, sample_config_dict):
         """Test retrieving existing config values."""
         # Test regular key-value pairs
-        assert get_mysql_config_value(sample_config_dict, 'client', 'user') == 'testuser'
-        assert get_mysql_config_value(sample_config_dict, 'mysqld', 'port') == '3307'
+        assert (
+            get_mysql_config_value(sample_config_dict, "client", "user") == "testuser"
+        )
+        assert get_mysql_config_value(sample_config_dict, "mysqld", "port") == "3307"
 
         # Test key with None value
-        assert get_mysql_config_value(sample_config_dict, 'mysqldump', 'quick') is None
+        assert get_mysql_config_value(sample_config_dict, "mysqldump", "quick") is None
 
     @pytest.mark.unit
     def test_get_mysql_config_value_nonexistent_key(self, sample_config_dict):
         """Test retrieving nonexistent keys."""
-        assert get_mysql_config_value(sample_config_dict, 'client', 'nonexistent_key') is None
+        assert (
+            get_mysql_config_value(sample_config_dict, "client", "nonexistent_key")
+            is None
+        )
 
     @pytest.mark.unit
     def test_get_mysql_config_value_nonexistent_section(self, sample_config_dict):
         """Test retrieving from nonexistent sections."""
-        assert get_mysql_config_value(sample_config_dict, 'nonexistent_section', 'user') is None
+        assert (
+            get_mysql_config_value(sample_config_dict, "nonexistent_section", "user")
+            is None
+        )
 
     @pytest.mark.unit
     def test_get_mysql_config_value_with_empty_config(self):
         """Test get_mysql_config_value with empty config."""
         empty_config = {}
-        assert get_mysql_config_value(empty_config, 'client', 'user') is None
+        assert get_mysql_config_value(empty_config, "client", "user") is None
 
     @pytest.mark.unit
-    @pytest.mark.parametrize("section,key,expected", [
-        ('client', 'user', 'testuser'),
-        ('client', 'password', 'testpass'),
-        ('client', 'host', 'localhost'),
-        ('client', 'port', '3306'),
-        ('mysqld', 'port', '3307'),
-        ('mysqld', 'bind-address', '127.0.0.1'),
-        ('mysqld', 'key_buffer_size', '16M'),
-        ('mysqld', 'max_allowed_packet', '1M'),
-        ('mysqldump', 'quick', None),
-        ('mysqldump', 'max_allowed_packet', '16M'),
-    ])
-    def test_get_mysql_config_value_all_sample_values(self, sample_config_dict, section, key, expected):
+    @pytest.mark.parametrize(
+        "section,key,expected",
+        [
+            ("client", "user", "testuser"),
+            ("client", "password", "testpass"),
+            ("client", "host", "localhost"),
+            ("client", "port", "3306"),
+            ("mysqld", "port", "3307"),
+            ("mysqld", "bind-address", "127.0.0.1"),
+            ("mysqld", "key_buffer_size", "16M"),
+            ("mysqld", "max_allowed_packet", "1M"),
+            ("mysqldump", "quick", None),
+            ("mysqldump", "max_allowed_packet", "16M"),
+        ],
+    )
+    def test_get_mysql_config_value_all_sample_values(
+        self, sample_config_dict, section, key, expected
+    ):
         """Test retrieving all values from sample config."""
         result = get_mysql_config_value(sample_config_dict, section, key)
         assert result == expected
@@ -101,21 +114,21 @@ class TestGetMariaDBConfigValue:
     def test_get_mysql_config_value_case_sensitivity(self, sample_config_dict):
         """Test that config value retrieval is case-sensitive."""
         # These should return None because keys are case-sensitive
-        assert get_mysql_config_value(sample_config_dict, 'CLIENT', 'user') is None
-        assert get_mysql_config_value(sample_config_dict, 'client', 'USER') is None
+        assert get_mysql_config_value(sample_config_dict, "CLIENT", "user") is None
+        assert get_mysql_config_value(sample_config_dict, "client", "USER") is None
 
     @pytest.mark.unit
     def test_get_mysql_config_value_with_default(self, sample_config_dict):
         """Test get_mysql_config_value with default values."""
         # Note: The current implementation doesn't support default values,
         # but we test the current behavior
-        assert get_mysql_config_value(sample_config_dict, 'nonexistent', 'key') is None
+        assert get_mysql_config_value(sample_config_dict, "nonexistent", "key") is None
 
     @pytest.mark.unit
     def test_get_mysql_config_value_with_none_config(self):
         """Test get_mysql_config_value with None config."""
         with pytest.raises(TypeError):
-            get_mysql_config_value(None, 'client', 'user')
+            get_mysql_config_value(None, "client", "user")
 
     @pytest.mark.unit
     def test_get_mysql_config_value_with_invalid_types(self):
@@ -139,7 +152,7 @@ class TestGetMariaDBConfigValue:
         with pytest.raises(TypeError):
             get_mysql_config_value(valid_config, None, "key")
 
-        # Test with an invalid key type  
+        # Test with an invalid key type
         with pytest.raises(TypeError):
             get_mysql_config_value(valid_config, "section", 123)
 
@@ -177,16 +190,18 @@ class TestGetMariaDBConfigValue:
         result = parse_mysql_config(temp_file)
 
         # Check structure and values
-        assert 'client' in result
-        assert 'mysqld' in result
-        assert 'mysqldump' in result
+        assert "client" in result
+        assert "mysqld" in result
+        assert "mysqldump" in result
 
         # Check specific values - inline comments should be stripped
-        assert result['client']['user'] == 'testuser'  # Should NOT include "# inline comment"
-        assert result['client']['password'] == 'testpass'
-        assert result['mysqld']['port'] == '3307'
-        assert result['mysqldump']['quick'] is None
-        assert result['mysqldump']['max_allowed_packet'] == '16M'
+        assert (
+            result["client"]["user"] == "testuser"
+        )  # Should NOT include "# inline comment"
+        assert result["client"]["password"] == "testpass"
+        assert result["mysqld"]["port"] == "3307"
+        assert result["mysqldump"]["quick"] is None
+        assert result["mysqldump"]["max_allowed_packet"] == "16M"
 
 
 class TestParseMariaDBConfig:
@@ -198,16 +213,16 @@ class TestParseMariaDBConfig:
         result = parse_mysql_config(temp_file.name)
 
         # Check structure and values
-        assert 'client' in result
-        assert 'mysqld' in result
-        assert 'mysqldump' in result
+        assert "client" in result
+        assert "mysqld" in result
+        assert "mysqldump" in result
 
         # Check specific values
-        assert result['client']['user'] == 'testuser'
-        assert result['client']['password'] == 'testpass'
-        assert result['mysqld']['port'] == '3307'
-        assert result['mysqldump']['quick'] is None
-        assert result['mysqldump']['max_allowed_packet'] == '16M'
+        assert result["client"]["user"] == "testuser"
+        assert result["client"]["password"] == "testpass"
+        assert result["mysqld"]["port"] == "3307"
+        assert result["mysqldump"]["quick"] is None
+        assert result["mysqldump"]["max_allowed_packet"] == "16M"
 
     @pytest.mark.unit
     def test_parse_mysql_config_with_nonexistent_file(self):
@@ -223,7 +238,7 @@ class TestParseMariaDBConfig:
     #     assert result == {} # Should return empty dict
 
     @pytest.mark.unit
-    @patch('configparser.ConfigParser.read')
+    @patch("configparser.ConfigParser.read")
     def test_parse_mysql_config_with_parser_error(self, mock_read, temp_file):
         """Test handling of parser errors."""
         # Set up a mock to raise an exception
@@ -236,7 +251,7 @@ class TestParseMariaDBConfig:
     def test_parse_mysql_config_with_malformed_file(self, temp_file):
         """Test parsing a malformed configuration file."""
         # Write malformed content to a temp file
-        with open(temp_file, 'w') as f:
+        with open(temp_file, "w") as f:
             f.write("This is not a valid INI file format")
 
         # Should still parse without error, just with an empty result
@@ -255,18 +270,18 @@ class TestParseMariaDBConfig:
 [mysqld]
 [mysqldump]
 """
-        with open(temp_file, 'w') as f:
+        with open(temp_file, "w") as f:
             f.write(config_content)
 
         result = parse_mysql_config(temp_file)
 
         # Should have sections but they should be empty
-        assert 'client' in result
-        assert 'mysqld' in result
-        assert 'mysqldump' in result
-        assert len(result['client']) == 0
-        assert len(result['mysqld']) == 0
-        assert len(result['mysqldump']) == 0
+        assert "client" in result
+        assert "mysqld" in result
+        assert "mysqldump" in result
+        assert len(result["client"]) == 0
+        assert len(result["mysqld"]) == 0
+        assert len(result["mysqldump"]) == 0
 
     @pytest.mark.unit
     def test_parse_mysql_config_with_comments(self, temp_file):
@@ -282,15 +297,15 @@ password=testpass
 # Section comment
 port=3307
 """
-        with open(temp_file, 'w') as f:
+        with open(temp_file, "w") as f:
             f.write(config_content)
 
         result = parse_mysql_config(temp_file)
 
         # Comments should be ignored
-        assert result['client']['user'] == 'testuser'
-        assert result['client']['password'] == 'testpass'
-        assert result['mysqld']['port'] == '3307'
+        assert result["client"]["user"] == "testuser"
+        assert result["client"]["password"] == "testpass"
+        assert result["mysqld"]["port"] == "3307"
 
 
 class TestMariaDBConfigIntegration:
@@ -300,21 +315,21 @@ class TestMariaDBConfigIntegration:
     def test_parse_and_retrieve_workflow(self, temp_file, sample_config_content):
         """Test the complete workflow of parsing and retrieving values."""
         # Write sample config to a temp file
-        with open(temp_file, 'w') as f:
+        with open(temp_file, "w") as f:
             f.write(sample_config_content)
 
         # Parse the config
         parsed_config = parse_mysql_config(temp_file)
 
         # Retrieve values using the parsed config
-        user = get_mysql_config_value(parsed_config, 'client', 'user')
-        password = get_mysql_config_value(parsed_config, 'client', 'password')
-        port = get_mysql_config_value(parsed_config, 'mysqld', 'port')
+        user = get_mysql_config_value(parsed_config, "client", "user")
+        password = get_mysql_config_value(parsed_config, "client", "password")
+        port = get_mysql_config_value(parsed_config, "mysqld", "port")
 
         # Verify the values
-        assert user == 'testuser'
-        assert password == 'testpass'
-        assert port == '3307'
+        assert user == "testuser"
+        assert password == "testpass"
+        assert port == "3307"
 
     @pytest.mark.integration
     def test_real_world_config_structure(self, temp_file):
@@ -365,19 +380,27 @@ no-auto-rehash
 [isamchk]
 key_buffer=16M
 """
-        with open(temp_file, 'w') as f:
+        with open(temp_file, "w") as f:
             f.write(realistic_config)
 
         # Parse the config
         parsed_config = parse_mysql_config(temp_file)
 
         # Test various sections and values
-        assert get_mysql_config_value(parsed_config, 'client', 'port') == '3306'
-        assert get_mysql_config_value(parsed_config, 'mysqld', 'user') == 'mysql'
-        assert get_mysql_config_value(parsed_config, 'mysqld', 'bind-address') == '127.0.0.1'
-        assert get_mysql_config_value(parsed_config, 'mysqldump', 'quick') is None  # Flag without value
-        assert get_mysql_config_value(parsed_config, 'mysqldump', 'max_allowed_packet') == '16M'
-        assert get_mysql_config_value(parsed_config, 'isamchk', 'key_buffer') == '16M'
+        assert get_mysql_config_value(parsed_config, "client", "port") == "3306"
+        assert get_mysql_config_value(parsed_config, "mysqld", "user") == "mysql"
+        assert (
+            get_mysql_config_value(parsed_config, "mysqld", "bind-address")
+            == "127.0.0.1"
+        )
+        assert (
+            get_mysql_config_value(parsed_config, "mysqldump", "quick") is None
+        )  # Flag without value
+        assert (
+            get_mysql_config_value(parsed_config, "mysqldump", "max_allowed_packet")
+            == "16M"
+        )
+        assert get_mysql_config_value(parsed_config, "isamchk", "key_buffer") == "16M"
 
     @pytest.mark.integration
     @pytest.mark.security
@@ -393,13 +416,21 @@ host=production-db.company.com
 [mysqld]
 bind-address=0.0.0.0
 """
-        with open(temp_file, 'w') as f:
+        with open(temp_file, "w") as f:
             f.write(sensitive_config)
 
         parsed_config = parse_mysql_config(temp_file)
 
         # Verify that sensitive data is parsed correctly
         # (In a real application, you'd want to ensure this data is handled securely)
-        assert get_mysql_config_value(parsed_config, 'client', 'password') == 'super_secret_password'
-        assert get_mysql_config_value(parsed_config, 'client', 'host') == 'production-db.company.com'
-        assert get_mysql_config_value(parsed_config, 'mysqld', 'bind-address') == '0.0.0.0'
+        assert (
+            get_mysql_config_value(parsed_config, "client", "password")
+            == "super_secret_password"
+        )
+        assert (
+            get_mysql_config_value(parsed_config, "client", "host")
+            == "production-db.company.com"
+        )
+        assert (
+            get_mysql_config_value(parsed_config, "mysqld", "bind-address") == "0.0.0.0"
+        )

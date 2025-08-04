@@ -1,4 +1,5 @@
-__all__ = ['validate_integer_parameters', 'validate_subprocess_args']
+__all__ = ["validate_integer_parameters", "validate_subprocess_args"]
+
 
 def validate_integer_parameters(key_length=None, nice_value=None):
     """
@@ -24,7 +25,9 @@ def validate_integer_parameters(key_length=None, nice_value=None):
     # Validate key_length
     if key_length is not None:
         if not isinstance(key_length, (int, str)):
-            raise TypeError(f"key_length must be an integer or string, got {type(key_length).__name__}")
+            raise TypeError(
+                f"key_length must be an integer or string, got {type(key_length).__name__}"
+            )
 
         try:
             validated_key_length = int(key_length)
@@ -33,16 +36,24 @@ def validate_integer_parameters(key_length=None, nice_value=None):
 
         # Additional validation for reasonable key lengths
         if validated_key_length < 3072:
-            raise ValueError(f"key_length {validated_key_length} is too small (minimum 3072 bits)")
+            raise ValueError(
+                f"key_length {validated_key_length} is too small (minimum 3072 bits)"
+            )
         if validated_key_length > 8192:
-            raise ValueError(f"key_length {validated_key_length} is too large (maximum 8192 bits)")
+            raise ValueError(
+                f"key_length {validated_key_length} is too large (maximum 8192 bits)"
+            )
         if validated_key_length % 8 != 0:
-            raise ValueError(f"key_length {validated_key_length} must be divisible by 8")
+            raise ValueError(
+                f"key_length {validated_key_length} must be divisible by 8"
+            )
 
     # Validate nice_value
     if nice_value is not None:
         if not isinstance(nice_value, (int, str)):
-            raise TypeError(f"nice_value must be an integer or string, got {type(nice_value).__name__}")
+            raise TypeError(
+                f"nice_value must be an integer or string, got {type(nice_value).__name__}"
+            )
 
         try:
             validated_nice_value = int(nice_value)
@@ -51,7 +62,9 @@ def validate_integer_parameters(key_length=None, nice_value=None):
 
         # Validate nice_value range (standard Unix nice values)
         if not -20 <= validated_nice_value <= 19:
-            raise ValueError(f"nice_value {validated_nice_value} must be between -20 and 19")
+            raise ValueError(
+                f"nice_value {validated_nice_value} must be between -20 and 19"
+            )
 
     return validated_key_length, validated_nice_value
 
@@ -76,8 +89,7 @@ def validate_subprocess_args(key_length, nice_value):
     """
     # Use the main validation function first
     validated_key_length, validated_nice_value = validate_integer_parameters(
-        key_length=key_length,
-        nice_value=nice_value
+        key_length=key_length, nice_value=nice_value
     )
 
     if validated_key_length is None:
@@ -91,9 +103,10 @@ def validate_subprocess_args(key_length, nice_value):
 
     # Additional security check - ensure no special characters
     import re
-    if not re.match(r'^\d+$', safe_key_length):
+
+    if not re.match(r"^\d+$", safe_key_length):
         raise ValueError(f"key_length contains invalid characters: {safe_key_length}")
-    if not re.match(r'^-?\d+$', safe_nice_value):
+    if not re.match(r"^-?\d+$", safe_nice_value):
         raise ValueError(f"nice_value contains invalid characters: {safe_nice_value}")
 
     return safe_key_length, safe_nice_value

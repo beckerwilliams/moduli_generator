@@ -62,7 +62,7 @@ class TestModuliGeneratorSubprocessExecution:
     """Test cases for subprocess execution with logging."""
 
     @pytest.mark.integration
-    @patch('subprocess.Popen')
+    @patch("subprocess.Popen")
     def test_run_subprocess_with_logging_success(self, mock_popen):
         """Test successful subprocess execution with logging."""
         # Mock process object
@@ -84,7 +84,7 @@ class TestModuliGeneratorSubprocessExecution:
         # Note: Due to threading, we can't reliably test the exact logger calls
 
     @pytest.mark.integration
-    @patch('subprocess.Popen')
+    @patch("subprocess.Popen")
     def test_run_subprocess_with_logging_failure(self, mock_popen):
         """Test subprocess execution failure with error logging."""
         # Mock process object that fails
@@ -106,7 +106,7 @@ class TestModuliGeneratorSubprocessExecution:
         # Note: Due to threading, we can't reliably test the exact logger calls
 
     @pytest.mark.integration
-    @patch('subprocess.Popen')
+    @patch("subprocess.Popen")
     def test_run_subprocess_with_logging_exception(self, mock_popen):
         """Test subprocess execution with exception handling."""
         mock_popen.side_effect = OSError("Command not found")
@@ -124,7 +124,7 @@ class TestModuliGeneratorCandidateGeneration:
     """Test cases for candidate generation functionality."""
 
     @pytest.mark.integration
-    @patch('moduli_generator.ModuliGenerator._run_subprocess_with_logging')
+    @patch("moduli_generator.ModuliGenerator._run_subprocess_with_logging")
     def test_generate_candidates_static_success(self, mock_subprocess, mock_config):
         """Test static candidate generation method."""
         mock_subprocess.return_value = MagicMock(returncode=0)
@@ -143,13 +143,14 @@ class TestModuliGeneratorCandidateGeneration:
         assert "generate" in command
 
 
-
 class TestModuliGeneratorCandidateScreening:
     """Test cases for candidate screening functionality."""
 
     @pytest.mark.integration
-    @patch('moduli_generator.ModuliGenerator._run_subprocess_with_logging')
-    def test_screen_candidates_static_success(self, mock_subprocess, mock_config, temp_file):
+    @patch("moduli_generator.ModuliGenerator._run_subprocess_with_logging")
+    def test_screen_candidates_static_success(
+        self, mock_subprocess, mock_config, temp_file
+    ):
         """Test static candidate screening method."""
         mock_subprocess.return_value = MagicMock(returncode=0)
 
@@ -168,12 +169,11 @@ class TestModuliGeneratorCandidateScreening:
         assert "screen" in command
 
 
-
 class TestModuliGeneratorFileProcessing:
     """Test cases for moduli file processing functionality."""
 
     @pytest.mark.integration
-    @patch('pathlib.Path.glob')
+    @patch("pathlib.Path.glob")
     def test_list_moduli_files(self, mock_glob, mock_config):
         """Test listing moduli files in the moduli directory."""
         mock_files = [Path("moduli_3072"), Path("moduli_4096")]
@@ -186,7 +186,7 @@ class TestModuliGeneratorFileProcessing:
         mock_glob.assert_called_once_with("moduli_*")
 
     @pytest.mark.integration
-    @patch('pathlib.Path.glob')
+    @patch("pathlib.Path.glob")
     def test_list_moduli_files_empty(self, mock_glob, mock_config):
         """Test listing moduli files when directory is empty."""
         mock_glob.return_value = []
@@ -197,8 +197,12 @@ class TestModuliGeneratorFileProcessing:
         assert files == []
 
     @pytest.mark.integration
-    @patch('pathlib.Path.open', new_callable=mock_open, read_data="20231201000000 2 3072 5 3072 2 test_modulus\n")
-    @patch('pathlib.Path.glob')
+    @patch(
+        "pathlib.Path.open",
+        new_callable=mock_open,
+        read_data="20231201000000 2 3072 5 3072 2 test_modulus\n",
+    )
+    @patch("pathlib.Path.glob")
     def test_parse_moduli_files_success(self, mock_glob, mock_file, mock_config):
         """Test parsing moduli files successfully."""
         mock_files = [Path("moduli_3072")]
@@ -208,18 +212,18 @@ class TestModuliGeneratorFileProcessing:
         moduli_data = generator._parse_moduli_files()
 
         assert isinstance(moduli_data, dict)
-        assert 'screened_moduli' in moduli_data
-        assert len(moduli_data['screened_moduli']) > 0
+        assert "screened_moduli" in moduli_data
+        assert len(moduli_data["screened_moduli"]) > 0
 
         # Verify the parsed data structure
-        record = moduli_data['screened_moduli'][0]
-        assert 'timestamp' in record
-        assert 'key-size' in record
-        assert 'modulus' in record
+        record = moduli_data["screened_moduli"][0]
+        assert "timestamp" in record
+        assert "key-size" in record
+        assert "modulus" in record
 
     @pytest.mark.integration
-    @patch('builtins.open', side_effect=FileNotFoundError("File not found"))
-    @patch('pathlib.Path.glob')
+    @patch("builtins.open", side_effect=FileNotFoundError("File not found"))
+    @patch("pathlib.Path.glob")
     def test_parse_moduli_files_io_error(self, mock_glob, mock_file, mock_config):
         """Test parsing moduli files with IO error."""
         mock_files = [Path("moduli_3072")]
@@ -238,18 +242,24 @@ class TestModuliGeneratorWorkflow:
     """Test cases for the complete ModuliGenerator workflow."""
 
     @pytest.mark.integration
-    @patch('concurrent.futures.as_completed')
-    @patch('concurrent.futures.ProcessPoolExecutor')
-    @patch('moduli_generator.ModuliGenerator._screen_candidates_static')
-    @patch('moduli_generator.ModuliGenerator._generate_candidates_static')
-    def test_generate_moduli_success(self, mock_generate_static, mock_screen_static, mock_executor, mock_as_completed,
-                                     mock_config):
+    @patch("concurrent.futures.as_completed")
+    @patch("concurrent.futures.ProcessPoolExecutor")
+    @patch("moduli_generator.ModuliGenerator._screen_candidates_static")
+    @patch("moduli_generator.ModuliGenerator._generate_candidates_static")
+    def test_generate_moduli_success(
+        self,
+        mock_generate_static,
+        mock_screen_static,
+        mock_executor,
+        mock_as_completed,
+        mock_config,
+    ):
         """Test the complete generate_moduli workflow."""
         mock_config.key_lengths = (3072, 4096)
 
         # Mock the static methods to return file paths
-        mock_generate_static.return_value = Path('/tmp/candidates_3072.txt')
-        mock_screen_static.return_value = Path('/tmp/moduli_3072.txt')
+        mock_generate_static.return_value = Path("/tmp/candidates_3072.txt")
+        mock_screen_static.return_value = Path("/tmp/moduli_3072.txt")
 
         # Mock the executor to avoid multiprocessing
         mock_executor_instance = MagicMock()
@@ -257,41 +267,57 @@ class TestModuliGeneratorWorkflow:
 
         # Mock futures for candidate generation
         mock_candidate_future_1 = MagicMock()
-        mock_candidate_future_1.result.return_value = Path('/tmp/candidates_3072.txt')
+        mock_candidate_future_1.result.return_value = Path("/tmp/candidates_3072.txt")
         mock_candidate_future_2 = MagicMock()
-        mock_candidate_future_2.result.return_value = Path('/tmp/candidates_4096.txt')
+        mock_candidate_future_2.result.return_value = Path("/tmp/candidates_4096.txt")
 
         # Mock futures for screening
         mock_screening_future_1 = MagicMock()
-        mock_screening_future_1.result.return_value = Path('/tmp/moduli_3072.txt')
+        mock_screening_future_1.result.return_value = Path("/tmp/moduli_3072.txt")
         mock_screening_future_2 = MagicMock()
-        mock_screening_future_2.result.return_value = Path('/tmp/moduli_4096.txt')
+        mock_screening_future_2.result.return_value = Path("/tmp/moduli_4096.txt")
 
         # Configure submit to return different futures for generation vs screening
         mock_executor_instance.submit.side_effect = [
-            mock_candidate_future_1, mock_candidate_future_2,  # Generation futures
-            mock_screening_future_1, mock_screening_future_2  # Screening futures
+            mock_candidate_future_1,
+            mock_candidate_future_2,  # Generation futures
+            mock_screening_future_1,
+            mock_screening_future_2,  # Screening futures
         ]
 
         # Mock as_completed to return futures in order
         mock_as_completed.side_effect = [
-            [mock_candidate_future_1, mock_candidate_future_2],  # First call for candidates
-            [mock_screening_future_1, mock_screening_future_2]  # Second call for screening
+            [
+                mock_candidate_future_1,
+                mock_candidate_future_2,
+            ],  # First call for candidates
+            [
+                mock_screening_future_1,
+                mock_screening_future_2,
+            ],  # Second call for screening
         ]
 
         generator = ModuliGenerator(mock_config)
         result = generator.generate_moduli()
 
         assert result == generator  # Method chaining
-        assert mock_executor_instance.submit.call_count == 4  # 2 for generation + 2 for screening
+        assert (
+            mock_executor_instance.submit.call_count == 4
+        )  # 2 for generation + 2 for screening
 
     @pytest.mark.integration
-    @patch('concurrent.futures.as_completed')
-    @patch('concurrent.futures.ProcessPoolExecutor')
-    @patch('moduli_generator.ModuliGenerator._screen_candidates_static')
-    @patch('moduli_generator.ModuliGenerator._generate_candidates_static')
-    def test_generate_moduli_generation_failure(self, mock_generate_static, mock_screen_static, mock_executor,
-                                                mock_as_completed, mock_config):
+    @patch("concurrent.futures.as_completed")
+    @patch("concurrent.futures.ProcessPoolExecutor")
+    @patch("moduli_generator.ModuliGenerator._screen_candidates_static")
+    @patch("moduli_generator.ModuliGenerator._generate_candidates_static")
+    def test_generate_moduli_generation_failure(
+        self,
+        mock_generate_static,
+        mock_screen_static,
+        mock_executor,
+        mock_as_completed,
+        mock_config,
+    ):
         """Test generate_moduli with candidate generation failure."""
         mock_config.key_lengths = (3072,)
 
@@ -313,12 +339,18 @@ class TestModuliGeneratorWorkflow:
             generator.generate_moduli()
 
     @pytest.mark.integration
-    @patch('concurrent.futures.as_completed')
-    @patch('concurrent.futures.ProcessPoolExecutor')
-    @patch('moduli_generator.ModuliGenerator._screen_candidates_static')
-    @patch('moduli_generator.ModuliGenerator._generate_candidates_static')
-    def test_generate_moduli_screening_failure(self, mock_generate_static, mock_screen_static, mock_executor,
-                                               mock_as_completed, mock_config):
+    @patch("concurrent.futures.as_completed")
+    @patch("concurrent.futures.ProcessPoolExecutor")
+    @patch("moduli_generator.ModuliGenerator._screen_candidates_static")
+    @patch("moduli_generator.ModuliGenerator._generate_candidates_static")
+    def test_generate_moduli_screening_failure(
+        self,
+        mock_generate_static,
+        mock_screen_static,
+        mock_executor,
+        mock_as_completed,
+        mock_config,
+    ):
         """Test generate_moduli with candidate screening failure."""
         mock_config.key_lengths = (3072,)
 
@@ -328,15 +360,18 @@ class TestModuliGeneratorWorkflow:
 
         # Mock futures - first call succeeds (generation), second fails (screening)
         mock_future_success = MagicMock()
-        mock_future_success.result.return_value = Path('/tmp/candidates.txt')
+        mock_future_success.result.return_value = Path("/tmp/candidates.txt")
         mock_future_failure = MagicMock()
         mock_future_failure.result.side_effect = Exception("Screening failed")
-        mock_executor_instance.submit.side_effect = [mock_future_success, mock_future_failure]
+        mock_executor_instance.submit.side_effect = [
+            mock_future_success,
+            mock_future_failure,
+        ]
 
         # Mock as_completed to return futures in order - first generation, then screening
         mock_as_completed.side_effect = [
             [mock_future_success],  # First call for candidates (succeeds)
-            [mock_future_failure]  # Second call for screening (fails)
+            [mock_future_failure],  # Second call for screening (fails)
         ]
 
         generator = ModuliGenerator(mock_config)
@@ -345,21 +380,36 @@ class TestModuliGeneratorWorkflow:
             generator.generate_moduli()
 
     @pytest.mark.integration
-    @patch('db.ConnectionPool')
-    @patch('db.parse_mysql_config')
-    @patch('moduli_generator.ModuliGenerator._parse_moduli_files')
-    @patch('db.MariaDBConnector.export_screened_moduli')
-    def test_store_moduli_success(self, mock_export, mock_parse, mock_parse_config, mock_pool, mock_config):
+    @patch("db.ConnectionPool")
+    @patch("db.parse_mysql_config")
+    @patch("moduli_generator.ModuliGenerator._parse_moduli_files")
+    @patch("db.MariaDBConnector.export_screened_moduli")
+    def test_store_moduli_success(
+        self, mock_export, mock_parse, mock_parse_config, mock_pool, mock_config
+    ):
         """Test storing moduli in database successfully."""
         mock_parse_config.return_value = {
-            "client": {"user": "testuser", "password": "testpass", "host": "localhost", "port": "3306",
-                       "database": "testdb"}
+            "client": {
+                "user": "testuser",
+                "password": "testpass",
+                "host": "localhost",
+                "port": "3306",
+                "database": "testdb",
+            }
         }
         mock_pool.return_value = MagicMock()
         mock_parse.return_value = {
             "3072": [
-                {"timestamp": 20231201000000, "key-size": 3072, "modulus": "test_modulus_1"},
-                {"timestamp": 20231201000001, "key-size": 3072, "modulus": "test_modulus_2"}
+                {
+                    "timestamp": 20231201000000,
+                    "key-size": 3072,
+                    "modulus": "test_modulus_1",
+                },
+                {
+                    "timestamp": 20231201000001,
+                    "key-size": 3072,
+                    "modulus": "test_modulus_2",
+                },
             ]
         }
 
@@ -371,14 +421,21 @@ class TestModuliGeneratorWorkflow:
         mock_export.assert_called_once()
 
     @pytest.mark.integration
-    @patch('db.ConnectionPool')
-    @patch('db.parse_mysql_config')
-    @patch('moduli_generator.ModuliGenerator._parse_moduli_files')
-    def test_store_moduli_no_data(self, mock_parse, mock_parse_config, mock_pool, mock_config):
+    @patch("db.ConnectionPool")
+    @patch("db.parse_mysql_config")
+    @patch("moduli_generator.ModuliGenerator._parse_moduli_files")
+    def test_store_moduli_no_data(
+        self, mock_parse, mock_parse_config, mock_pool, mock_config
+    ):
         """Test storing moduli when no data is available."""
         mock_parse_config.return_value = {
-            "client": {"user": "testuser", "password": "testpass", "host": "localhost", "port": "3306",
-                       "database": "testdb"}
+            "client": {
+                "user": "testuser",
+                "password": "testpass",
+                "host": "localhost",
+                "port": "3306",
+                "database": "testdb",
+            }
         }
         mock_pool.return_value = MagicMock()
         mock_parse.return_value = {}
@@ -390,22 +447,35 @@ class TestModuliGeneratorWorkflow:
         mock_parse.assert_called_once()
 
     @pytest.mark.integration
-    @patch('db.ConnectionPool')
-    @patch('db.parse_mysql_config')
-    @patch('moduli_generator.dump')
-    @patch('pathlib.Path.open', new_callable=mock_open)
-    @patch('moduli_generator.ModuliGenerator._parse_moduli_files')
-    def test_save_moduli_success(self, mock_parse, mock_file, mock_json_dump, mock_parse_config, mock_pool, mock_config,
-                                 temp_dir):
+    @patch("db.ConnectionPool")
+    @patch("db.parse_mysql_config")
+    @patch("moduli_generator.dump")
+    @patch("pathlib.Path.open", new_callable=mock_open)
+    @patch("moduli_generator.ModuliGenerator._parse_moduli_files")
+    def test_save_moduli_success(
+        self,
+        mock_parse,
+        mock_file,
+        mock_json_dump,
+        mock_parse_config,
+        mock_pool,
+        mock_config,
+        temp_dir,
+    ):
         """Test saving moduli to JSON file successfully."""
         mock_parse_config.return_value = {
-            "client": {"user": "testuser", "password": "testpass", "host": "localhost", "port": "3306",
-                       "database": "testdb"}
+            "client": {
+                "user": "testuser",
+                "password": "testpass",
+                "host": "localhost",
+                "port": "3306",
+                "database": "testdb",
+            }
         }
         mock_pool.return_value = MagicMock()
         mock_parse.return_value = [
             (20231201000000, 3072, "test_modulus_1"),
-            (20231201000001, 3072, "test_modulus_2")
+            (20231201000001, 3072, "test_modulus_2"),
         ]
 
         generator = ModuliGenerator(mock_config)
@@ -417,14 +487,21 @@ class TestModuliGeneratorWorkflow:
         mock_json_dump.assert_called_once()
 
     @pytest.mark.integration
-    @patch('db.ConnectionPool')
-    @patch('db.parse_mysql_config')
-    @patch('db.MariaDBConnector.write_moduli_file')
-    def test_write_moduli_file_success(self, mock_write, mock_parse_config, mock_pool, mock_config):
+    @patch("db.ConnectionPool")
+    @patch("db.parse_mysql_config")
+    @patch("db.MariaDBConnector.write_moduli_file")
+    def test_write_moduli_file_success(
+        self, mock_write, mock_parse_config, mock_pool, mock_config
+    ):
         """Test writing moduli file from database successfully."""
         mock_parse_config.return_value = {
-            "client": {"user": "testuser", "password": "testpass", "host": "localhost", "port": "3306",
-                       "database": "testdb"}
+            "client": {
+                "user": "testuser",
+                "password": "testpass",
+                "host": "localhost",
+                "port": "3306",
+                "database": "testdb",
+            }
         }
         mock_pool.return_value = MagicMock()
         generator = ModuliGenerator(mock_config)
@@ -445,20 +522,35 @@ class TestModuliGeneratorErrorHandling:
         assert generator.config == default_config
 
     @pytest.mark.integration
-    @patch('db.ConnectionPool')
-    @patch('db.parse_mysql_config')
-    @patch('db.MariaDBConnector.export_screened_moduli')
-    @patch('moduli_generator.ModuliGenerator._parse_moduli_files')
-    def test_store_moduli_database_error(self, mock_parse, mock_export, mock_parse_config, mock_pool, mock_config):
+    @patch("db.ConnectionPool")
+    @patch("db.parse_mysql_config")
+    @patch("db.MariaDBConnector.export_screened_moduli")
+    @patch("moduli_generator.ModuliGenerator._parse_moduli_files")
+    def test_store_moduli_database_error(
+        self, mock_parse, mock_export, mock_parse_config, mock_pool, mock_config
+    ):
         """Test store_moduli with database error."""
         from mariadb import Error
+
         mock_parse_config.return_value = {
-            "client": {"user": "testuser", "password": "testpass", "host": "localhost", "port": "3306",
-                       "database": "testdb"}
+            "client": {
+                "user": "testuser",
+                "password": "testpass",
+                "host": "localhost",
+                "port": "3306",
+                "database": "testdb",
+            }
         }
         mock_pool.return_value = MagicMock()
         mock_parse.return_value = {
-            "screened_moduli": [{"timestamp": "20231201000000", "key-size": "3072", "modulus": "test_modulus"}]}
+            "screened_moduli": [
+                {
+                    "timestamp": "20231201000000",
+                    "key-size": "3072",
+                    "modulus": "test_modulus",
+                }
+            ]
+        }
         mock_export.side_effect = Error("Database connection failed")
 
         generator = ModuliGenerator(mock_config)
@@ -468,10 +560,12 @@ class TestModuliGeneratorErrorHandling:
         assert result == generator  # Method chaining should still work
 
     @pytest.mark.integration
-    @patch('pathlib.Path.open')
-    @patch('json.dump')
-    @patch('moduli_generator.ModuliGenerator._parse_moduli_files')
-    def test_save_moduli_directory_creation_error(self, mock_parse, mock_json_dump, mock_open, mock_config, temp_dir):
+    @patch("pathlib.Path.open")
+    @patch("json.dump")
+    @patch("moduli_generator.ModuliGenerator._parse_moduli_files")
+    def test_save_moduli_directory_creation_error(
+        self, mock_parse, mock_json_dump, mock_open, mock_config, temp_dir
+    ):
         """Test save_moduli with a file creation error."""
         mock_parse.return_value = [(20231201000000, 3072, "test_modulus")]
         mock_open.side_effect = PermissionError("Permission denied")

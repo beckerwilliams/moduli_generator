@@ -5,15 +5,14 @@ This module contains simple, focused tests designed to execute specific
 code paths that are currently uncovered, helping achieve the 95% coverage target.
 """
 
-import pytest
-import tempfile
 import configparser
+import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch, mock_open
-from io import StringIO
+from unittest.mock import MagicMock, patch
 
-from db import parse_mysql_config, get_mysql_config_value, MariaDBConnector
-from config import ModuliConfig
+import pytest
+
+from db import MariaDBConnector, get_mysql_config_value, parse_mysql_config
 
 
 class TestParseMyqlConfigCoverage:
@@ -31,7 +30,7 @@ class TestParseMyqlConfigCoverage:
 
     def test_parse_mysql_config_empty_file(self):
         """Test parse_mysql_config with empty file - covers line 55."""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
             # Create empty file
             pass
 
@@ -43,45 +42,51 @@ class TestParseMyqlConfigCoverage:
 
     def test_parse_mysql_config_duplicate_section_error(self):
         """Test parse_mysql_config with duplicate section error - covers line 74."""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.cnf') as f:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".cnf") as f:
             f.write("[client]\nhost=localhost\n")
             f.flush()
 
-            with patch('configparser.ConfigParser.read') as mock_read:
-                mock_read.side_effect = configparser.DuplicateSectionError('client')
+            with patch("configparser.ConfigParser.read") as mock_read:
+                mock_read.side_effect = configparser.DuplicateSectionError("client")
 
                 try:
-                    with pytest.raises(ValueError, match="Error parsing configuration file"):
+                    with pytest.raises(
+                        ValueError, match="Error parsing configuration file"
+                    ):
                         parse_mysql_config(f.name)
                 finally:
                     Path(f.name).unlink()
 
     def test_parse_mysql_config_parsing_error(self):
         """Test parse_mysql_config with parsing error - covers lines 75-76."""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.cnf') as f:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".cnf") as f:
             f.write("[client]\nhost=localhost\n")
             f.flush()
 
-            with patch('configparser.ConfigParser.read') as mock_read:
+            with patch("configparser.ConfigParser.read") as mock_read:
                 mock_read.side_effect = configparser.ParsingError(f.name)
 
                 try:
-                    with pytest.raises(ValueError, match="Error parsing configuration file"):
+                    with pytest.raises(
+                        ValueError, match="Error parsing configuration file"
+                    ):
                         parse_mysql_config(f.name)
                 finally:
                     Path(f.name).unlink()
 
     def test_parse_mysql_config_general_configparser_error(self):
         """Test parse_mysql_config with general configparser error - covers lines 77-78."""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.cnf') as f:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".cnf") as f:
             f.write("[client]\nhost=localhost\n")
             f.flush()
 
-            with patch('configparser.ConfigParser.read') as mock_read:
+            with patch("configparser.ConfigParser.read") as mock_read:
                 mock_read.side_effect = configparser.Error("General config error")
 
                 try:
-                    with pytest.raises(ValueError, match="Error parsing configuration file"):
+                    with pytest.raises(
+                        ValueError, match="Error parsing configuration file"
+                    ):
                         parse_mysql_config(f.name)
                 finally:
                     Path(f.name).unlink()
@@ -93,30 +98,34 @@ class TestParseMyqlConfigCoverage:
 
     def test_parse_mysql_config_already_exists_error(self):
         """Test parse_mysql_config with 'already exists' error - covers lines 83-84."""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.cnf') as f:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".cnf") as f:
             f.write("[client]\nhost=localhost\n")
             f.flush()
 
-            with patch('configparser.ConfigParser.read') as mock_read:
+            with patch("configparser.ConfigParser.read") as mock_read:
                 mock_read.side_effect = Exception("Section already exists")
 
                 try:
-                    with pytest.raises(ValueError, match="Error parsing configuration file"):
+                    with pytest.raises(
+                        ValueError, match="Error parsing configuration file"
+                    ):
                         parse_mysql_config(f.name)
                 finally:
                     Path(f.name).unlink()
 
     def test_parse_mysql_config_general_exception(self):
         """Test parse_mysql_config with general exception - covers line 85."""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.cnf') as f:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".cnf") as f:
             f.write("[client]\nhost=localhost\n")
             f.flush()
 
-            with patch('configparser.ConfigParser.read') as mock_read:
+            with patch("configparser.ConfigParser.read") as mock_read:
                 mock_read.side_effect = Exception("Some other error")
 
                 try:
-                    with pytest.raises(ValueError, match="Error parsing configuration file"):
+                    with pytest.raises(
+                        ValueError, match="Error parsing configuration file"
+                    ):
                         parse_mysql_config(f.name)
                 finally:
                     Path(f.name).unlink()
@@ -161,25 +170,26 @@ class TestGetMysqlConfigValueCoverage:
 class TestMariaDBConnectorCoverage:
     """Tests to cover missing lines in MariaDBConnector class."""
 
-    @patch('db.parse_mysql_config')
-    @patch('db.ConnectionPool')
+    @patch("db.parse_mysql_config")
+    @patch("db.ConnectionPool")
     def test_mariadb_connector_connection_pool_error(self, mock_pool, mock_parse):
         """Test MariaDBConnector with connection pool creation error - covers lines 324-326."""
         mock_parse.return_value = {
-            'client': {
-                'host': 'localhost',
-                'port': '3306',
-                'user': 'test_user',
-                'password': 'test_password',
-                'database': 'test_db'
+            "client": {
+                "host": "localhost",
+                "port": "3306",
+                "user": "test_user",
+                "password": "test_password",
+                "database": "test_db",
             }
         }
 
         from mariadb import Error
+
         mock_pool.side_effect = Error("Connection failed")
 
         config = MagicMock()
-        config.mariadb_cnf = Path('/test/config.cnf')
+        config.mariadb_cnf = Path("/test/config.cnf")
         config.get_logger.return_value = MagicMock()
 
         with pytest.raises(RuntimeError, match="Connection pool creation failed"):

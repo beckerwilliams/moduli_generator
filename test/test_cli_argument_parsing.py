@@ -6,13 +6,9 @@ ensuring proper handling of user inputs and configuration options.
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
-import argparse
-import sys
+
 
 # Import the CLI functionality from production modules
-from moduli_generator.cli import main
-from config.arg_parser import local_config
 
 
 class TestCLIArgumentParsing:
@@ -23,75 +19,75 @@ class TestCLIArgumentParsing:
         """Test basic CLI argument parsing with valid arguments."""
         # This test would require importing the actual CLI module
         # For now, we'll test the structure and approach
-        assert valid_cli_args['key_length'] == 4096
-        assert valid_cli_args['nice_value'] == 10
-        assert valid_cli_args['verbose'] is True
+        assert valid_cli_args["key_length"] == 4096
+        assert valid_cli_args["nice_value"] == 10
+        assert valid_cli_args["verbose"] is True
 
     @pytest.mark.unit
     def test_default_argument_values(self):
         """Test that CLI arguments have appropriate default values."""
         # Test that default values are reasonable
         default_args = {
-            'key_length': None,  # Should be provided by user or config
-            'nice_value': 0,  # Default nice value
-            'verbose': False,  # Default to non-verbose
-            'config_file': None,  # Should be provided or use default location
-            'database': False,  # Default to file output only
+            "key_length": None,  # Should be provided by user or config
+            "nice_value": 0,  # Default nice value
+            "verbose": False,  # Default to non-verbose
+            "config_file": None,  # Should be provided or use default location
+            "database": False,  # Default to file output only
         }
 
         # Verify defaults are sensible
-        assert default_args['nice_value'] == 0
-        assert default_args['verbose'] is False
-        assert default_args['database'] is False
+        assert default_args["nice_value"] == 0
+        assert default_args["verbose"] is False
+        assert default_args["database"] is False
 
     @pytest.mark.unit
     @pytest.mark.parametrize("key_length", [3072, 4096, 8192])
     def test_valid_key_length_arguments(self, key_length):
         """Test CLI parsing with valid key length values."""
         # Simulate CLI argument parsing
-        args = {'key_length': key_length, 'nice_value': 10}
+        args = {"key_length": key_length, "nice_value": 10}
 
         # Verify key length is within valid range
-        assert 3072 <= args['key_length'] <= 8192
-        assert args['key_length'] % 8 == 0
+        assert 3072 <= args["key_length"] <= 8192
+        assert args["key_length"] % 8 == 0
 
     @pytest.mark.unit
     @pytest.mark.parametrize("nice_value", [-20, -10, 0, 10, 19])
     def test_valid_nice_value_arguments(self, nice_value):
         """Test CLI parsing with valid nice value arguments."""
-        args = {'key_length': 4096, 'nice_value': nice_value}
+        args = {"key_length": 4096, "nice_value": nice_value}
 
         # Verify nice value is within valid range
-        assert -20 <= args['nice_value'] <= 19
+        assert -20 <= args["nice_value"] <= 19
 
     @pytest.mark.unit
     def test_boolean_argument_parsing(self):
         """Test parsing of boolean arguments like verbose and database flags."""
         # Test verbose flag
-        verbose_args = {'verbose': True, 'database': False}
-        assert verbose_args['verbose'] is True
-        assert verbose_args['database'] is False
+        verbose_args = {"verbose": True, "database": False}
+        assert verbose_args["verbose"] is True
+        assert verbose_args["database"] is False
 
         # Test database flag
-        db_args = {'verbose': False, 'database': True}
-        assert db_args['verbose'] is False
-        assert db_args['database'] is True
+        db_args = {"verbose": False, "database": True}
+        assert db_args["verbose"] is False
+        assert db_args["database"] is True
 
     @pytest.mark.unit
     def test_config_file_argument(self, temp_file):
         """Test config file argument parsing."""
-        args = {'config_file': temp_file}
+        args = {"config_file": temp_file}
 
         # Verify config file path is preserved
-        assert args['config_file'] == temp_file
+        assert args["config_file"] == temp_file
 
     @pytest.mark.unit
     def test_output_file_argument(self, temp_file):
         """Test output file argument parsing."""
-        args = {'output_file': temp_file}
+        args = {"output_file": temp_file}
 
         # Verify output file path is preserved
-        assert args['output_file'] == temp_file
+        assert args["output_file"] == temp_file
 
     @pytest.mark.unit
     @pytest.mark.security
@@ -99,10 +95,10 @@ class TestCLIArgumentParsing:
         """Test that CLI arguments are properly validated for security."""
         # Test that potentially dangerous inputs are rejected
         dangerous_inputs = [
-            {'key_length': '4096; rm -rf /', 'nice_value': 10},
-            {'key_length': 4096, 'nice_value': '10 && cat /etc/passwd'},
-            {'config_file': '/etc/passwd'},
-            {'output_file': '/dev/null; rm -rf /'},
+            {"key_length": "4096; rm -rf /", "nice_value": 10},
+            {"key_length": 4096, "nice_value": "10 && cat /etc/passwd"},
+            {"config_file": "/etc/passwd"},
+            {"output_file": "/dev/null; rm -rf /"},
         ]
 
         for dangerous_input in dangerous_inputs:
@@ -167,17 +163,17 @@ class TestCLIArgumentValidation:
     def test_file_path_validation(self, temp_file):
         """Test validation of file path arguments."""
         # Valid file paths
-        valid_paths = [temp_file, '/tmp/test', './config.cnf']
+        valid_paths = [temp_file, "/tmp/test", "./config.cnf"]
         for path in valid_paths:
             assert isinstance(path, str)
             assert len(path) > 0
 
         # Invalid/dangerous file paths
         dangerous_paths = [
-            '/etc/passwd',
-            '/dev/null; rm -rf /',
-            '../../../etc/shadow',
-            '$(rm -rf /)',
+            "/etc/passwd",
+            "/dev/null; rm -rf /",
+            "../../../etc/shadow",
+            "$(rm -rf /)",
         ]
         for path in dangerous_paths:
             # In a real implementation, these should be rejected
@@ -188,31 +184,31 @@ class TestCLIArgumentValidation:
         """Test validation of argument combinations."""
         # Valid combinations
         valid_combo = {
-            'key_length': 4096,
-            'nice_value': 10,
-            'verbose': True,
-            'database': True,
+            "key_length": 4096,
+            "nice_value": 10,
+            "verbose": True,
+            "database": True,
         }
 
         # Verify all required fields are present
-        assert 'key_length' in valid_combo
-        assert 'nice_value' in valid_combo
+        assert "key_length" in valid_combo
+        assert "nice_value" in valid_combo
 
         # Verify values are valid
-        assert valid_combo['key_length'] >= 3072
-        assert -20 <= valid_combo['nice_value'] <= 19
+        assert valid_combo["key_length"] >= 3072
+        assert -20 <= valid_combo["nice_value"] <= 19
 
     @pytest.mark.unit
     def test_mutually_exclusive_arguments(self):
         """Test handling of mutually exclusive arguments."""
         # Example: database output vs file output
-        db_output = {'database': True, 'output_file': None}
-        file_output = {'database': False, 'output_file': '/tmp/output'}
+        db_output = {"database": True, "output_file": None}
+        file_output = {"database": False, "output_file": "/tmp/output"}
 
         # These should be valid individually
-        assert db_output['database'] is True
-        assert file_output['database'] is False
-        assert file_output['output_file'] is not None
+        assert db_output["database"] is True
+        assert file_output["database"] is False
+        assert file_output["output_file"] is not None
 
 
 class TestCLIErrorHandling:
@@ -222,20 +218,20 @@ class TestCLIErrorHandling:
     def test_missing_required_arguments(self):
         """Test handling of missing required arguments."""
         # Test that missing key_length is handled
-        incomplete_args = {'nice_value': 10, 'verbose': True}
+        incomplete_args = {"nice_value": 10, "verbose": True}
 
         # Should detect missing key_length
-        assert 'key_length' not in incomplete_args
+        assert "key_length" not in incomplete_args
 
     @pytest.mark.unit
     def test_invalid_argument_types(self):
         """Test handling of invalid argument types."""
         # Test non-numeric key_length
         invalid_args = [
-            {'key_length': 'not_a_number', 'nice_value': 10},
-            {'key_length': 4096, 'nice_value': 'not_a_number'},
-            {'key_length': [], 'nice_value': 10},
-            {'key_length': 4096, 'nice_value': {}},
+            {"key_length": "not_a_number", "nice_value": 10},
+            {"key_length": 4096, "nice_value": "not_a_number"},
+            {"key_length": [], "nice_value": 10},
+            {"key_length": 4096, "nice_value": {}},
         ]
 
         for args in invalid_args:
@@ -246,21 +242,21 @@ class TestCLIErrorHandling:
     def test_argument_range_errors(self):
         """Test handling of arguments outside valid ranges."""
         out_of_range_args = [
-            {'key_length': 256, 'nice_value': 10},  # key_length too small
-            {'key_length': 32768, 'nice_value': 10},  # key_length too large
-            {'key_length': 4096, 'nice_value': -25},  # nice_value too low
-            {'key_length': 4096, 'nice_value': 25},  # nice_value too high
+            {"key_length": 256, "nice_value": 10},  # key_length too small
+            {"key_length": 32768, "nice_value": 10},  # key_length too large
+            {"key_length": 4096, "nice_value": -25},  # nice_value too low
+            {"key_length": 4096, "nice_value": 25},  # nice_value too high
         ]
 
         for args in out_of_range_args:
             # Verify the values are indeed out of range
-            if 'key_length' in args:
-                key_len = args['key_length']
+            if "key_length" in args:
+                key_len = args["key_length"]
                 if key_len < 3072 or key_len > 8192:
                     assert not (3072 <= key_len <= 8192)
 
-            if 'nice_value' in args:
-                nice_val = args['nice_value']
+            if "nice_value" in args:
+                nice_val = args["nice_value"]
                 if nice_val < -20 or nice_val > 19:
                     assert not (-20 <= nice_val <= 19)
 
@@ -268,10 +264,10 @@ class TestCLIErrorHandling:
     def test_file_access_errors(self):
         """Test handling of file access errors."""
         # Test non-existent config file
-        nonexistent_file = '/path/to/nonexistent/file.cnf'
+        nonexistent_file = "/path/to/nonexistent/file.cnf"
 
         # Test read-only output directory
-        readonly_output = '/root/output_file'
+        readonly_output = "/root/output_file"
 
         # In a real implementation, these should be handled gracefully
         assert isinstance(nonexistent_file, str)
@@ -293,7 +289,9 @@ class TestCLIErrorHandling:
             assert isinstance(message, str)
             assert len(message) > 0
             # Should contain helpful information
-            assert any(word in message.lower() for word in ['must', 'should', 'not', 'error'])
+            assert any(
+                word in message.lower() for word in ["must", "should", "not", "error"]
+            )
 
 
 class TestCLIIntegration:
@@ -306,25 +304,25 @@ class TestCLIIntegration:
         args = valid_cli_args.copy()
 
         # Verify all components work together
-        assert args['key_length'] >= 3072
-        assert -20 <= args['nice_value'] <= 19
-        assert isinstance(args['verbose'], bool)
-        assert isinstance(args['database'], bool)
+        assert args["key_length"] >= 3072
+        assert -20 <= args["nice_value"] <= 19
+        assert isinstance(args["verbose"], bool)
+        assert isinstance(args["database"], bool)
 
     @pytest.mark.integration
     @pytest.mark.slow
     def test_cli_with_config_file(self, temp_file, sample_config_content):
         """Test CLI argument parsing with config file integration."""
         # Write config to temp file
-        with open(temp_file, 'w') as f:
+        with open(temp_file, "w") as f:
             f.write(sample_config_content)
 
         # Simulate CLI with config file
-        args = {'config_file': temp_file, 'key_length': 4096}
+        args = {"config_file": temp_file, "key_length": 4096}
 
         # Verify config file is processed
-        assert args['config_file'] == temp_file
-        assert args['key_length'] == 4096
+        assert args["config_file"] == temp_file
+        assert args["key_length"] == 4096
 
     @pytest.mark.integration
     def test_cli_argument_precedence(self):
@@ -333,11 +331,11 @@ class TestCLIIntegration:
         # Config file should override defaults
 
         precedence_test = {
-            'cli_key_length': 4096,
-            'config_key_length': 8192,
-            'default_key_length': None,
+            "cli_key_length": 4096,
+            "config_key_length": 8192,
+            "default_key_length": None,
         }
 
         # CLI should win
-        final_key_length = precedence_test['cli_key_length']
+        final_key_length = precedence_test["cli_key_length"]
         assert final_key_length == 4096

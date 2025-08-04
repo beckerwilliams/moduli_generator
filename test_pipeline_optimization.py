@@ -70,13 +70,18 @@ def test_pipeline_optimization():
                 return duration, len(moduli_files)
 
             except TimeoutException:
-                print("Test timed out after 30 seconds - this is expected for performance testing")
-                print("The important thing is that the pipeline processing started without errors")
+                print(
+                    "Test timed out after 30 seconds - this is expected for performance testing"
+                )
+                print(
+                    "The important thing is that the pipeline processing started without errors"
+                )
                 return None, 0
 
             except Exception as e:
                 print(f"Error during testing: {e}")
                 import traceback
+
                 traceback.print_exc()
                 return None, 0
 

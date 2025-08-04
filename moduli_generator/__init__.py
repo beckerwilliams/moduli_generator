@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 import concurrent.futures
-import logging
 import subprocess
-from json import dump
-from logging import DEBUG, INFO
+from logging import DEBUG, INFO, Logger
 from pathlib import PosixPath as Path
 from typing import Any, Dict, List
 
 from config import ModuliConfig, default_config, iso_utc_timestamp
-from db import Error, MariaDBConnector
+from db import MariaDBConnector
 from moduli_generator.validators import validate_subprocess_args
 
 # Constants
@@ -97,13 +95,13 @@ class ModuliGenerator:
     @staticmethod
     def _run_subprocess_with_logging(
         command: str,
-        logger: logging.Logger,
+        logger: Logger,
         info_level: int = INFO,
         debug_level: int = DEBUG,
     ) -> subprocess.CompletedProcess:
         """
         Executes a subprocess command with real-time logging for both `stdout` and `stderr`. This method
-                handles the logging of subprocess output streams directly as they are produced and employs a
+                handles the logging of subprocess output streams directly as they are produced, using a
                 threaded approach to ensure asynchronous handling of stream data.
 
                 Subprocess outputs are logged in real-time using the provided logger object, and the function
@@ -129,8 +127,8 @@ class ModuliGenerator:
                 for line in iter(stream.readline, ""):
                     if line.strip():
                         log_func(f"{line.strip()}")
-            except Exception as e:
-                logger.error(f"Error reading {prefix} stream: {e}")
+            except Exception as err:
+                logger.error(f"Error reading {prefix} stream: {err}")
             finally:
                 stream.close()
 
@@ -167,7 +165,7 @@ class ModuliGenerator:
             stdout_thread.start()
             stderr_thread.start()
 
-            # Wait for process to complete
+            # Wait for the process to complete
             return_code = process.wait()
 
             # Wait for logging threads to finish
@@ -189,8 +187,8 @@ class ModuliGenerator:
 
         except subprocess.CalledProcessError:
             raise
-        except Exception as e:
-            logger.error(f"Unexpected error running command {command}: {e}")
+        except Exception as err:
+            logger.error(f"Unexpected error running command {command}: {err}")
             raise subprocess.CalledProcessError(1, command) from e
 
     @staticmethod
@@ -204,7 +202,8 @@ class ModuliGenerator:
                 The generated file is returned as a `Path` object pointing to its location.
 
         Args:
-            config (Any): The configuration object contains the necessary parameters for the process,                        including paths and logging setup.
+            config (Any): The configuration object contains the necessary parameters for the process,
+            including paths and logging setup.
             key_length (int): The desired key length in bits for the moduli candidate generation.
 
         Returns:
@@ -259,7 +258,8 @@ class ModuliGenerator:
 
         Args:
             candidates_file (Path): Path to the candidate moduli file to be screened.
-            config (Any): Configuration object providing required details for processing such as moduli                        directory, logger, generator type, candidates directory, and nice value.
+            config (Any): Configuration object providing required details for processing such as modul
+            directory, logger, generator type, candidates directory, and nice value.
 
         Returns:
             Path: Path to the generated screened moduli file.
@@ -294,7 +294,7 @@ class ModuliGenerator:
             str(screened_file),
         ]
         try:
-            # Use streaming approach for real-time output logging
+            # Use a streaming approach for real-time output logging
             ModuliGenerator._run_subprocess_with_logging(command, logger)
 
         except subprocess.CalledProcessError as err:
@@ -309,14 +309,15 @@ class ModuliGenerator:
 
     def _parse_moduli_files(self) -> Dict[str, List[Dict[str, Any]]]:
         """
-        Parses the moduli files to extract specific installers entries and formats them
+        Parses the moduli files to extract specific key-length entries and formats them
                 into a dictionary structure for further processing. This method iterates
                 over a set of screened files, reads their contents line by line, and
                 extracts information about timestamp, key size, and modulus if the line
                 meets specific criteria.
 
         Returns:
-            Dict[str, List[Dict[str, Any]]]: A dictionary with parsed moduli installers under the key                  'screened_moduli'. Each entry is a dictionary containing                  'timestamp', 'key-size', and 'modulus'.
+            Dict[str, List[Dict[str, Any]]]: A dictionary with parsed moduli installers under the key
+            'screened_moduli'. Each entry is a dictionary containing 'timestamp', 'key-size', and 'modulus'.
         """
 
         screened_files = self._list_moduli_files()
@@ -460,36 +461,6 @@ class ModuliGenerator:
 
         return self
 
-    def save_moduli(self, moduli_file_dir: Path = None) -> "ModuliGenerator":
-        """
-        Saves the processed moduli installers to a JSON file in the specified directory or a default location.
-
-                This method processes the moduli installers and writes the output as a JSON file. If no directory is
-                provided, the JSON file is saved in the default base directory specified in the configuration.
-                The filename includes a timestamp in ISO UTC format to ensure a unique name.
-
-        Args:
-            moduli_file_dir (Path, optional): Directory where the moduli JSON file should be saved. If not specified,                                 the default base directory from the configuration is used.
-
-        Returns:
-            ModuliGenerator: self
-        """
-        if not moduli_file_dir:
-            moduli_file_dir = self.config.moduli_home
-
-        moduli_json = (
-            moduli_file_dir / f"screened_moduli_{iso_utc_timestamp(True)}.json"
-        )
-        with moduli_json.open("w") as f:
-            # with open(moduli_json, 'w') as f:
-            dump(self._parse_moduli_files(), f, indent=2)
-
-        self.logger.info(
-            f"Moduli schema saved to {self.config.moduli_dir / moduli_json}"
-        )
-
-        return self
-
     def store_moduli(self) -> "ModuliGenerator":
         """
         Parse, validate, and store screened moduli into the database and manage their source
@@ -519,7 +490,7 @@ class ModuliGenerator:
         """
         Writes the moduli file using the database interface.
 
-                This method retrieves the installers necessary for the moduli file from the
+                This method retrieves the moduli necessary for the moduli file from the
                 database and then writes it to the appropriate location using
                 the database interface.
 
@@ -553,7 +524,8 @@ class ModuliGenerator:
                         and the value is a list of paths to the corresponding candidate files.
 
             Returns:
-                dict[int, List[Path]]: A dictionary where the keys are lengths (int) and the values are                 lists of Path objects representing restart candidate files.
+                dict[int, List[Path]]: A dictionary where the keys are lengths (int) and the values are
+                    lists of Path objects representing restart candidate files.
             """
             results = {}
             for idx in self.config.candidates_dir.glob(

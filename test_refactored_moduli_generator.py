@@ -10,7 +10,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 # Add the project root to Python path
-sys.path.insert(0, '/Users/ron/development/moduli_generator')
+sys.path.insert(0, "/Users/ron/development/moduli_generator")
 
 from moduli_generator import ModuliGenerator
 
@@ -23,7 +23,7 @@ def test_run_subprocess_with_logging():
     logger = Mock()
 
     # Test with a simple command that produces output
-    command = ['echo', 'Hello World']
+    command = ["echo", "Hello World"]
 
     try:
         result = ModuliGenerator._run_subprocess_with_logging(command, logger)
@@ -44,7 +44,7 @@ def test_error_handling():
     logger = Mock()
 
     # Test with a command that will fail
-    command = ['false']  # Command that always returns non-zero exit code
+    command = ["false"]  # Command that always returns non-zero exit code
 
     try:
         ModuliGenerator._run_subprocess_with_logging(command, logger)
@@ -74,7 +74,9 @@ def test_with_mock_config():
     print(f"✓ Mock config created with moduli_dir: {mock_config.moduli_dir}")
 
     # Test that the methods can be called without errors (we'll mock the actual subprocess calls)
-    with patch.object(ModuliGenerator, '_run_subprocess_with_logging') as mock_subprocess:
+    with patch.object(
+        ModuliGenerator, "_run_subprocess_with_logging"
+    ) as mock_subprocess:
         mock_subprocess.return_value = Mock(returncode=0)
 
         try:
@@ -88,7 +90,9 @@ def test_with_mock_config():
             candidates_file.touch()
 
             # Test _screen_candidates_static
-            screened_file = ModuliGenerator._screen_candidates_static(mock_config, candidates_file)
+            screened_file = ModuliGenerator._screen_candidates_static(
+                mock_config, candidates_file
+            )
             print(f"✓ _screen_candidates_static returned: {screened_file}")
 
             return True
@@ -112,6 +116,7 @@ def test_threading_import():
     try:
         # This should work without issues since we import threading inside the method
         import threading
+
         print("✓ Threading module is available")
         return True
     except ImportError as e:

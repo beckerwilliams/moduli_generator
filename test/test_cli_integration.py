@@ -5,36 +5,40 @@ This module tests the main CLI entry point and complete workflow integration,
 including argument processing, error handling, and exit codes.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
-import sys
 from datetime import datetime
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 from moduli_generator.cli import main
-from config import ModuliConfig, default_config
-from moduli_generator import ModuliGenerator
 
 
 class TestCLIMainFunction:
     """Test cases for the main CLI function."""
 
     @pytest.mark.integration
-    @patch('db.ConnectionPool')
-    @patch('db.parse_mysql_config')
-    @patch('concurrent.futures.ProcessPoolExecutor')
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('config.arg_parser.local_config')
-    def test_main_success_with_default_config(self, mock_local_config, mock_generator_class, mock_executor, mock_parse,
-                                              mock_pool):
+    @patch("db.ConnectionPool")
+    @patch("db.parse_mysql_config")
+    @patch("concurrent.futures.ProcessPoolExecutor")
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("config.arg_parser.local_config")
+    def test_main_success_with_default_config(
+        self,
+        mock_local_config,
+        mock_generator_class,
+        mock_executor,
+        mock_parse,
+        mock_pool,
+    ):
         """Test successful CLI execution with default configuration."""
         # Setup MariaDB mocks
         mock_parse.return_value = {
-            'client': {
-                'host': 'localhost',
-                'port': '3306',
-                'user': 'test_user',
-                'password': 'test_password',
-                'database': 'test_moduli_db'
+            "client": {
+                "host": "localhost",
+                "port": "3306",
+                "user": "test_user",
+                "password": "test_password",
+                "database": "test_moduli_db",
             }
         }
         mock_pool_instance = MagicMock()
@@ -67,7 +71,7 @@ class TestCLIMainFunction:
         assert mock_logger.info.call_count >= 2  # Start and completion messages
 
     @pytest.mark.integration
-    @patch('moduli_generator.cli.ModuliGenerator')
+    @patch("moduli_generator.cli.ModuliGenerator")
     def test_main_success_with_provided_config(self, mock_generator_class, mock_config):
         """Test successful CLI execution with provided configuration."""
         # Setup mocks
@@ -91,11 +95,11 @@ class TestCLIMainFunction:
 
         # Verify logging setup
         mock_logger.info.assert_called()
-        assert mock_logger.name == 'moduli_generator.cli'
+        assert mock_logger.name == "moduli_generator.cli"
 
     @pytest.mark.integration
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('config.arg_parser.local_config')
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("config.arg_parser.local_config")
     def test_main_value_error_handling(self, mock_local_config, mock_generator_class):
         """Test CLI handling of ValueError exceptions."""
         # Setup mocks
@@ -118,9 +122,11 @@ class TestCLIMainFunction:
         assert "Moduli Generation Failed: Invalid key length" in error_call
 
     @pytest.mark.integration
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('config.arg_parser.local_config')
-    def test_main_general_exception_handling(self, mock_local_config, mock_generator_class):
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("config.arg_parser.local_config")
+    def test_main_general_exception_handling(
+        self, mock_local_config, mock_generator_class
+    ):
         """Test CLI handling of general exceptions."""
         # Setup mocks
         mock_config = MagicMock()
@@ -129,7 +135,9 @@ class TestCLIMainFunction:
         mock_local_config.return_value = mock_config
 
         mock_generator = MagicMock()
-        mock_generator.generate_moduli.side_effect = RuntimeError("Database connection failed")
+        mock_generator.generate_moduli.side_effect = RuntimeError(
+            "Database connection failed"
+        )
         mock_generator_class.return_value = mock_generator
 
         # Execute main function
@@ -142,9 +150,11 @@ class TestCLIMainFunction:
         assert "Moduli Generation Failed: Database connection failed" in error_call
 
     @pytest.mark.integration
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('config.arg_parser.local_config')
-    def test_main_store_moduli_value_error(self, mock_local_config, mock_generator_class):
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("config.arg_parser.local_config")
+    def test_main_store_moduli_value_error(
+        self, mock_local_config, mock_generator_class
+    ):
         """Test CLI handling of ValueError in store_moduli step."""
         # Setup mocks
         mock_config = MagicMock()
@@ -154,7 +164,9 @@ class TestCLIMainFunction:
 
         mock_generator = MagicMock()
         mock_generator.generate_moduli.return_value = mock_generator
-        mock_generator.store_moduli.side_effect = ValueError("Database validation failed")
+        mock_generator.store_moduli.side_effect = ValueError(
+            "Database validation failed"
+        )
         mock_generator_class.return_value = mock_generator
 
         # Execute main function
@@ -167,9 +179,11 @@ class TestCLIMainFunction:
         assert "Moduli Generation Failed: Database validation failed" in error_call
 
     @pytest.mark.integration
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('config.arg_parser.local_config')
-    def test_main_store_moduli_general_error(self, mock_local_config, mock_generator_class):
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("config.arg_parser.local_config")
+    def test_main_store_moduli_general_error(
+        self, mock_local_config, mock_generator_class
+    ):
         """Test CLI handling of general exception in store_moduli step."""
         # Setup mocks
         mock_config = MagicMock()
@@ -196,10 +210,12 @@ class TestCLILoggingAndTiming:
     """Test cases for CLI logging and timing functionality."""
 
     @pytest.mark.integration
-    @patch('datetime.datetime')
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('config.arg_parser.local_config')
-    def test_main_timing_and_logging(self, mock_local_config, mock_generator_class, mock_datetime):
+    @patch("datetime.datetime")
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("config.arg_parser.local_config")
+    def test_main_timing_and_logging(
+        self, mock_local_config, mock_generator_class, mock_datetime
+    ):
         """Test CLI timing and logging functionality."""
         # Setup datetime mocks
         start_time = datetime(2023, 12, 1, 10, 0, 0)
@@ -228,7 +244,9 @@ class TestCLILoggingAndTiming:
         info_calls = [call[0][0] for call in mock_logger.info.call_args_list]
 
         # Check start message
-        start_message = next((msg for msg in info_calls if "Starting Moduli Generation" in msg), None)
+        start_message = next(
+            (msg for msg in info_calls if "Starting Moduli Generation" in msg), None
+        )
         assert start_message is not None
         assert "(4096, 8192)" in start_message
 
@@ -237,8 +255,8 @@ class TestCLILoggingAndTiming:
         assert len(completion_messages) >= 1
 
     @pytest.mark.integration
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('config.arg_parser.local_config')
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("config.arg_parser.local_config")
     def test_main_logger_name_assignment(self, mock_local_config, mock_generator_class):
         """Test that logger name is properly assigned."""
         # Setup mocks
@@ -257,11 +275,11 @@ class TestCLILoggingAndTiming:
 
         # Verify logger name assignment
         assert result == 0
-        assert mock_logger.name == 'moduli_generator.cli'
+        assert mock_logger.name == "moduli_generator.cli"
 
     @pytest.mark.integration
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('config.arg_parser.local_config')
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("config.arg_parser.local_config")
     def test_main_debug_logging(self, mock_local_config, mock_generator_class):
         """Test debug logging functionality."""
         # Setup mocks
@@ -289,9 +307,11 @@ class TestCLIMethodChaining:
     """Test cases for CLI method chaining functionality."""
 
     @pytest.mark.integration
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('config.arg_parser.local_config')
-    def test_main_method_chaining_success(self, mock_local_config, mock_generator_class):
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("config.arg_parser.local_config")
+    def test_main_method_chaining_success(
+        self, mock_local_config, mock_generator_class
+    ):
         """Test successful method chaining in CLI."""
         # Setup mocks
         mock_config = MagicMock()
@@ -316,9 +336,11 @@ class TestCLIMethodChaining:
         mock_generator.generate_moduli.return_value.store_moduli.assert_called_once()
 
     @pytest.mark.integration
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('config.arg_parser.local_config')
-    def test_main_method_chaining_break_on_generate_error(self, mock_local_config, mock_generator_class):
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("config.arg_parser.local_config")
+    def test_main_method_chaining_break_on_generate_error(
+        self, mock_local_config, mock_generator_class
+    ):
         """Test method chaining breaks on generate_moduli error."""
         # Setup mocks
         mock_config = MagicMock()
@@ -343,9 +365,11 @@ class TestCLIConfigurationHandling:
     """Test cases for CLI configuration handling."""
 
     @pytest.mark.integration
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('config.arg_parser.local_config')
-    def test_main_with_none_config_uses_default(self, mock_local_config, mock_generator_class):
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("config.arg_parser.local_config")
+    def test_main_with_none_config_uses_default(
+        self, mock_local_config, mock_generator_class
+    ):
         """Test that None config triggers default config loading."""
         # Setup mocks
         mock_config = MagicMock()
@@ -367,8 +391,10 @@ class TestCLIConfigurationHandling:
         mock_generator_class.assert_called_once_with(mock_config)
 
     @pytest.mark.integration
-    @patch('moduli_generator.cli.ModuliGenerator')
-    def test_main_with_provided_config_skips_loading(self, mock_generator_class, mock_config):
+    @patch("moduli_generator.cli.ModuliGenerator")
+    def test_main_with_provided_config_skips_loading(
+        self, mock_generator_class, mock_config
+    ):
         """Test that provided config skips default config loading."""
         # Setup mocks
         mock_logger = MagicMock()
@@ -380,7 +406,7 @@ class TestCLIConfigurationHandling:
         mock_generator_class.return_value = mock_generator
 
         # Execute main function with provided config
-        with patch('config.arg_parser.local_config') as mock_local_config:
+        with patch("config.arg_parser.local_config") as mock_local_config:
             result = main(mock_config)
 
             # Verify config loading is skipped
@@ -389,9 +415,11 @@ class TestCLIConfigurationHandling:
             mock_generator_class.assert_called_once_with(mock_config)
 
     @pytest.mark.integration
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('config.arg_parser.local_config')
-    def test_main_config_key_lengths_logging(self, mock_local_config, mock_generator_class):
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("config.arg_parser.local_config")
+    def test_main_config_key_lengths_logging(
+        self, mock_local_config, mock_generator_class
+    ):
         """Test that config key lengths are logged properly."""
         # Setup mocks with specific key lengths
         mock_config = MagicMock()
@@ -411,7 +439,9 @@ class TestCLIConfigurationHandling:
         # Verify key lengths are logged
         assert result == 0
         info_calls = [call[0][0] for call in mock_logger.info.call_args_list]
-        start_message = next((msg for msg in info_calls if "Starting Moduli Generation" in msg), None)
+        start_message = next(
+            (msg for msg in info_calls if "Starting Moduli Generation" in msg), None
+        )
         assert start_message is not None
         assert "(3072, 4096, 8192)" in start_message
 
@@ -420,8 +450,8 @@ class TestCLIMainEntryPoint:
     """Test cases for the CLI main entry point."""
 
     @pytest.mark.integration
-    @patch('sys.exit')
-    @patch('moduli_generator.cli.main')
+    @patch("sys.exit")
+    @patch("moduli_generator.cli.main")
     def test_main_entry_point_success(self, mock_main_func, mock_exit):
         """Test the __main__ entry point with successful execution."""
         mock_main_func.return_value = 0
@@ -429,14 +459,15 @@ class TestCLIMainEntryPoint:
         # Simulate the __main__ entry point behavior
         from sys import exit
         from moduli_generator.cli import main
+
         exit(main())
 
         mock_main_func.assert_called_once()
         mock_exit.assert_called_once_with(0)
 
     @pytest.mark.integration
-    @patch('sys.exit')
-    @patch('moduli_generator.cli.main')
+    @patch("sys.exit")
+    @patch("moduli_generator.cli.main")
     def test_main_entry_point_error(self, mock_main_func, mock_exit):
         """Test the __main__ entry point with error."""
         mock_main_func.return_value = 1
@@ -444,6 +475,7 @@ class TestCLIMainEntryPoint:
         # Simulate the __main__ entry point behavior
         from sys import exit
         from moduli_generator.cli import main
+
         exit(main())
 
         mock_main_func.assert_called_once()
@@ -454,9 +486,11 @@ class TestCLIIntegrationScenarios:
     """Test cases for complete CLI integration scenarios."""
 
     @pytest.mark.integration
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('config.arg_parser.local_config')
-    def test_complete_workflow_integration(self, mock_local_config, mock_generator_class):
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("config.arg_parser.local_config")
+    def test_complete_workflow_integration(
+        self, mock_local_config, mock_generator_class
+    ):
         """Test complete CLI workflow integration."""
         # Setup realistic configuration
         mock_config = MagicMock()
@@ -495,9 +529,11 @@ class TestCLIIntegrationScenarios:
         assert mock_logger.debug.call_count >= 1  # Config debug message
 
     @pytest.mark.integration
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('config.arg_parser.local_config')
-    def test_cli_error_recovery_scenarios(self, mock_local_config, mock_generator_class):
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("config.arg_parser.local_config")
+    def test_cli_error_recovery_scenarios(
+        self, mock_local_config, mock_generator_class
+    ):
         """Test CLI error recovery scenarios."""
         # Setup mocks
         mock_config = MagicMock()
@@ -510,7 +546,7 @@ class TestCLIIntegrationScenarios:
             (ValueError("Invalid parameters"), 1),
             (RuntimeError("System error"), 2),
             (IOError("File access error"), 2),
-            (Exception("Unknown error"), 2)
+            (Exception("Unknown error"), 2),
         ]
 
         for error, expected_code in error_scenarios:
@@ -528,8 +564,8 @@ class TestCLIIntegrationScenarios:
             mock_generator_class.reset_mock()
 
     @pytest.mark.integration
-    @patch('moduli_generator.cli.ModuliGenerator')
-    @patch('config.arg_parser.local_config')
+    @patch("moduli_generator.cli.ModuliGenerator")
+    @patch("config.arg_parser.local_config")
     def test_cli_performance_logging(self, mock_local_config, mock_generator_class):
         """Test CLI performance and timing logging."""
         # Setup mocks
@@ -545,7 +581,7 @@ class TestCLIIntegrationScenarios:
         mock_generator_class.return_value = mock_generator
 
         # Execute with timing
-        with patch('datetime.datetime') as mock_datetime:
+        with patch("datetime.datetime") as mock_datetime:
             start_time = datetime(2023, 12, 1, 10, 0, 0)
             end_time = datetime(2023, 12, 1, 10, 2, 30)  # 2.5 minutes later
             mock_datetime.now.side_effect = [start_time, end_time]
