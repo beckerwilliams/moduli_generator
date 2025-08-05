@@ -17,7 +17,7 @@ def installer():
     try:
         # Access the module from the installers directory
         files = importlib.resources.files("data.bash_scripts")
-        module = files / "install_gm.sh"
+        module = files / "install_mg.sh"
 
         if module.is_file():
             print(f"Installer Script: {module}\n")
