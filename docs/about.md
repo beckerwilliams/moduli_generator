@@ -1,40 +1,28 @@
 # About Moduli Generator
 
-## What is Moduli Generator?
+`Moduli Generator` simply produces _unique_ SSH2 Moduli files (`/etc/ssh/moduli`),
+with a single command, `moduli_generator.`
+
+`Moduli Generator` uses Open SSH2's `ssh-keygen -m generate` and `ssh-keygen -m screen` under-the-covers, effectively
+managing the process of candidate generation, screening, and assembly into high quality moduli files.
+
+_**IFF you've read**_ the Caveat Emptor below, and _**still**_ want to generate your own moduli files,
+this is the tool for you.
 
 ### Caveat Emptor
 
-Embrace Modern, Post-Quantum Safe SSH Protocols**
+#### Embrace Modern, Post-Quantum Safe SSH Protocols
 
-For enhanced security, consider adopting modern SSH key exchange protocols like ECDH (Elliptic Curve Diffie-Hellman) or
-post-quantum algorithms such as CRYSTALS-Kyber, instead of relying on traditional Diffie-Hellman with /etc/ssh/moduli
-files. These advanced protocols offer stronger protection against emerging threats, including quantum computing risks,
-ensuring your connections remain secure and future-proof.
-
-Consider updating your SSH configurations to prioritize these safer alternatives.
-
-____
-
-If you have a _secure_ OpenSSH installation, you're running version at least OpenSSH v. 9.9p2 or greater,
+If you have a _secure_ OpenSSH installation, you're running a version at least OpenSSH v. 9.9p2 or greater,
 you _should_ be configured to use a secure protocol, like `Kex=sntrup761x25519-sha512@openssh.com`,
-rather than Diffie Hellman Exchange protocol.
+rather than Diffie-Hellman Group Exchange.
 
 Unless you have _legacy clients_ back-leveled and incapable of OpenSSH quantum safe protocols,
-you **do not need** `Moduli Generator`
+**you do not need** `Moduli Generator`
 
-If you _have_ legacy clients, and require _**Unique, Secure, and Complete**_ /etc/ssh/moduli files, `Moduli Generator`
+_**If you _have_ legacy clients ssh clients**_, and require _**Unique, Secure, and Complete**_ /etc/ssh/moduli files,
+`Moduli Generator`
 was made for you.
-
-## Why Moduli Generator, I understand it uses `ssh-keygen` under the covers?
-
-OpenSSH's `ssh-keygen` is a _high performance, fit for purpose_ moduli generator. However, ssh-keygen provides
-two methods, one to generate potential moduli candidates, and a second to screen and test those moduli for primality.
-
-Each run is per key size, meaning you have to run `ssh-keygen -m generate`, and `ssh-keygen -m screen`
-for each key length needed, and then assemple the screened moduli into a single file and install in /etc/ssh/moduli.
-
-`Moduli Generator` provies you with a VERY simple mechanism to produce a high-quality moduli file every 60 hours
-(on a quad core i7).
 
 ## Technical Overview
 
@@ -45,6 +33,8 @@ The Moduli Generator provides:
 - **Moduli Generation**: Creates cryptographically secure prime numbers for use as Diffie-Hellman group exchange
 - **Database Integration**: Stores and manages generated moduli using MariaDB
 - **Performance Optimization**: Efficient implementation for large-scale moduli generation
+- **Candidate Restart**: For efficient restart of interrupted candidate screening.
+- **Database Moduli Stats**: Basic Inventory of DH GEX Moduli by Key Length
 
 ### Architecture
 

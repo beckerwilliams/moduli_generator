@@ -1,10 +1,13 @@
-[tool.poetry]
+[project]
 name = "moduli_generator"
-version = "2.1.34"
+version = "2.1.35"
 description = "A secure, high-performance SSH moduli file generator with database integration for cryptographic key exchange operations"
-authors = ["Ron Williams <becker.williams@gmail.com>"]
+authors = [
+	{ name = "Ron Williams", email = "becker.williams@gmail.com" }
+]
 readme = "docs/README.md"
-license = "MIT"
+license = { text = "MIT" }
+requires-python = ">=3.11,<4.0"
 keywords = ["cryptography", "ssh", "moduli", "security"]
 classifiers = [
 	"Development Status :: 4 - Beta",
@@ -29,54 +32,45 @@ classifiers = [
 	"Natural Language :: English",
 	"Typing :: Typed"
 ]
-packages = [
-	{ include = "config" },
-	{ include = "db" },
-	{ include = "moduli_generator" }
+dependencies = [
+	"mariadb==1.1.13",
+	"configparser>=7.2.0",
+	"typing-extensions>=4.14.1,<5.0.0"
 ]
-include = [
-	'docs/**/*',
-	'data/bash_scripts/*',
-	'data/schema/*'
-]
-[tool.poetry.dependencies]
-python = ">=3.11,<4.0"
-mariadb = "==1.1.13"
-configparser = ">=7.2.0"
-typing-extensions = ">=4.14.1,<5.0.0"
 
-[tool.poetry.scripts]
+[project.optional-dependencies]
+dev = [
+	"black>=25.1.0,<26.0.0",
+	"pip-tools>=7.5.0,<8.0.0",
+	"pytest~=8.4.1",
+	"pytest-cov>=4.0.0",
+	"pytest-mock>=3.12.0",
+	"pytest-asyncio>=0.23.0",
+	"toml>=0.10.2"
+]
+docs = [
+	"mkdocs>=1.6.1",
+	"mkdocs-autorefs>=1.4.2",
+	"mkdocs-get-deps>=0.2.0",
+	"mkdocs-material>=9.6.16,<10.0.0",
+	"mkdocs-material-extensions>=1.3.1",
+	"mkdocstrings>=0.30.0",
+	"mkdocstrings-python==1.16.12",
+	"pymdown-extensions>=10.16.1"
+]
+[project.scripts]
 moduli_generator = "moduli_generator:main"
 moduli_stats = "db.scripts.moduli_stats:main"
 install_schema = "db.scripts.install_schema:main"
 restart_screening = "moduli_generator.restart:main"
 write_ssh2_moduli_file = "moduli_generator.write_ssh2_moduli_file:main"
 
-[tool.poetry.urls]
+[project.urls]
 Homepage = "https://github.com/beckerwilliams/moduli_generator"
 Documentation = "https://github.com/beckerwilliams/moduli_generator/blob/main/README.md"
 Repository = "https://github.com/beckerwilliams/moduli_generator.git"
 Issues = "https://github.com/beckerwilliams/moduli_generator/issues"
 
-
-[tool.poetry.group.dev.dependencies]
-black = ">=25.1.0,<26.0.0"
-pip-tools = ">=7.5.0,<8.0.0"
-pytest = "~8.4.1"
-pytest-cov = ">=4.0.0"
-pytest-mock = ">=3.12.0"
-pytest-asyncio = ">=0.23.0"
-toml = ">=0.10.2"
-
-[tool.poetry.group.docs.dependencies]
-mkdocs = "^1.6.1"
-mkdocs-autorefs = ">=1.4.2"
-mkdocs-get-deps = ">=0.2.0"
-mkdocs-material = ">=9.6.16,<10.0.0"
-mkdocs-material-extensions = ">=1.3.1"
-mkdocstrings = ">=0.30.0"
-mkdocstrings-python = "1.16.12"
-pymdown-extensions = ">=10.16.1"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

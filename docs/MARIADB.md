@@ -5,12 +5,12 @@ It's the preferred replacement for MySQL Database, which is no longer supported.
 
 In the Moduli Generator pre-Install below, we'll
 
-- Install the `Moduli Generator`'s database, tables, and views. (requires _privilged_ db access)
+[ ] Create `Moduli Generator`'s mariadb.cnf file: `${HOME}/.moduli_generator/moduli_generator.cnf`
 
-- Create the `Moduli Generator` application user:  `'moduli_generator'@'%'`, and grant it
+[ ] Install the `Moduli Generator`'s database, tables, and views. (requires _privilged_ db access)
+
+[ ] Create the `Moduli Generator` application user:  `'moduli_generator'@'%'`, and grant it
   `ALL PRIVILEGES ON moduli_db.*`
-
-- Create `Moduli Generator`'s mariadb.cnf file: `${HOME}/.moduli_generator/moduli_generator.cnf`
 
 ## Install MariaDB
 

@@ -56,27 +56,29 @@ Access to the MariaDB Instance is controlled by mariadb user, `'moduli_generator
 schema to
 create and grant to the user `GRANT ALL PRIVILEGES on moduli_db.*`.
 
-##### MariaDB Installation Guide
+#### Official MariaDB Installation Guide
 
 - [MariaDB Installation Guide](https://mariadb.com/docs/server/mariadb-quickstart-guides/installing-mariadb-server-guide)
   _This link will take you **directly** to MariaDB's Installation Guide_
-
 ____
 
-### Preparing MariaDB for Moduli Generator
+## Preparing MariaDB for Moduli Generator
 
 [Preparing the MariaDB Instance](MARIADB.md)
 
 ## Installation Overview
 
-- Install `Moduli Generator`, from `PyPi` or `Wheel`
-- Prepare Credentials for chosen MariaDB Instance, both privileged and application owner
+- Verify MariaDB Credentials
+  - Prepare Credentials for chosen MariaDB Instance, both privileged and application owner
+  - Optional: Install MariaDB
+- Install `Moduli Generator`, from `github`, `PyPi`
 - Install `Moduli Generator` SQL Schema
 - Create and Grant privileges to Application Owner `'moduli_generator'@'%'`
-- Test installation to verify successful operation
+- Test installation to verify successful installation and operation
 
+____
 
-1. Create, activate, and update `python` virtual environment
+### Create, activate, and update` python` virtual environment
 
 ```bash
 python -m venv .venv
@@ -84,17 +86,21 @@ source .venv/bin/activate
 pip install pip --upgrade
 ```
 
-### Install `moduli_generator` from `wheel`
+### Install `moduli_generator`
+
+#### from `wheel`
 
 ```bash
 pip install moduli_generator-<x.x.x>-py3-none-any.whl
 ```
 
-### Install `moduli_generator` (PyPi)
+#### from PyPi
 
 ```bash
 pip install moduli_generator
 ```
+
+## Install `Moduli Generator` Database Schema
 
 ### Initialize `moduli_generator`
 
@@ -105,7 +111,7 @@ deactivate
 source .venv/bin/activate
 ```
 
-_This will assure `moduli_generator`'s scripts are available in your $PATH_
+_This will assure `moduli_generator's` scripts are found in $PATH_
 
 ### Verify that `install_schema` is Available
 
@@ -115,7 +121,7 @@ At the comand line, in your chosen directory, type:
 install_schema -h
 ```
 
-will yeild _if_ `moduli_generator is properly installed`
+will respond with the following, indicating `moduli_generator.install_schema` is properly installed:
 
 ```bash
 usage: install_schema [-h] [--batch] [--moduli-db-name MODULI_DB_NAME] mariadb_cnf
@@ -133,11 +139,10 @@ options:
 
 ```
 
+### Install `Moduli Generator` SQL Schema
 ```bash
 install_schema privileged_mariadb.cnf --moduli-db-name test_moduli_db --batch
 ```
-
-### Install `moduli_generator` SQL Schema
 
 You need Two (2) MariaDB.cnf (.my.sql.conf) Files
 In your _working_directory_ create `privileged_mariadb.cnf`. This profile contains `MariaDB privileged user` access
