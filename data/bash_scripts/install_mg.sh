@@ -304,7 +304,7 @@ build_moduli_generator() {
     # Upgrade version of PIP, Install Moduli Generator Wheel from BUILD Stage
     ${ECHO} "${BLUE}[ Upgrading Virtual Environment and Installing Moduli Generator wheel ]${NC}"
 
-    ${PIP} install --upgrade pip || { echo -e "${RED}Failed to upgrade pip${NC}"; return 1; }
+    ${PIP} install --upgrade pip || {  -e "${RED}Failed to upgrade pip${NC}"; return 1; }
     ${PIP} install "${wheel_file}" || { echo -e "${RED}Failed to install wheel file${NC}"; return 1; }
     rm "${wheel_file}" || echo -e "${YELLOW}Warning: Failed to remove wheel file${NC}"
 

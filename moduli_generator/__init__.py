@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import concurrent.futures
 import subprocess
+import sys
 from logging import DEBUG, INFO, Logger
 from pathlib import PosixPath as Path
 from typing import Any, Dict, List
@@ -571,3 +572,43 @@ class ModuliGenerator:
             self.logger.info(f"No Unscreened Candidates Found for Restart")
 
         return self
+
+    def write_install_script_to_stdout(self) -> None:
+        """Write the install_mg.sh script content to STDOUT.
+
+        Reads the install_mg.sh script file from the package data resources
+        and writes its content directly to standard output.
+
+        Raises:
+            FileNotFoundError: If the install_mg.sh script file cannot be found.
+            IOError: If there's an error reading the file.
+        """
+        try:
+            # Python 3.9+ syntax
+            from importlib.resources import files
+
+            data_files = files("moduli_generator").joinpath("data", "bash_scripts")
+            install_script = data_files / "install_mg.sh"
+            script_content = install_script.read_text(encoding="utf-8")
+        except ImportError:
+            # Fallback for Python < 3.9
+            from importlib.resources import read_text
+
+            script_content = read_text(
+                "moduli_generator.data.bash_scripts", "install_mg.sh", encoding="utf-8"
+            )
+        except FileNotFoundError:
+            self.logger.error("Install script not found in package resources")
+            raise
+        except Exception as e:
+            self.logger.error(
+                f"Error reading install script from package resources: {e}"
+            )
+            raise
+
+        try:
+            sys.stdout.write(script_content)
+            sys.stdout.flush()
+        except IOError as e:
+            self.logger.error(f"Error writing to stdout: {e}")
+            raise
