@@ -12,20 +12,29 @@ RED='\033[0;31m'
 # No Color (reset)
 NC='\033[0m'
 
-PROJECT_NAME=moduli_generator
-WORK_DIR=.${PROJECT_NAME}_build_env
-GITHUB_PROJECT=https://github.com/beckerwilliams/${PROJECT_NAME}.git
-GIT="/usr/bin/env git"
-PYTHON="/usr/bin/env python"
-VENV_DIR=.test_venv
-MK_VENV="${PYTHON} -m venv"
 ECHO="echo -e"
 MV="mv"
 MKDIR="mkdir -p"
-POETRY="/usr/bin/env poetry"
-PIP="pip"
+
+CWD=$(pwd)
+PROJECT_NAME=moduli_generator
+WORK_DIR=.${PROJECT_NAME}_build_env
+
+GITHUB_PROJECT=https://github.com/beckerwilliams/${PROJECT_NAME}.git
+GIT=$(which git)
+
+PYTHON=$(which python)
+VENV_DIR=.test_venv
+MK_VENV="${PYTHON} -m venv"
+
+POETRY=$(which poetry)
+PIP=$(which pip)
+
 ACTIVATE="source ${VENV_DIR}/bin/activate"
 MODULI_GENERATOR_DIR=${PROJECT_NAME}
+
+
+echo "${PURPLE}Project Name: ${PROJECT_NAME}\n\tWORD_DIR: ${WORK_DIR}\n\tCWD: ${CWD}"
 
 # Function to verify git installation
 verify_git() {
@@ -103,36 +112,38 @@ verify_requirements() {
 build_wheel() {
 	# Set Wheel BUILD Logfile
 	BUILD_MG_LOG="${CWD}/build.log"
+
+	echo "${PURPLE}*** Project Name: ${PROJECT_NAME}\n\tWORD_DIR: ${WORK_DIR}\n\tCWD: ${CWD} ***${NV}"
+	
 	# shellcheck disable=SC2188
 	> "${BUILD_MG_LOG}"
 
 	${ECHO} "${BLUE}[ Saving Current Directory ${CWD}, entering ${WORK_DIR} ] ${NC}"
-	${MKDIR} ${WORK_DIR} >> "${BUILD_MG_LOG}" 2>&1
-	cd ${WORK_DIR} >> "${BUILD_MG_LOG}" 2>&1  || exit 1
+	${MKDIR} ${WORK_DIR} # >> "${BUILD_MG_LOG}" 2>&1
+	cd ${WORK_DIR} # >> "${BUILD_MG_LOG}" 2>&1  || exit 1
 
 	# Clone Project from Github Repo
 	${ECHO} "${BLUE}"[ Cloning moduli_generator from Github ] "${NC}"
-	${GIT} clone "${GITHUB_PROJECT}" >> "${BUILD_MG_LOG}" 2>&1  || echo "Cloning moduli_generator FAILED!" && exit 1
+	${GIT} clone "${GITHUB_PROJECT}" || exit 1  # >> "${BUILD_MG_LOG}" 2>&1  || echo "Cloning moduli_generator FAILED!" && exit 1
 
 	# Change Directory to Installed 'moduli_generator' (project)
 	${ECHO} "${BLUE}"[ Entering Moduli Dev Directory ] "${NC}"
-	cd ${MODULI_GENERATOR_DIR} >> "${BUILD_MG_LOG}" 2>&1  \
-		|| echo "Changing directory to installed moduli_generator FAILED" && exit 1
+	cd ${MODULI_GENERATOR_DIR} # >> "${BUILD_MG_LOG}" 2>&1  \
+	#		|| echo "Changing directory to installed moduli_generator FAILED" && exit 1
 
 	# Create and Activate BUILD Virtrual Enviroment
 	${ECHO} "${BLUE}"[ Creating and Activating Moduli Generator\'s Wheel Builder ] "${NC}"
-	# shellcheck disable=SC2129
-	${MK_VENV} ${VENV_DIR} >> "${BUILD_MG_LOG}" 2>&1
-	${ACTIVATE} >> "${BUILD_MG_LOG}" 2>&1
+	${MK_VENV} ${VENV_DIR} # >> "${BUILD_MG_LOG}" 2>&1
+	${ACTIVATE} # >> "${BUILD_MG_LOG}" 2>&1
 
 	####################################
 	# Install, Update, and Build POETRY
 	####################################
-	${PIP} install pip --upgrade >> "${BUILD_MG_LOG}" 2>&1  # Fixed typo: intall -> install
-	${PIP} install poetry --upgrade >> "${BUILD_MG_LOG}" 2>&1
-	${POETRY} update >> "${BUILD_MG_LOG}" 2>&1
+	${PIP} install pip --upgrade # >> "${BUILD_MG_LOG}" 2>&1  # Fixed typo: intall -> install
+	${PIP} install poetry --upgrade # >> "${BUILD_MG_LOG}" 2>&1
+	${POETRY} update # >> "${BUILD_MG_LOG}" 2>&1
 	${ECHO} "${BLUE}"[ Building moduli_generator wheel ] "${NC}"
-	${POETRY} build >> "${BUILD_MG_LOG}" 2>&1
+	${POETRY} build # >> "${BUILD_MG_LOG}" 2>&1
 
 	#########################################
 	# The Product
@@ -144,32 +155,35 @@ build_wheel() {
 	# Copy Wheel File to Runtime Directory (Current Working Dir)
 	#############################################################
 	${ECHO} "${BLUE}"[ Moduli Generator Wheel: "${CWD}"/"${wheel_file}" ] "${NC}"
-	${MV} dist/"${wheel_file}" "${CWD}"/"${wheel_file}" >> "${BUILD_MG_LOG}" 2>&1
+	${MV} dist/"${wheel_file}" "${CWD}"/"${wheel_file}" # >> "${BUILD_MG_LOG}" 2>&1
 
 	##################################
 	# CLOSE BUILD Virtual Environment
 	##################################
-	cd "${CWD}" >> "${BUILD_MG_LOG}" 2>&1|| exit 1
+	cd "${CWD}" # >> "${BUILD_MG_LOG}" 2>&1|| exit 1
 	if [ "${WORK_DIR}" != "/" ]; then rm -rf "${WORK_DIR}"; fi
-	${ECHO} "${PURPLE}" Deleted Temporary Work Dir: "${WORK_DIR}"  >> "${BUILD_MG_LOG}" 2>&1 "${NC}"
+	${ECHO} "${PURPLE}" Deleted Temporary Work Dir: "${WORK_DIR}"  # >> "${BUILD_MG_LOG}" 2>&1 "${NC}"
 }
 
 build_moduli_generator() {
 	BUILD_MG_LOG=${CWD}/runtime_install.log
+	echo "${PURPLE}*** Project Name: ${PROJECT_NAME}\n\tWORD_DIR: ${WORK_DIR}\n\tCWD: ${CWD} ***${NV}"
+	
 	# shellcheck disable=SC2188
 	> "${BUILD_MG_LOG}"
 
 	# Create and Activate Runtime Virtual Environent
 	${ECHO} "${BLUE}"[ Creating runtime virtual environment ] "${NC}"
-	${MK_VENV} ${VENV_DIR} >> "${BUILD_MG_LOG}" 2>&1
-	${ACTIVATE} >> "${BUILD_MG_LOG}" 2>&1
+	${MK_VENV} ${VENV_DIR} # >> "${BUILD_MG_LOG}" 2>&1
+	${ACTIVATE} # >> "${BUILD_MG_LOG}" 2>&1
 
 	# Upgrade version of PIP, Install Moduli Generator Wheel from BUILD Stage
 	${ECHO} "${BLUE}"[ Upgrading Virtual Environment and Installing Moduli Generator wheel ] "${NC}"
+
 	# shellcheck disable=SC2129
-	${PIP} install pip --upgrade >> "${BUILD_MG_LOG}" 2>&1
-	${PIP} install "${wheel_file}" >> "${BUILD_MG_LOG}" 2>&1
-	rm "${wheel_file}" >> "${BUILD_MG_LOG}" 2>&1
+	${PIP} install pip --upgrade  # >> "${BUILD_MG_LOG}" 2>&1
+	${PIP} install "${wheel_file}"  # >> "${BUILD_MG_LOG}" 2>&1
+	rm "${wheel_file}" # >> "${BUILD_MG_LOG}" 2>&1
 
 	# Print out Build and Install Status, Deactivate RUNTIME Virtual Enviornment
 	${ECHO} "${GREEN}"[ Moduli Generator Installed Successfully ] "${NC}"
@@ -184,14 +198,14 @@ build_moduli_generator() {
 
 }
 
-######
+###################################
 # MAIN
-######
-# Set the Working Directory
-# shellcheck disable=SC2155
-export CWD=$(pwd)
+###################################
 
-# Call the verification function
+
+#####################
+# Verify Requirements
+#####################
 verify_requirements || exit 1
 
 ###############################################
@@ -202,4 +216,4 @@ build_wheel || echo "build_wheel FAILED" && exit 1
 #####################################################
 #  BUILD Moduli Generator Virtual RUNTIME (Pristine)
 #####################################################
-build_moduli_generator || echo "Build Moduli Generator Failed" && exit 1
+# build_moduli_generator || echo "Build Moduli Generator Failed" && exit 1
