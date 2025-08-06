@@ -32,7 +32,11 @@ classifiers = [
     "Natural Language :: English",
     "Typing :: Typed"
 ]
-packages = [{ include = "moduli_generator" }, { include = "db" }, { include = "config" }]
+packages = [
+    { include = "config" },
+    { include = "db" },
+    { include = "moduli_generator" }]
+include = ["data/**/*"]
 
 [tool.poetry.urls]
 Homepage = "https://github.com/beckerwilliams/moduli_generator"

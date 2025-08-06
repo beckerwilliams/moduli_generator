@@ -182,17 +182,12 @@ install_poetry_in_venv() {
 }
 
 build_wheel() {
-    local BUILD_MG_LOG="${CWD}/build.log"
-
     echo -e "${PURPLE}*** Project Name: ${PROJECT_NAME}\n\tWORK_DIR: ${WORK_DIR}\n\tCWD: ${CWD} ***${NC}"
     
-    # Clear the log file
-    # shellcheck disable=SC2188
-    > "${BUILD_MG_LOG}"
-
     # Clean up any existing work directory first
     cleanup_work_dir
 
+	# Save Current Directory
     ${ECHO} "${BLUE}[ Saving Current Directory ${CWD}, entering ${WORK_DIR} ]${NC}"
     ${MKDIR} "${WORK_DIR}" || { echo -e "${RED}Failed to create work directory${NC}"; return 1; }
     cd "${WORK_DIR}" || { echo -e "${RED}Failed to enter work directory${NC}"; return 1; }
@@ -304,7 +299,7 @@ build_moduli_generator() {
     # Upgrade version of PIP, Install Moduli Generator Wheel from BUILD Stage
     ${ECHO} "${BLUE}[ Upgrading Virtual Environment and Installing Moduli Generator wheel ]${NC}"
 
-    ${PIP} install --upgrade pip || {  -e "${RED}Failed to upgrade pip${NC}"; return 1; }
+    ${PIP} install --upgrade pip || { echo -e "${RED}Failed to upgrade pip${NC}"; return 1; }
     ${PIP} install "${wheel_file}" || { echo -e "${RED}Failed to install wheel file${NC}"; return 1; }
     rm "${wheel_file}" || echo -e "${YELLOW}Warning: Failed to remove wheel file${NC}"
 
