@@ -41,7 +41,7 @@ Repository = "https://github.com/beckerwilliams/moduli_generator.git"
 Issues = "https://github.com/beckerwilliams/moduli_generator/issues"
 
 [tool.poetry.scripts]
-moduli_generator = "moduli_generator:main"
+moduli_generator = "moduli_generator.cli:main"
 moduli_stats = "db.scripts.moduli_stats:main"
 install_schema = "db.scripts.install_schema:main"
 restart_screening = "moduli_generator.restart:main"
