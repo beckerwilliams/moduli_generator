@@ -8,6 +8,7 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 RED='\033[0;31m'
+YELLOW='\033[0;33m'
 
 # No Color (reset)
 NC='\033[0m'
@@ -17,6 +18,7 @@ MV="mv"
 MKDIR="mkdir -p"
 
 CWD=$(pwd)
+
 PROJECT_NAME=moduli_generator
 WORK_DIR=.${PROJECT_NAME}_build_env
 
@@ -27,14 +29,16 @@ PYTHON=$(which python)
 VENV_DIR=.test_venv
 MK_VENV="${PYTHON} -m venv"
 
-POETRY=$(which poetry)
+# Don't use system Poetry - we'll install it in the venv
 PIP=$(which pip)
 
-ACTIVATE="source ${VENV_DIR}/bin/activate"
+ACTIVATE_SCRIPT="${VENV_DIR}/bin/activate"
 MODULI_GENERATOR_DIR=${PROJECT_NAME}
 
+# Global variable for wheel file
+wheel_file=""
 
-echo "${PURPLE}Project Name: ${PROJECT_NAME}\n\tWORD_DIR: ${WORK_DIR}\n\tCWD: ${CWD}"
+echo -e "${PURPLE}Project Name: ${PROJECT_NAME}\n\tWORK_DIR: ${WORK_DIR}\n\tCWD: ${CWD}${NC}"
 
 # Function to verify git installation
 verify_git() {
@@ -74,15 +78,17 @@ verify_python312() {
     fi
 
     # Convert version to comparable format (e.g., 3.12 -> 312)
-    # shellcheck disable=SC2155
-    local major=$(echo "$python_version" | cut -d. -f1)
-    # shellcheck disable=SC2155
-    local minor=$(echo "$python_version" | cut -d. -f2)
-    local version_num=$((major * 100 + minor))
-    local required_version=$((3 * 100 + 12))  # 3.12 = 312
+    local major minor version_num required_version
+    major=$(echo "$python_version" | cut -d. -f1)
+    minor=$(echo "$python_version" | cut -d. -f2)
+    version_num=$((major * 100 + minor))
+    required_version=$((3 * 100 + 12))  # 3.12 = 312
 
     if [[ $version_num -ge $required_version ]]; then
         echo -e "${GREEN}✓ Python $python_version is installed (≥3.12 required): $($python_cmd --version)${NC}"
+        # Update PYTHON variable to use the found command
+        PYTHON="$python_cmd"
+        MK_VENV="${PYTHON} -m venv"
         return 0
     else
         echo -e "${RED}✗ Python 3.12 or higher required. Found: $($python_cmd --version)${NC}"
@@ -109,111 +115,246 @@ verify_requirements() {
     fi
 }
 
+# Function to activate virtual environment
+activate_venv() {
+    if [[ -f "$ACTIVATE_SCRIPT" ]]; then
+        # shellcheck disable=SC1090
+        source "$ACTIVATE_SCRIPT"
+        echo -e "${GREEN}✓ Virtual environment activated${NC}"
+        
+        # Update paths to use virtual environment versions - CRITICAL FIX
+        PIP="${VENV_DIR}/bin/pip"
+        POETRY="${VENV_DIR}/bin/poetry"
+        
+        # Verify we're using the right pip
+        echo -e "${BLUE}Using pip: $(which pip)${NC}"
+        
+        return 0
+    else
+        echo -e "${RED}✗ Virtual environment activation script not found: $ACTIVATE_SCRIPT${NC}"
+        return 1
+    fi
+}
+
+# Function to check if Poetry project has pyproject.toml
+check_poetry_project() {
+    if [[ ! -f "pyproject.toml" ]]; then
+        echo -e "${RED}✗ No pyproject.toml found. This might not be a Poetry project.${NC}"
+        return 1
+    fi
+    
+    # Check for either format - PEP 621 or legacy Poetry
+    if grep -q "tool.poetry\|project.*name" pyproject.toml; then
+        echo -e "${GREEN}✓ Poetry/PEP 621 project configuration found${NC}"
+        return 0
+    else
+        echo -e "${RED}✗ pyproject.toml doesn't contain Poetry or PEP 621 configuration.${NC}"
+        return 1
+    fi
+}
+
+# Function to clean up any existing work directories
+cleanup_work_dir() {
+    if [[ -d "${WORK_DIR}" ]]; then
+        echo -e "${YELLOW}[ Cleaning up existing work directory: ${WORK_DIR} ]${NC}"
+        rm -rf "${WORK_DIR}"
+    fi
+}
+
+# Function to install Poetry in virtual environment
+install_poetry_in_venv() {
+    echo -e "${BLUE}[ Installing Poetry in virtual environment ]${NC}"
+    
+    # Remove any existing Poetry installation in venv
+    ${PIP} uninstall poetry -y 2>/dev/null || true
+    
+    # Install a specific, stable Poetry version
+    ${PIP} install poetry==1.8.3 || { echo -e "${RED}Failed to install poetry${NC}"; return 1; }
+    
+    # Verify Poetry installation
+    if [[ -f "${POETRY}" ]] && ${POETRY} --version; then
+        echo -e "${GREEN}✓ Poetry installed successfully: $(${POETRY} --version)${NC}"
+        return 0
+    else
+        echo -e "${RED}✗ Poetry installation verification failed${NC}"
+        return 1
+    fi
+}
+
 build_wheel() {
-	# Set Wheel BUILD Logfile
-	BUILD_MG_LOG="${CWD}/build.log"
+    local BUILD_MG_LOG="${CWD}/build.log"
 
-	echo "${PURPLE}*** Project Name: ${PROJECT_NAME}\n\tWORD_DIR: ${WORK_DIR}\n\tCWD: ${CWD} ***${NV}"
-	
-	# shellcheck disable=SC2188
-	> "${BUILD_MG_LOG}"
+    echo -e "${PURPLE}*** Project Name: ${PROJECT_NAME}\n\tWORK_DIR: ${WORK_DIR}\n\tCWD: ${CWD} ***${NC}"
+    
+    # Clear the log file
+    # shellcheck disable=SC2188
+    > "${BUILD_MG_LOG}"
 
-	${ECHO} "${BLUE}[ Saving Current Directory ${CWD}, entering ${WORK_DIR} ] ${NC}"
-	${MKDIR} ${WORK_DIR} # >> "${BUILD_MG_LOG}" 2>&1
-	cd ${WORK_DIR} # >> "${BUILD_MG_LOG}" 2>&1  || exit 1
+    # Clean up any existing work directory first
+    cleanup_work_dir
 
-	# Clone Project from Github Repo
-	${ECHO} "${BLUE}"[ Cloning moduli_generator from Github ] "${NC}"
-	${GIT} clone "${GITHUB_PROJECT}" || exit 1  # >> "${BUILD_MG_LOG}" 2>&1  || echo "Cloning moduli_generator FAILED!" && exit 1
+    ${ECHO} "${BLUE}[ Saving Current Directory ${CWD}, entering ${WORK_DIR} ]${NC}"
+    ${MKDIR} "${WORK_DIR}" || { echo -e "${RED}Failed to create work directory${NC}"; return 1; }
+    cd "${WORK_DIR}" || { echo -e "${RED}Failed to enter work directory${NC}"; return 1; }
 
-	# Change Directory to Installed 'moduli_generator' (project)
-	${ECHO} "${BLUE}"[ Entering Moduli Dev Directory ] "${NC}"
-	cd ${MODULI_GENERATOR_DIR} # >> "${BUILD_MG_LOG}" 2>&1  \
-	#		|| echo "Changing directory to installed moduli_generator FAILED" && exit 1
+    # Clone Project from Github Repo - now should work since we cleaned up
+    ${ECHO} "${BLUE}[ Cloning moduli_generator from Github ]${NC}"
+    if ! ${GIT} clone "${GITHUB_PROJECT}"; then
+        echo -e "${RED}Cloning moduli_generator FAILED!${NC}"
+        # Additional debugging information
+        echo -e "${YELLOW}Current directory contents:${NC}"
+        ls -la
+        return 1
+    fi
 
-	# Create and Activate BUILD Virtrual Enviroment
-	${ECHO} "${BLUE}"[ Creating and Activating Moduli Generator\'s Wheel Builder ] "${NC}"
-	${MK_VENV} ${VENV_DIR} # >> "${BUILD_MG_LOG}" 2>&1
-	${ACTIVATE} # >> "${BUILD_MG_LOG}" 2>&1
+    # Change Directory to Installed 'moduli_generator' (project)
+    ${ECHO} "${BLUE}[ Entering Moduli Dev Directory ]${NC}"
+    cd "${MODULI_GENERATOR_DIR}" || { echo -e "${RED}Failed to enter moduli_generator directory${NC}"; return 1; }
 
-	####################################
-	# Install, Update, and Build POETRY
-	####################################
-	${PIP} install pip --upgrade # >> "${BUILD_MG_LOG}" 2>&1  # Fixed typo: intall -> install
-	${PIP} install poetry --upgrade # >> "${BUILD_MG_LOG}" 2>&1
-	${POETRY} update # >> "${BUILD_MG_LOG}" 2>&1
-	${ECHO} "${BLUE}"[ Building moduli_generator wheel ] "${NC}"
-	${POETRY} build # >> "${BUILD_MG_LOG}" 2>&1
+    # Check if this is a valid Poetry project
+    check_poetry_project || return 1
 
-	#########################################
-	# The Product
-	#########################################
-	# shellcheck disable=SC2155
-	export wheel_file=$(ls dist/*.whl | cut -d/ -f2)
+    # Create and Activate BUILD Virtual Environment
+    ${ECHO} "${BLUE}[ Creating and Activating Moduli Generator's Wheel Builder ]${NC}"
+    ${MK_VENV} "${VENV_DIR}" || { echo -e "${RED}Failed to create virtual environment${NC}"; return 1; }
+    activate_venv || { echo -e "${RED}Failed to activate virtual environment${NC}"; return 1; }
 
-	#############################################################
-	# Copy Wheel File to Runtime Directory (Current Working Dir)
-	#############################################################
-	${ECHO} "${BLUE}"[ Moduli Generator Wheel: "${CWD}"/"${wheel_file}" ] "${NC}"
-	${MV} dist/"${wheel_file}" "${CWD}"/"${wheel_file}" # >> "${BUILD_MG_LOG}" 2>&1
+    ####################################
+    # Install, Update, and Build POETRY
+    ####################################
+    ${ECHO} "${BLUE}[ Upgrading pip ]${NC}"
+    ${PIP} install --upgrade pip || { echo -e "${RED}Failed to upgrade pip${NC}"; return 1; }
+    
+    # Install Poetry in the virtual environment
+    install_poetry_in_venv || { echo -e "${RED}Failed to install Poetry${NC}"; return 1; }
 
-	##################################
-	# CLOSE BUILD Virtual Environment
-	##################################
-	cd "${CWD}" # >> "${BUILD_MG_LOG}" 2>&1|| exit 1
-	if [ "${WORK_DIR}" != "/" ]; then rm -rf "${WORK_DIR}"; fi
-	${ECHO} "${PURPLE}" Deleted Temporary Work Dir: "${WORK_DIR}"  # >> "${BUILD_MG_LOG}" 2>&1 "${NC}"
+    # Configure Poetry to not create virtual environments (we're already in one)
+    ${POETRY} config virtualenvs.create false || echo -e "${YELLOW}Warning: Failed to configure Poetry${NC}"
+
+    # Install dependencies first
+    ${ECHO} "${BLUE}[ Installing project dependencies ]${NC}"
+    ${POETRY} install || { echo -e "${RED}Failed to install dependencies${NC}"; return 1; }
+    
+    # Try to update/lock dependencies
+    ${ECHO} "${BLUE}[ Updating Poetry lock file ]${NC}"
+    if ! ${POETRY} lock --no-update; then
+        echo -e "${YELLOW}Poetry lock failed, trying to regenerate...${NC}"
+        rm -f poetry.lock
+        ${POETRY} lock || { echo -e "${RED}Failed to generate poetry.lock${NC}"; return 1; }
+    fi
+    
+    ${ECHO} "${BLUE}[ Building moduli_generator wheel ]${NC}"
+    ${POETRY} build || { echo -e "${RED}Failed to build wheel${NC}"; return 1; }
+
+    #########################################
+    # The Product
+    #########################################
+    if ! ls dist/*.whl >/dev/null 2>&1; then
+        echo -e "${RED}No wheel file found in dist directory${NC}"
+        return 1
+    fi
+    
+    wheel_file=$(ls dist/*.whl | head -n1 | xargs basename)
+    echo -e "${GREEN}✓ Wheel file created: ${wheel_file}${NC}"
+
+    #############################################################
+    # Copy Wheel File to Runtime Directory (Current Working Dir)
+    #############################################################
+    ${ECHO} "${BLUE}[ Moduli Generator Wheel: ${CWD}/${wheel_file} ]${NC}"
+    ${MV} "dist/${wheel_file}" "${CWD}/${wheel_file}" || { echo -e "${RED}Failed to move wheel file${NC}"; return 1; }
+
+    ##################################
+    # CLOSE BUILD Virtual Environment
+    ##################################
+    cd "${CWD}" || { echo -e "${RED}Failed to return to CWD${NC}"; return 1; }
+    if [[ "${WORK_DIR}" != "/" && -d "${WORK_DIR}" ]]; then 
+        rm -rf "${WORK_DIR}"
+        ${ECHO} "${PURPLE}Deleted Temporary Work Dir: ${WORK_DIR}${NC}"
+    fi
+    
+    echo -e "${GREEN}✓ Build wheel completed successfully${NC}"
+    return 0
 }
 
 build_moduli_generator() {
-	BUILD_MG_LOG=${CWD}/runtime_install.log
-	echo "${PURPLE}*** Project Name: ${PROJECT_NAME}\n\tWORD_DIR: ${WORK_DIR}\n\tCWD: ${CWD} ***${NV}"
-	
-	# shellcheck disable=SC2188
-	> "${BUILD_MG_LOG}"
+    local BUILD_MG_LOG="${CWD}/runtime_install.log"
+    echo -e "${PURPLE}*** Project Name: ${PROJECT_NAME}\n\tWORK_DIR: ${WORK_DIR}\n\tCWD: ${CWD} ***${NC}"
+    
+    # Clear the log file
+    # shellcheck disable=SC2188
+    > "${BUILD_MG_LOG}"
 
-	# Create and Activate Runtime Virtual Environent
-	${ECHO} "${BLUE}"[ Creating runtime virtual environment ] "${NC}"
-	${MK_VENV} ${VENV_DIR} # >> "${BUILD_MG_LOG}" 2>&1
-	${ACTIVATE} # >> "${BUILD_MG_LOG}" 2>&1
+    # Check if wheel file exists
+    if [[ ! -f "${wheel_file}" ]]; then
+        echo -e "${RED}✗ Wheel file not found: ${wheel_file}${NC}"
+        return 1
+    fi
 
-	# Upgrade version of PIP, Install Moduli Generator Wheel from BUILD Stage
-	${ECHO} "${BLUE}"[ Upgrading Virtual Environment and Installing Moduli Generator wheel ] "${NC}"
+    # Clean up any existing runtime virtual environment
+    if [[ -d "${VENV_DIR}" ]]; then
+        echo -e "${YELLOW}[ Cleaning up existing runtime virtual environment ]${NC}"
+        rm -rf "${VENV_DIR}"
+    fi
 
-	# shellcheck disable=SC2129
-	${PIP} install pip --upgrade  # >> "${BUILD_MG_LOG}" 2>&1
-	${PIP} install "${wheel_file}"  # >> "${BUILD_MG_LOG}" 2>&1
-	rm "${wheel_file}" # >> "${BUILD_MG_LOG}" 2>&1
+    # Create and Activate Runtime Virtual Environment
+    ${ECHO} "${BLUE}[ Creating runtime virtual environment ]${NC}"
+    ${MK_VENV} "${VENV_DIR}" || { echo -e "${RED}Failed to create runtime virtual environment${NC}"; return 1; }
+    activate_venv || { echo -e "${RED}Failed to activate runtime virtual environment${NC}"; return 1; }
 
-	# Print out Build and Install Status, Deactivate RUNTIME Virtual Enviornment
-	${ECHO} "${GREEN}"[ Moduli Generator Installed Successfully ] "${NC}"
-	${ECHO} "${BLUE}"Virual Environment Package Manifest: "${PURPLE}"
-	${PIP} list
-	${ECHO} "${NC}"
+    # Upgrade version of PIP, Install Moduli Generator Wheel from BUILD Stage
+    ${ECHO} "${BLUE}[ Upgrading Virtual Environment and Installing Moduli Generator wheel ]${NC}"
 
-	##############################
-	# RUNTIME Environment COMPLETE
-#	##############################
-#	deactivate || 0
+    ${PIP} install --upgrade pip || { echo -e "${RED}Failed to upgrade pip${NC}"; return 1; }
+    ${PIP} install "${wheel_file}" || { echo -e "${RED}Failed to install wheel file${NC}"; return 1; }
+    rm "${wheel_file}" || echo -e "${YELLOW}Warning: Failed to remove wheel file${NC}"
 
+    # Print out Build and Install Status
+    ${ECHO} "${GREEN}[ Moduli Generator Installed Successfully ]${NC}"
+    ${ECHO} "${BLUE}Virtual Environment Package Manifest:${PURPLE}"
+    ${PIP} list
+    ${ECHO} "${NC}"
+
+    ##############################
+    # RUNTIME Environment COMPLETE
+    ##############################
+    # deactivate || true  # Uncomment if you want to deactivate
+    
+    echo -e "${GREEN}✓ Runtime installation completed successfully${NC}"
+    return 0
 }
 
 ###################################
 # MAIN
 ###################################
 
+# Set error handling
+set -e
+trap 'echo -e "${RED}Script failed at line $LINENO${NC}"' ERR
 
 #####################
 # Verify Requirements
 #####################
-verify_requirements || exit 1
+if ! verify_requirements; then
+    echo -e "${RED}Requirements verification failed. Exiting.${NC}"
+    exit 1
+fi
 
 ###############################################
 # Create, Update, BUILD WHEEL, Store in ${CWD}
 ###############################################
-build_wheel || echo "build_wheel FAILED" && exit 1
+if ! build_wheel; then
+    echo -e "${RED}build_wheel FAILED${NC}"
+    exit 1
+fi
 
 #####################################################
 #  BUILD Moduli Generator Virtual RUNTIME (Pristine)
 #####################################################
-# build_moduli_generator || echo "Build Moduli Generator Failed" && exit 1
+if ! build_moduli_generator; then
+    echo -e "${RED}Build Moduli Generator Failed${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}✓ Installation completed successfully!${NC}"
+echo -e "${BLUE}To activate the environment, run: source ${VENV_DIR}/bin/activate${NC}"
+echo -e "${BLUE}To test the installation, run: moduli_generator --help${NC}"
