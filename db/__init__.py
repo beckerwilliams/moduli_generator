@@ -470,25 +470,24 @@ class MariaDBConnector:
         self, query: str, params: Optional[tuple] = None, fetch: bool = True
     ) -> Optional[List[Dict]]:
         """
-        Executes an SQL query with optional parameters and returns the results or
-                affected rows depending on the fetch flag.
-
-                This method manages database transactions, logs the results or errors, and
-                ensures proper resource cleanup. It also supports parameterized queries
-                for enhanced security against SQL injection.
+        Executes an SQL query on the connected database, with support for parameterized queries.
+        Manages the database connection, transaction, and cursor. Can fetch query results
+        if needed.
 
         Args:
-            fetch (bool): A flag indicating whether to fetch and return query results
-            (True) or not (False). Defaults to True.
-            params (Optional[tuple]): Optional tuple of parameters for the query, default is None.
-            query (str): The SQL query to be executed.
+            query (str): The SQL query to execute.
+            params (Optional[tuple]): Optional query parameters for parameterized execution.
+            fetch (bool): Determines whether to fetch and return query results. If set to
+                True, the method returns a list of dictionaries representing the result set.
+                If set to False, the method executes the query without returning any
+                results.
 
         Returns:
-            Optional[List[Dict]]: A list of results as dictionaries if fetch is True, or None if
-                         fetch is False.
+            Optional[List[Dict]]: Returns a list of dictionaries containing the query
+            results if `fetch` is True, otherwise returns `None`.
 
         Raises:
-            RuntimeError: If an error occurs during query execution.
+            RuntimeError: If the SQL query execution fails for any reason.
         """
         try:
             with self.get_connection() as connection:
@@ -758,18 +757,24 @@ class MariaDBConnector:
 
     def delete_records(self, table_name, where_clause=None) -> int:
         """
-        Deletes records from the specified table in the database, with an optional
-                WHERE clause to filter the records to be deleted. If no WHERE clause is provided,
-                all records in the table will be deleted. The method returns the number of rows
-                affected by the DELETE operation.
+        Deletes records from a specified table in the database. Validates the table name
+        to prevent SQL injection and executes the appropriate SQL query for deletion.
+        If a `where_clause` is provided, it ensures that specific rows matching the
+        condition are deleted; otherwise, deletes all rows from the table.
 
         Args:
-            table_name (str): The name of the table from which records are to be deleted.
-            where_clause (str, optional): An optional SQL WHERE clause to specify the conditions
-            for the DELETE operation. Defaults to None.
+            table_name (str): Name of the database table from which records are to
+                be deleted. Must be a valid SQL identifier.
+            where_clause (tuple, optional): Condition specifying which rows to delete.
+                If provided, must be in a format supported by the database's parameterized
+                query system.
 
         Returns:
-            int: The number of rows deleted from the table.
+            int: The number of rows affected by the delete operation.
+
+        Raises:
+            RuntimeError: If the table name is invalid or if an error occurs while
+                executing the delete operation.
         """
         try:
             # Validate table name to prevent SQL injection

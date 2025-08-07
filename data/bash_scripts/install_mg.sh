@@ -26,7 +26,7 @@ GITHUB_PROJECT=https://github.com/beckerwilliams/${PROJECT_NAME}.git
 GIT=$(which git)
 
 PYTHON=$(which python)
-VENV_DIR=.test_venv
+VENV_DIR=.venv
 MK_VENV="${PYTHON} -m venv"
 
 # Don't use system Poetry - we'll install it in the venv
@@ -37,6 +37,7 @@ MODULI_GENERATOR_DIR=${PROJECT_NAME}
 
 # Global variable for wheel file
 wheel_file=""
+
 
 echo -e "${PURPLE}Project Name: ${PROJECT_NAME}\n\tWORK_DIR: ${WORK_DIR}\n\tCWD: ${CWD}${NC}"
 

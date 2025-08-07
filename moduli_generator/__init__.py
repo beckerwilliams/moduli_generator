@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import concurrent.futures
 import subprocess
-import sys
 from logging import DEBUG, INFO, Logger
 from pathlib import PosixPath as Path
 from typing import Any, Dict, List
@@ -195,20 +194,23 @@ class ModuliGenerator:
     @staticmethod
     def _generate_candidates_static(config: ModuliConfig, key_length: int) -> Path:
         """
-        Generate a moduli candidate file using the SSH key generation utility.
+        Generate a file of modular arithmetic candidates using ssh-keygen via a subprocess.
 
-                This method runs the `ssh-keygen` command-line tool to generate moduli candidates for
-                Diffie-Hellman group exchange, leveraging subprocess handling for system command execution.
-                The output and errors are captured using subprocess.PIPE and then logged appropriately.
-                The generated file is returned as a `Path` object pointing to its location.
+        This static method ensures that provided key length and nice value are validated
+        for safe subprocess execution. The resulting candidates are saved in a file within
+        the specified candidates directory and are uniquely identified with a timestamp.
 
         Args:
-            config (Any): The configuration object contains the necessary parameters for the process,
-            including paths and logging setup.
-            key_length (int): The desired key length in bits for the moduli candidate generation.
+            config (ModuliConfig): Configuration object that holds the candidates directory,
+                nice value, and logger.
+            key_length (int): The desired bit length for the moduli candidates.
 
         Returns:
-            Path: Path to the generated moduli candidate file.
+            Path: The file path where the generated candidates are stored.
+
+        Raises:
+            subprocess.CalledProcessError: If the ssh-keygen process fails during
+                candidate generation.
         """
         candidates_file = (
             config.candidates_dir
@@ -247,26 +249,22 @@ class ModuliGenerator:
     @staticmethod
     def _screen_candidates_static(config: ModuliConfig, candidates_file: Path) -> Path:
         """
-        Screen candidate moduli files using the provided configuration and the `ssh-keygen` tool.
-                This method takes a configuration object and a path to a candidate moduli file and processes
-                the file to generate a screened moduli file. The `ssh-keygen` tool is used with the `-M screen`
-                option to evaluate and filter candidate moduli using various configuration parameters. Output
-                is captured using subprocess.PIPE and logged appropriately.
-
-                If the operation is successful, the processed moduli file is returned. The candidate file is
-                removed from the filesystem after processing. In case of errors during execution, log and re-raises
-                exceptions.
+        Performs screening of SSH moduli candidates using the `ssh-keygen` tool and
+        a specified "nice" value. The function validates input arguments, constructs
+        the appropriate command line, and handles real-time logging of the subprocess
+        output. Generated screened files replace candidate files on success.
 
         Args:
-            candidates_file (Path): Path to the candidate moduli file to be screened.
-            config (Any): Configuration object providing required details for processing such as modul
-            directory, logger, generator type, candidates directory, and nice value.
+            config (ModuliConfig): Configuration object containing parameters such as
+                `moduli_dir`, `nice_value`, `generator_type`, and logging configuration.
+            candidates_file (Path): Path object referring to the file containing the
+                SSH moduli candidates to be screened.
 
         Returns:
-            Path: Path to the generated screened moduli file.
+            Path: Path to the successfully screened moduli file.
 
         Raises:
-            CalledProcessError: If the `ssh-keygen` tool fails during execution.
+            subprocess.CalledProcessError: If the `ssh-keygen` command fails.
         """
         screened_file = (
             config.moduli_dir
@@ -572,43 +570,3 @@ class ModuliGenerator:
             self.logger.info(f"No Unscreened Candidates Found for Restart")
 
         return self
-
-    def write_install_script_to_stdout(self) -> None:
-        """Write the install_mg.sh script content to STDOUT.
-
-        Reads the install_mg.sh script file from the package data resources
-        and writes its content directly to standard output.
-
-        Raises:
-            FileNotFoundError: If the install_mg.sh script file cannot be found.
-            IOError: If there's an error reading the file.
-        """
-        try:
-            # Python 3.9+ syntax
-            from importlib.resources import files
-
-            data_files = files("moduli_generator").joinpath("data", "bash_scripts")
-            install_script = data_files / "install_mg.sh"
-            script_content = install_script.read_text(encoding="utf-8")
-        except ImportError:
-            # Fallback for Python < 3.9
-            from importlib.resources import read_text
-
-            script_content = read_text(
-                "moduli_generator.data.bash_scripts", "install_mg.sh", encoding="utf-8"
-            )
-        except FileNotFoundError:
-            self.logger.error("Install script not found in package resources")
-            raise
-        except Exception as e:
-            self.logger.error(
-                f"Error reading install script from package resources: {e}"
-            )
-            raise
-
-        try:
-            sys.stdout.write(script_content)
-            sys.stdout.flush()
-        except IOError as e:
-            self.logger.error(f"Error writing to stdout: {e}")
-            raise

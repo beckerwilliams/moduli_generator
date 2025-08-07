@@ -6,21 +6,18 @@ with a single command, `moduli_generator.`
 `Moduli Generator` uses Open SSH2's `ssh-keygen -m generate` and `ssh-keygen -m screen` under-the-covers, effectively
 managing the process of candidate generation, screening, and assembly into high quality moduli files.
 
-_**IFF you've read**_ the Caveat Emptor below, and _**still**_ want to generate your own moduli files,
-this is the tool for you.
-
 ### Caveat Emptor
 
 #### Embrace Modern, Post-Quantum Safe SSH Protocols
 
 If you have a _secure_ OpenSSH installation, you're running a version at least OpenSSH v. 9.9p2 or greater,
-you _should_ be configured to use a secure protocol, like `Kex=sntrup761x25519-sha512@openssh.com`,
-rather than Diffie-Hellman Group Exchange.
+you _should_ be configured to use a secure protocol, like `Kex=sntrup761x25519-sha512@openssh.com`
+instead of than Diffie-Hellman Group Exchange.
 
-Unless you have _legacy clients_ back-leveled and incapable of OpenSSH quantum safe protocols,
-**you do not need** `Moduli Generator`
+**UNLESS** you have _legacy clients_ back-leveled and incapable of OpenSSH quantum safe protocols,
+**YOU DO NOT NEED** `Moduli Generator`
 
-_**If you _have_ legacy clients ssh clients**_, and require _**Unique, Secure, and Complete**_ /etc/ssh/moduli files,
+_**IF you _have_ legacy clients ssh clients**_, and require _**Unique, Secure, and Complete**_ /etc/ssh/moduli files,
 `Moduli Generator`
 was made for you.
 
@@ -30,15 +27,20 @@ The Moduli Generator provides:
 
 ### Core Functionality
 
-- **Moduli Generation**: Creates cryptographically secure prime numbers for use as Diffie-Hellman group exchange
-- **Database Integration**: Stores and manages generated moduli using MariaDB
-- **Performance Optimization**: Efficient implementation for large-scale moduli generation
-- **Candidate Restart**: For efficient restart of interrupted candidate screening.
+- **Moduli Generation and Screening**: Creates unique, cryptographically secure prime numbers for Diffie-Hellman group
+  exchange.
+- **Moduli DB**: Efficient moduli storage and processing
+- **Uniquely Generated Moduli Files**: All moduli produced guaranteed to be single use per db instance.
+- **Mariadb Backend for lightweight and efficient moduli storage**
+- **Performance Optimization**: Uses Python's concurrent.futures for optimal and parallel processing of candidate
+  moduli.
+- **Interrupted Screening - Restart**: Restarts and completes previously interrupted candidate screening.
 - **Database Moduli Stats**: Basic Inventory of DH GEX Moduli by Key Length
 
 ### Architecture
 
-- **Command-Line Interface**: Easy-to-use CLI for interactive and batch operations
+- **Command-Line Interface**: _Efficient Defaults_ - create a fresh moduli file with a single command
+- **API**: `Moduli Generator's, `ModuliGenerator`, `ModuliConfig`, `db.MariaDBConnector`
 - **Modular Design**: Well-structured codebase with separate modules for different functionalities
 - **Database Schema**: Comprehensive database design for moduli storage and retrieval
 - **Testing Framework**: Extensive test suite ensuring reliability and correctness
@@ -47,10 +49,9 @@ The Moduli Generator provides:
 
 The Moduli Generator is suitable for:
 
-- **System Administrators**: Managing SSH security infrastructure
+- **System Administrators**: Managing _LEGACY_ SSH security infrastructure
 - **Security Engineers**: Implementing custom SSH configurations
-- **Researchers**: Studying cryptographic properties of SSH key exchange
-- **Organizations**: Maintaining secure SSH environments at scale
+- **Organizations**: Maintaining LEGACY and _Modern_ secure SSH environments at scale
 
 ## Development and Maintenance
 
