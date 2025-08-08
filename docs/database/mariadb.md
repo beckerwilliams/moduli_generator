@@ -102,7 +102,6 @@ ____
 
 You can create the user manually, from a privileged account, with the following SQl:
 
-
 ```mysql
 CREATE USER IF NOT EXISTS 'moduli_generator'@'%'
 IDENTIFIED BY '<MODULI_GENERATOR_PASSWORD>'

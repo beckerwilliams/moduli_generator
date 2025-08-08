@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # dev boot moduli_generator installer
 #
-# Creates a virtual environment in user's HOME directory
+# Creates a virtual environment in user's `current working directory` (${CWD})
 #
 # Text colors
 GREEN='\033[0;32m'
@@ -30,7 +30,7 @@ VENV_DIR=.venv
 MK_VENV="${PYTHON} -m venv"
 
 # Don't use system Poetry - we'll install it in the venv
-PIP=$(which pip)
+PIP="$(which pip) --no-cache-dir"
 
 ACTIVATE_SCRIPT="${VENV_DIR}/bin/activate"
 MODULI_GENERATOR_DIR=${PROJECT_NAME}
@@ -38,7 +38,7 @@ MODULI_GENERATOR_DIR=${PROJECT_NAME}
 # Global variable for wheel file
 wheel_file=""
 
-
+##############################################################################################
 echo -e "${PURPLE}Project Name: ${PROJECT_NAME}\n\tWORK_DIR: ${WORK_DIR}\n\tCWD: ${CWD}${NC}"
 
 # Function to verify git installation
@@ -122,14 +122,14 @@ activate_venv() {
         # shellcheck disable=SC1090
         source "$ACTIVATE_SCRIPT"
         echo -e "${GREEN}✓ Virtual environment activated${NC}"
-        
+
         # Update paths to use virtual environment versions - CRITICAL FIX
         PIP="${VENV_DIR}/bin/pip"
         POETRY="${VENV_DIR}/bin/poetry"
-        
+
         # Verify we're using the right pip
         echo -e "${BLUE}Using pip: $(which pip)${NC}"
-        
+
         return 0
     else
         echo -e "${RED}✗ Virtual environment activation script not found: $ACTIVATE_SCRIPT${NC}"
@@ -143,7 +143,7 @@ check_poetry_project() {
         echo -e "${RED}✗ No pyproject.toml found. This might not be a Poetry project.${NC}"
         return 1
     fi
-    
+
     # Check for either format - PEP 621 or legacy Poetry
     if grep -q "tool.poetry\|project.*name" pyproject.toml; then
         echo -e "${GREEN}✓ Poetry/PEP 621 project configuration found${NC}"
@@ -165,13 +165,13 @@ cleanup_work_dir() {
 # Function to install Poetry in virtual environment
 install_poetry_in_venv() {
     echo -e "${BLUE}[ Installing Poetry in virtual environment ]${NC}"
-    
+
     # Remove any existing Poetry installation in venv
     ${PIP} uninstall poetry -y 2>/dev/null || true
-    
+
     # Install a specific, stable Poetry version
     ${PIP} install poetry==1.8.3 || { echo -e "${RED}Failed to install poetry${NC}"; return 1; }
-    
+
     # Verify Poetry installation
     if [[ -f "${POETRY}" ]] && ${POETRY} --version; then
         echo -e "${GREEN}✓ Poetry installed successfully: $(${POETRY} --version)${NC}"
@@ -182,9 +182,39 @@ install_poetry_in_venv() {
     fi
 }
 
+# Prompt for database configuration
+prompt_database_config() {
+    echo -e "${BLUE}[ Database Configuration ]${NC}"
+
+    while true; do
+        read -p "Enter MariaDB host [localhost]: " db_host
+        db_host=${db_host:-"localhost"}
+
+        read -p "Enter MariaDB port [3306]: " db_port
+        db_port=${db_port:-"3306"}
+
+        read -p "Enter database name [moduli_db]: " db_name
+        db_name=${db_name:-"moduli_db"}
+
+        read -p "Enter MariaDB username [moduli_generator]: " db_user
+        db_user=${db_user:-"moduli_generator"}
+
+        read -s -p "Enter MariaDB password: " db_pass
+        echo
+        if [[ -z "$db_pass" ]]; then
+            echo -e "${RED}Password is required${NC}"
+            continue
+        fi
+
+        break
+    done
+
+    echo -e "${GREEN}✓ Database configuration complete${NC}"
+}
+
 build_wheel() {
     echo -e "${PURPLE}*** Project Name: ${PROJECT_NAME}\n\tWORK_DIR: ${WORK_DIR}\n\tCWD: ${CWD} ***${NC}"
-    
+
     # Clean up any existing work directory first
     cleanup_work_dir
 
@@ -220,7 +250,7 @@ build_wheel() {
     ####################################
     ${ECHO} "${BLUE}[ Upgrading pip ]${NC}"
     ${PIP} install --upgrade pip || { echo -e "${RED}Failed to upgrade pip${NC}"; return 1; }
-    
+
     # Install Poetry in the virtual environment
     install_poetry_in_venv || { echo -e "${RED}Failed to install Poetry${NC}"; return 1; }
 
@@ -230,7 +260,7 @@ build_wheel() {
     # Install dependencies first
     ${ECHO} "${BLUE}[ Installing project dependencies ]${NC}"
     ${POETRY} install || { echo -e "${RED}Failed to install dependencies${NC}"; return 1; }
-    
+
     # Try to update/lock dependencies
     ${ECHO} "${BLUE}[ Updating Poetry lock file ]${NC}"
     if ! ${POETRY} lock --no-update; then
@@ -238,7 +268,7 @@ build_wheel() {
         rm -f poetry.lock
         ${POETRY} lock || { echo -e "${RED}Failed to generate poetry.lock${NC}"; return 1; }
     fi
-    
+
     ${ECHO} "${BLUE}[ Building moduli_generator wheel ]${NC}"
     ${POETRY} build || { echo -e "${RED}Failed to build wheel${NC}"; return 1; }
 
@@ -249,7 +279,7 @@ build_wheel() {
         echo -e "${RED}No wheel file found in dist directory${NC}"
         return 1
     fi
-    
+
     wheel_file=$(ls dist/*.whl | head -n1 | xargs basename)
     echo -e "${GREEN}✓ Wheel file created: ${wheel_file}${NC}"
 
@@ -263,22 +293,17 @@ build_wheel() {
     # CLOSE BUILD Virtual Environment
     ##################################
     cd "${CWD}" || { echo -e "${RED}Failed to return to CWD${NC}"; return 1; }
-    if [[ "${WORK_DIR}" != "/" && -d "${WORK_DIR}" ]]; then 
+    if [[ "${WORK_DIR}" != "/" && -d "${WORK_DIR}" ]]; then
         rm -rf "${WORK_DIR}"
         ${ECHO} "${PURPLE}Deleted Temporary Work Dir: ${WORK_DIR}${NC}"
     fi
-    
+
     echo -e "${GREEN}✓ Build wheel completed successfully${NC}"
     return 0
 }
 
 build_moduli_generator() {
-    local BUILD_MG_LOG="${CWD}/runtime_install.log"
     echo -e "${PURPLE}*** Project Name: ${PROJECT_NAME}\n\tWORK_DIR: ${WORK_DIR}\n\tCWD: ${CWD} ***${NC}"
-    
-    # Clear the log file
-    # shellcheck disable=SC2188
-    > "${BUILD_MG_LOG}"
 
     # Check if wheel file exists
     if [[ ! -f "${wheel_file}" ]]; then
@@ -313,8 +338,8 @@ build_moduli_generator() {
     ##############################
     # RUNTIME Environment COMPLETE
     ##############################
-    # deactivate || true  # Uncomment if you want to deactivate
-    
+     deactivate || true  # Uncomment if you want to deactivate
+
     echo -e "${GREEN}✓ Runtime installation completed successfully${NC}"
     return 0
 }
@@ -335,9 +360,18 @@ if ! verify_requirements; then
     exit 1
 fi
 
+##########################################
+# Prompt User for Configuration Parameters
+##########################################
+if ! prompt_database_config; then
+	echo -e "${RED}Configuration Failed. Exiting.${NC}"
+	exit 1
+fi
+
 ###############################################
 # Create, Update, BUILD WHEEL, Store in ${CWD}
 ###############################################
+
 if ! build_wheel; then
     echo -e "${RED}build_wheel FAILED${NC}"
     exit 1

@@ -508,7 +508,7 @@ class ModuliGenerator:
         """
         Restarts the screening process for candidates grouped by their respective lengths
                 and generates moduli files for each key length. This method processes candidates
-                from the specified directory, screens them using a thread pool executor, and returns
+                from the specified directory, screens them using a process pool executor, and returns
                 an updated instance of the ModuliGenerator.
 
         Returns:
@@ -544,8 +544,7 @@ class ModuliGenerator:
         if len(candidates_by_length) != 0:
 
             with concurrent.futures.ProcessPoolExecutor() as executor:
-                """
-                TBD - Testint ThreadPool vs ProcessPool executor"""
+
                 # Then screen candidates
                 screening_futures = []
                 for length, candidate_files in candidates_by_length.items():

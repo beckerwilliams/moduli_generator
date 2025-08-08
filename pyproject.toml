@@ -40,7 +40,7 @@ include = ["data/**/*"]
 
 [tool.poetry.urls]
 Homepage = "https://github.com/beckerwilliams/moduli_generator"
-Documentation = "https://github.com/beckerwilliams/moduli_generator/blob/main/README.md"
+Documentation = "https://moduli-generator.readthedocs.io/"
 Repository = "https://github.com/beckerwilliams/moduli_generator.git"
 Issues = "https://github.com/beckerwilliams/moduli_generator/issues"
 

@@ -15,7 +15,7 @@ key exchange process to provide secure communication channels.
 - Performance optimization and testing capabilities
 - Comprehensive configuration management
 
-## Quick Start*
+## Quick Start
 
 ```bash
 moduli_generator &
@@ -24,43 +24,39 @@ moduli_generator &
 ### What does it do?
 
 - Produces /etc/ssh/moduli
-    - `20` unique moduli for each of key lengths `3071`, `4095`, `6143`, and `8191`
-    - `100` unique moduli per file
+  - 20 unique moduli for each of key lengths 3072, 4096, 6144, 7680, and 8192
+  - 100 unique moduli per file
 
-\* _assumes_ `Moduli Generator`'s `database schema` _and_ `user profile` _have been previously installed and
-configured._
+Note: assumes the Moduli Generator database schema and user profile have been installed and configured.
 
 ## Moduli Generator Home (Default) Directory
 
-### `MODULI_GENRATOR_HOME = ${HOME}/.moduli_generator`
+MODULI_GENERATOR_HOME = ${HOME}/.moduli_generator
 
-- Linux: `${HOME}/.moduli_generator`
-- MacOS: `${HOME}/.moduli_generator`
-- _Windows_: `not_supported`
+- Linux: ${HOME}/.moduli_generator
+- macOS: ${HOME}/.moduli_generator
+- Windows: not supported
 
 ## Moduli Generator Database Profile
 
-- All O/S: `${MODULI_HOME}/moduli_generator.cnf`
+- All OS: ${MODULI_GENERATOR_HOME}/moduli_generator.cnf
 
 ## Moduli Generator Runtime Logfile
 
-- Runtime Log: `${MODULI_HOME}/.logs/moduli_generator.log`
+- Runtime Log: ${MODULI_GENERATOR_HOME}/.logs/moduli_generator.log
 
-## SSH2 Moduli Files:
+## SSH2 Moduli Files
 
-- `${MODULI_HOME}/ssh2-moduli_<timestamp>`
+- ${MODULI_GENERATOR_HOME}/ssh2-moduli_<timestamp>
 
-The internal directories `.candidates` and `.moduli` are the locations for the working storage of
-`ssh-keygen -m generate` and `ssh-keygen -m screen`.
+The internal directories .candidates and .moduli are the locations for the working storage of
+ssh-keygen -m generate and ssh-keygen -m screen.
 
 ## Documentation Structure
 
-# tbd - Refactor when balance complete
-
-- **[About](about.md)** - Learn more about the project and its purpose
-- **[Analysis](moduli_generator_analysis_and_improvements.md)** - Technical analysis and improvements
-- **[Project Improvements](project_improvement_recommendations.md)** - Recommended enhancements
-- **[Refactoring Summary](REFACTORING_SUMMARY.md)** - Code refactoring documentation
+- About: [about.md](about.md)
+- Project Improvements: [project_improvement_recommendations.md](project_improvement_recommendations.md)
+- Refactoring Summary: [REFACTORING_SUMMARY.md](REFACTORING_SUMMARY.md)
 
 ## Repository
 

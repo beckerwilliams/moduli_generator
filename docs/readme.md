@@ -1,48 +1,43 @@
-# `Moduli Generator` QuickStart
+# `Moduli Generator`
 
 A Python tool for generating SSH moduli files for secure communication.
 
 ### Overview
 
 Moduli Generator creates cryptographically secure prime numbers (moduli) used in SSH Diffie-Hellman key exchange,
-formatted in an `ssh/moduli` file, containing 20 moduli per key lengths 3072, 4096, 6144, 7680, and 8192 bits long.
+formatted in an `ssh/moduli` file, containing 20 moduli each per key lengths 3072, 4096, 6144, 7680, and 8192 bits long.
 
 ## Features
 
-- Runs to completion to produce sufficient moduli, twenty (20) moduli/key-length, for a complete /etc/ssh/moduli,
-  across key lengths `3072`, `4096`, `6144`, `7680`, `8192`
-- Database integration with MariaDB for moduli storage
+- Runs to completion to produce sufficient moduli, twenty (20) moduli/key-length, for a complete /etc/ssh/moduli
+- Database integration with MariaDB designed to produce unique moduli and files
 - Command-line interface for easy usage
 - Performance optimization and testing capabilities
 - Comprehensive configuration management
 
+____
+
 ## Requirements
 
-#### Operating Systems
+### Operating Systems
 
-- MacOsX:
+- MacOsX: Sequoia >=15.5
 
-  Sequoia >=15.5
+- FreeBSD: >14.2
 
-- FreeBSD >14.2
+- Linux: LTS
 
-- Linux:
+- Windows: _not supported_
 
-  Debian, RHEL, SLES, Ubuntu
+### O/S Installed Applications
 
-- Windows:
+- openssh >=9.9p2 (Provides `ssh-keygen`)
 
-  _not supported_
+### Python
 
-#### O/S Installed Applications
-
-- openssh>=9.9p2 (Provides `ssh-keygen`)
-
-#### Python
-
-- mariadb==1.1.13
-- configparser>=7.2.0
-- typing-extensions>=4.14.1,<5.0.0
+- mariadb ==1.1.13
+- configparser >=7.2.0
+- typing-extensions >=4.14.1
 
 ### Database
 
@@ -56,21 +51,13 @@ Access to the MariaDB Instance is controlled by mariadb user, `'moduli_generator
 schema to
 create and grant to the user `GRANT ALL PRIVILEGES on moduli_db.*`.
 
-#### Official MariaDB Installation Guide
-
-- [MariaDB Installation Guide](https://mariadb.com/docs/server/mariadb-quickstart-guides/installing-mariadb-server-guide)
-  _This link will take you **directly** to MariaDB's Installation Guide_
 ____
-
-## Preparing MariaDB for Moduli Generator
-
-[Preparing the MariaDB Instance](MARIADB.md)
 
 ## Installation Overview
 
-- Verify MariaDB Credentials
-  - Prepare Credentials for chosen MariaDB Instance, both privileged and application owner
-  - Optional: Install MariaDB
+- Verify `MariaDB` Credentials
+    - Prepare Credentials for chosen `MariaDB` Instance, both privileged and application owner
+    - _Optional (if absent)_: Install `MariaDB`
 - Install `Moduli Generator`, from `github`, `PyPi`
 - Install `Moduli Generator` SQL Schema
 - Create and Grant privileges to Application Owner `'moduli_generator'@'%'`
@@ -78,15 +65,13 @@ ____
 
 ____
 
-### Create, activate, and update` python` virtual environment
+# `Moduli Generator` Installation
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install pip --upgrade
-```
+## Install `moduli_generator`
 
-### Install `moduli_generator`
+### pre-PyPi Installer Script
+
+Copy and paste `Moduli Generator` Install Script: [_moduli_generator_installer_](command_line_installer.md)
 
 #### from `wheel`
 
@@ -138,6 +123,29 @@ options:
                         Name of the database to create
 
 ```
+
+## MariaDB
+
+After completing the `Moduli Generator` command line install, you are ready for MariaDB Integration.
+
+_If_ you need a MariaDB Database, create one!:
+
+### Official MariaDB Installation Guide
+
+- [MariaDB Installation Guide](https://mariadb.com/docs/server/mariadb-quickstart-guides/installing-mariadb-server-guide)
+  _This link will take you **directly** to MariaDB's Installation Guide_
+
+#### Install MacOS X: `brew install mariadbW@11.4>=`
+
+#### Install Linux (LTS): `apt -y install mariadb@>=11.4`
+
+#### Windows: `unsupported`
+
+Initial `MariaDB` configuration _requires_ a user privileged with `ALL PRIVILEGES ON *.* WITH GRANT.
+Having previously identified this user and their credentials, 
+create a `priviledged_mariadb.cnf` and place it in your `${HOME}` directory.
+
+##### [SAMPLE_privileged_mariadb.cnf](SAMPLE_privileged_mariadb.cnf)
 
 ### Install `Moduli Generator` SQL Schema
 ```bash

@@ -3,6 +3,7 @@ site_description: A tool for generating SSH moduli files
 site_url: !ENV READTHEDOCS_CANONICAL_URL
 repo_url: https://github.com/beckerwilliams/moduli_generator
 repo_name: beckerwilliams/moduli_generator
+edit_uri: edit/main/docs/
 
 theme:
   name: material
@@ -56,10 +57,30 @@ extra_javascript:
 
 nav:
   - Home: index.md
-  - QuickStart: readme.md
-  - usage: usage.md
-  - api: api.md
-  - About: about.md
+  - User Guides:
+      - Overview: user_guides/index.md
+      - Usage: user_guides/usage.md
+      - Restart: user_guides/restart.md
+  - API Reference:
+      - Overview: api_reference/index.md
+      - Moduli Generator: api_reference/moduli_generator.md
+      - Configuration: api_reference/config.md
+      - Database: api_reference/db.md
+  - Database:
+      - Overview: database/index.md
+      - Integration: database/integration.md
+      - MariaDB: database/mariadb.md
+      - Schema Verification: database/schema_verification.md
+  - Installation:
+      - Overview: installation/index.md
+      - Command Line: installation/command_line.md
+  - Development:
+      - Overview: development/index.md
+      - Improvements: development/improvements.md
+      - Refactoring: development/refactoring.md
+  - Examples:
+      - Overview: examples/index.md
+
 #  - API:
 #      - ModuliGenerator: moduli_generator.md
 #      - Config: config.md
@@ -100,4 +121,7 @@ plugins:
             separate_signature: true
             members: true
             filters:
-              - "!^_"  # Exclude private members (those starting with _)
+              - "!^_"
+  - autorefs:
+      ignore:
+        - "Cloning moduli_generator from Github"
