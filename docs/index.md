@@ -15,52 +15,42 @@ key exchange process to provide secure communication channels.
 - Performance optimization and testing capabilities
 - Comprehensive configuration management
 
-## Quick Start
-
-```bash
-moduli_generator &
-```
-
 ### What does it do?
 
 - Produces /etc/ssh/moduli
   - 20 unique moduli for each of key lengths 3072, 4096, 6144, 7680, and 8192
   - 100 unique moduli per file
 
-Note: assumes the Moduli Generator database schema and user profile have been installed and configured.
-
 ## Moduli Generator Home (Default) Directory
 
 MODULI_GENERATOR_HOME = ${HOME}/.moduli_generator
 
-- Linux: ${HOME}/.moduli_generator
-- macOS: ${HOME}/.moduli_generator
-- Windows: not supported
+- Linux: `${HOME}/.moduli_generator`
+- macOS: `${HOME}/.moduli_generator`
+- Windows: `not supported`
 
 ## Moduli Generator Database Profile
 
-- All OS: ${MODULI_GENERATOR_HOME}/moduli_generator.cnf
+- All OS: `${MODULI_GENERATOR_HOME}/moduli_generator.cnf`
 
 ## Moduli Generator Runtime Logfile
 
-- Runtime Log: ${MODULI_GENERATOR_HOME}/.logs/moduli_generator.log
+- Runtime Log: `${MODULI_GENERATOR_HOME}/.logs/moduli_generator.log`
 
-## SSH2 Moduli Files
+## Produced SSH2 Moduli (/etc/ssh/moduli)
 
-- ${MODULI_GENERATOR_HOME}/ssh2-moduli_<timestamp>
+`${MODULI_GENERATOR_HOME}/ssh2-moduli_<timestamp>`
 
-The internal directories .candidates and .moduli are the locations for the working storage of
-ssh-keygen -m generate and ssh-keygen -m screen.
+```bash
+# Installations
+cp ssh2-moduli_<timestamp> /etc/ssh/moduli
+```
 
-## Documentation Structure
-
-- About: [about.md](about.md)
-- Project Improvements: [project_improvement_recommendations.md](project_improvement_recommendations.md)
-- Refactoring Summary: [REFACTORING_SUMMARY.md](REFACTORING_SUMMARY.md)
 
 ## Repository
 
-This project is hosted on GitHub: [beckerwilliams/moduli_generator](https://github.com/beckerwilliams/moduli_generator)
+This project is hosted on GitHub: [
+`beckerwilliams/moduli_generator`](https://github.com/beckerwilliams/moduli_generator)
 
 ## Getting Help
 

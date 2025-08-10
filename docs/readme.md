@@ -71,7 +71,7 @@ ____
 
 ### pre-PyPi Installer Script
 
-Copy and paste `Moduli Generator` Install Script: [_moduli_generator_installer_](command_line_installer.md)
+Copy and paste `Moduli Generator` Install Script: [_moduli_generator_installer_](installation/command_line_installer.md)
 
 #### from `wheel`
 

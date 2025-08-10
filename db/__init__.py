@@ -363,7 +363,8 @@ class MariaDBConnector:
             if key in [
                 "mariadb_cnf",
                 "db_name",
-                "base_dir",
+                "moduli_home",
+                # "base_dir",
                 "moduli_file_pfx",
                 "moduli_file",
                 "table_name",

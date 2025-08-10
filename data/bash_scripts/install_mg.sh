@@ -29,9 +29,6 @@ PYTHON=$(which python)
 VENV_DIR=.venv
 MK_VENV="${PYTHON} -m venv"
 
-# Don't use system Poetry - we'll install it in the venv
-PIP="$(which pip) --no-cache-dir"
-
 ACTIVATE_SCRIPT="${VENV_DIR}/bin/activate"
 MODULI_GENERATOR_DIR=${PROJECT_NAME}
 
@@ -124,11 +121,11 @@ activate_venv() {
         echo -e "${GREEN}✓ Virtual environment activated${NC}"
 
         # Update paths to use virtual environment versions - CRITICAL FIX
-        PIP="${VENV_DIR}/bin/pip"
+        PIP="${VENV_DIR}/bin/pip --no-cache-dir"
         POETRY="${VENV_DIR}/bin/poetry"
 
         # Verify we're using the right pip
-        echo -e "${BLUE}Using pip: $(which pip)${NC}"
+        echo -e "${BLUE}Using pip: $(which pip) --no-cache-dir${NC}"
 
         return 0
     else
@@ -292,6 +289,8 @@ build_wheel() {
     ##################################
     # CLOSE BUILD Virtual Environment
     ##################################
+    # shellcheck disable=SC2210
+    deactivate > 2>&1 /dev/null
     cd "${CWD}" || { echo -e "${RED}Failed to return to CWD${NC}"; return 1; }
     if [[ "${WORK_DIR}" != "/" && -d "${WORK_DIR}" ]]; then
         rm -rf "${WORK_DIR}"

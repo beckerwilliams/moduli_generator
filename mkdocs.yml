@@ -72,8 +72,7 @@ nav:
       - MariaDB: database/mariadb.md
       - Schema Verification: database/schema_verification.md
   - Installation:
-      - Overview: installation/index.md
-      - Command Line: installation/command_line.md
+      - Command Line Installer: installation/command_line_installer.md
   - Development:
       - Overview: development/index.md
       - Improvements: development/improvements.md

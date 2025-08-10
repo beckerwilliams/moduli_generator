@@ -11,3 +11,9 @@ This section provides detailed reference documentation for the Moduli Generator 
 
 This reference documentation is intended for developers who need to understand the internal workings of the Moduli
 Generator or who want to integrate it into their own systems.
+
+____
+
+- **Repository**: [GitHub](https://github.com/beckerwilliams/moduli_generator)
+- **Issues**: [GitHub Issues](https://github.com/beckerwilliams/moduli_generator/issues)
+- **Documentation**: [Read the Docs](https://moduli-generator.readthedocs.io/)

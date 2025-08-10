@@ -11,10 +11,14 @@ def main(config: ModuliConfig = None):
     Write GeneratorModuli SSH2 Moduli File
 
     Args:
-        config (ModuliConfig or None): Configuration object for moduli generation. Defaults to None, in which case                    a local configuration instance is used.
+        config (ModuliConfig or None): Configuration object for moduli generation. Defaults to None, in which case
+            a local configuration instance is used.
 
     Returns:
-        int: Status code indicating the result of the moduli generation process.              0 - Success              1 - Failure due to a ValueError              2 - General failure due to other exceptions
+        int: Status code indicating the result of the moduli generation process.
+            0 - Success
+            1 - Failure due to a ValueError
+            2 - General failure due to other exceptions
     """
 
     if not config:

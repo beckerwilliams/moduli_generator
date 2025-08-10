@@ -11,7 +11,7 @@ from unittest.mock import patch
 import pytest
 
 # Import the validation functions from the production module
-from moduli_generator.validators import (
+from moduli_generator.utils.validators import (
     validate_integer_parameters,
     validate_subprocess_args,
 )

@@ -17,12 +17,12 @@ like `KexAlgorithms=sntrup761x25519-sha512@openssh.com` or `mlkem768x25519-sha25
 Diffie-Hellman (DH GEX)
 with `/etc/ssh/moduli` files.
 
-\* [        _mlkem768x25519-sha256 is available in OpenSSH 10.x_ ]
+\* [        _mlkem768x25519-sha256 is available in OpenSSH >=10.x_ ]
 
 These hybrid algorithms combine Streamlined NTRU Prime or ML-KEM with X25519 ECDH,
 offering robust protection against quantum computing threats and "capture now, decrypt later" attacks. Configure your
 SSH client or server (e.g., `/etc/ssh/sshd_config`) to use these protocols by setting
-`KexAlgorithms sntrup761x25519-sha512,mlkem768x25519-sha256`, ensuring future-proof, quantum-resistant
+`KexAlgorithms sntrup761x25519-sha512`, ensuring future-proof, quantum-resistant
 connections.[](https://www.openssh.com/releasenotes.html)[](https://4sysops.com/archives/openssh-99-new-features-enhanced-security-with-post-quantum-key-exchange-mlkem768x25519-sha256-and-dsa-removal/)[](https://crypto.stackexchange.com/questions/114016/is-openssh-currently-secure-against-quantum-computer-attacks-in-future)
 
 If you have a _secure_ OpenSSH installation, you're running a version at least OpenSSH v. 9.9p2 or greater,

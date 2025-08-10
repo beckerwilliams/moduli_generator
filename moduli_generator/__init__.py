@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 import concurrent.futures
 import subprocess
+from json import dump
 from logging import DEBUG, INFO, Logger
 from pathlib import PosixPath as Path
 from typing import Any, Dict, List
 
 from config import ModuliConfig, default_config, iso_utc_timestamp
-from db import MariaDBConnector
-from moduli_generator.validators import validate_subprocess_args
+from db import Error, MariaDBConnector
+from moduli_generator.utils.validators import validate_subprocess_args
 
 # Constants
 SSH2_MODULI_FILE_FIELD_COUNT = 7  # Expected number of fields in moduli file format
@@ -34,6 +35,16 @@ class ModuliGenerator:
         db: Lazily instantiated attribute for database storage of moduli,
             created as needed.
     """
+
+    def __repr__(self):
+        return ", ".join(
+            tuple(
+                {"moduli_home": self.config.moduli_dir},
+                {"version": self.version},
+                {"logger": self.logger.name},
+                {"db": self.db},
+            )
+        )
 
     def __init__(self, config: ModuliConfig = default_config) -> "ModuliGenerator":
         """
@@ -189,7 +200,7 @@ class ModuliGenerator:
             raise
         except Exception as err:
             logger.error(f"Unexpected error running command {command}: {err}")
-            raise subprocess.CalledProcessError(1, command) from e
+            raise subprocess.CalledProcessError(1, command) from err
 
     @staticmethod
     def _generate_candidates_static(config: ModuliConfig, key_length: int) -> Path:
@@ -482,6 +493,37 @@ class ModuliGenerator:
             self.logger.error(f"Error storing moduli: {err}")
 
         self.logger.info(f"Moduli Stored in MariaDB database: {len(screened_moduli)}")
+
+        return self
+
+    def save_moduli(self, output_dir: Path = None) -> "ModuliGenerator":
+        """
+        Save moduli data to JSON file in the specified directory.
+
+        If no directory is specified, the default moduli_home from config is used.
+
+        Args:
+            output_dir (Path, optional): Directory to save the moduli data.
+                Defaults to config.moduli_home.
+
+        Returns:
+            ModuliGenerator: self for method chaining
+        """
+        if output_dir is None:
+            output_dir = self.config.moduli_home
+
+        # Make sure directory exists
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Parse moduli files
+        moduli_data = self._parse_moduli_files()
+
+        # Save to JSON file
+        output_file = output_dir / f"moduli_{iso_utc_timestamp()}.json"
+        with output_file.open("w") as f:
+            dump(moduli_data, f, indent=2)
+
+        self.logger.info(f"Saved moduli data to {output_file}")
 
         return self
 
