@@ -2,7 +2,7 @@
 from sys import exit
 
 # Import the default configuration
-from config import ModuliConfig, arg_parser, iso_utc_time_notzinfo
+from config import ModuliConfig, argparser_moduli_generator, iso_utc_time_notzinfo
 from moduli_generator import ModuliGenerator
 
 
@@ -28,7 +28,7 @@ def main(config: ModuliConfig = None):
     """
 
     if not config:
-        config = arg_parser.local_config()
+        config = argparser_moduli_generator.local_config()
 
     logger = config.get_logger()
     logger.name = __name__
@@ -40,7 +40,7 @@ def main(config: ModuliConfig = None):
         f'Starting Moduli Generation at {start_time.strftime("%Y-%m-%d %H:%M:%S")}, with {config.key_lengths} as moduli key-lengths'
     )
 
-    # The Invocation - Generates Candidates and Screens for High Qualtiy Diffie Helman Group Exchane Moduli
+    # The Invocation - Generates Candidates and Screens for High Qualtiy DH GEX Moduli
     try:
         (ModuliGenerator(config).generate_moduli().store_moduli().write_moduli_file())
 

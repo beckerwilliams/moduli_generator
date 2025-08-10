@@ -2,6 +2,40 @@
 
 This document tracks the changes made to the moduli_generator project.
 
+## Version 2.1.37
+
+## 2025-08-09
+
+* **Database Improvements**: Simplified Doc - Installation - Single Page, Complete Install (sans MariaDB Config)
+
+## 2025-08-08
+
+* **Documentation**: Doc Prep for .readthedocs
+
+## 2025-08-07
+
+* **Milestones**: Urgent Checkpoint - Temp directory picked up in GIT Push, Eliminating
+
+## 2025-08-06
+
+* **Bug Fixes**: Github_installer.py - Working of Fixes
+* **Features**: Moduli_generator.ModuliGenerator - *ADDED* classmethod `write_install_script(self)`
+  **General**:
+
+    * Pyproject.toml - Down leveled poetry to v1.8.3 - Reformatted from `project` to `tool.poetry` syntax
+    * POETRY and INSTALL Refresh
+
+* **Milestones**: Checkpoint
+
+## 2025-08-05
+
+* **Documentation**: Checkpoint - Documentation Re-Write in Progress
+
+## 2025-08-02
+
+* **Documentation**: Document Re-Write in Progress - MARIA.md - index.md - readme.md - about.md
+* **Milestones**: Sat Checkpoint - Doc rewrite In Progress
+
 ## 2025-07-31
 
 * **Configuration**: Config.__init__ - exporting ModuliConfig __version__
@@ -77,44 +111,13 @@ This document tracks the changes made to the moduli_generator project.
 * **General**: Moduli_generator_github_install.sh - Refining Install - Looking Good!
 * **Refactoring**: Significant Install Documentation Refactor
 
-## 2025-07-16
-
-* **Bug Fixes**: Testing Installer - Fixing script definitions (moduli_stats)
-* **Documentation**: Build_docs.py - main() | Changed Output Directory to ${project_root}/docs, from $
-  {project_root}/moduli_generator/docs
-
-## 2025-07-15
-
-* **Database Improvements**: Cleaned up MariaDBConnector.stats() function to output human readable data
-* **Milestones**: * Checkpoint *
-
-## 2025-07-14
-
-* **Database Improvements**: * MariadbConnector.get_and_write_moduli_file Uniquifying key_lengths list, and ordering by
-  key length. Stop producing more than DEFAULT_RECORDS_PER_KEYLENGTH
-* **General**: Moduli_generator.cli
-
-## 2025-07-12
-
-* **Database Improvements**: Refactoring Documentation - In Progress tbd * Database Integration
-  **Features**:
-
-    * Committing new RST Files
-    * Adding function 'main' to 'generate_changelog' in pyproject.toml specification
-
-## 2025-07-11
-
-* **Features**: Refactored Changelog Processing will full featured changelog_generator.py. (Thank you Claude 4 Sonnet)
-
-## 2025-07-10
-
-* **Database Improvements**: Converted MariaDBConnector to context_manager and modified methods for proper transactional
-  handling
-
-## 2025-07-09
-
-* **Releases**: Candidate Release w/ PRODUCTION ARGUMENTS
-
 ## Project Information
 
+* **Project**: moduli_generator
+* **Version**: 2.1.37
+* **Description**: A secure, high-performance SSH moduli file generator with database integration for cryptographic key
+  exchange operations
+* **Author**: Ron Williams <becker.williams@gmail.com>
+* **Repository**: https://github.com/beckerwilliams/moduli_generator.git
+* **Homepage**: https://github.com/beckerwilliams/moduli_generator
 * **License**: See LICENSE.md

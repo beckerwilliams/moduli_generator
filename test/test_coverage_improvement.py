@@ -60,26 +60,10 @@ class TestModuliGeneratorCoverageImprovement:
     @pytest.mark.integration
     @patch("moduli_generator.iso_utc_timestamp")
     @patch("pathlib.Path.open", new_callable=mock_open)
-    @patch("moduli_generator.ModuliGenerator._parse_moduli_files")
-    def test_save_moduli_with_default_directory(
-        self, mock_parse, mock_file, mock_timestamp, mock_config
-    ):
-        """Test save_moduli method with default directory (line 373)."""
-        mock_timestamp.return_value = "20231201000000"
-        mock_parse.return_value = {"screened_moduli": []}
-
-        generator = ModuliGenerator(mock_config)
-        result = generator.save_moduli()  # No directory specified
-
-        assert result == generator
-        # Should use config.moduli_home as default
-        mock_file.assert_called_once()
-
-    @pytest.mark.integration
     @patch("moduli_generator.ModuliGenerator._list_moduli_files")
     @patch("moduli_generator.ModuliGenerator._parse_moduli_files")
     def test_store_moduli_with_file_cleanup(
-        self, mock_parse, mock_list_files, mock_config
+        self, mock_parse, mock_list_files, mock_open, mock_config
     ):
         """Test store_moduli method with file cleanup (lines 402-403)."""
         # Setup mocks
@@ -90,6 +74,8 @@ class TestModuliGeneratorCoverageImprovement:
 
         # Create generator and mock the database
         generator = ModuliGenerator(mock_config)
+        # Set preserve_moduli_after_dbstore to False to ensure files are deleted
+        generator.config.preserve_moduli_after_dbstore = False
         generator._db = MagicMock()
         generator._db.export_screened_moduli = MagicMock()
 

@@ -449,46 +449,6 @@ class TestModuliGeneratorWorkflow:
     @pytest.mark.integration
     @patch("db.ConnectionPool")
     @patch("db.parse_mysql_config")
-    @patch("moduli_generator.dump")
-    @patch("pathlib.Path.open", new_callable=mock_open)
-    @patch("moduli_generator.ModuliGenerator._parse_moduli_files")
-    def test_save_moduli_success(
-        self,
-        mock_parse,
-        mock_file,
-        mock_json_dump,
-        mock_parse_config,
-        mock_pool,
-        mock_config,
-        temp_dir,
-    ):
-        """Test saving moduli to JSON file successfully."""
-        mock_parse_config.return_value = {
-            "client": {
-                "user": "testuser",
-                "password": "testpass",
-                "host": "localhost",
-                "port": "3306",
-                "database": "testdb",
-            }
-        }
-        mock_pool.return_value = MagicMock()
-        mock_parse.return_value = [
-            (20231201000000, 3072, "test_modulus_1"),
-            (20231201000001, 3072, "test_modulus_2"),
-        ]
-
-        generator = ModuliGenerator(mock_config)
-        output_dir = Path(temp_dir)
-        result = generator.save_moduli(output_dir)
-
-        assert result == generator  # Method chaining
-        mock_parse.assert_called_once()
-        mock_json_dump.assert_called_once()
-
-    @pytest.mark.integration
-    @patch("db.ConnectionPool")
-    @patch("db.parse_mysql_config")
     @patch("db.MariaDBConnector.write_moduli_file")
     def test_write_moduli_file_success(
         self, mock_write, mock_parse_config, mock_pool, mock_config
@@ -558,20 +518,3 @@ class TestModuliGeneratorErrorHandling:
         # The method catches Error and logs it but doesn't re-raise
         result = generator.store_moduli()
         assert result == generator  # Method chaining should still work
-
-    @pytest.mark.integration
-    @patch("pathlib.Path.open")
-    @patch("json.dump")
-    @patch("moduli_generator.ModuliGenerator._parse_moduli_files")
-    def test_save_moduli_directory_creation_error(
-        self, mock_parse, mock_json_dump, mock_open, mock_config, temp_dir
-    ):
-        """Test save_moduli with a file creation error."""
-        mock_parse.return_value = [(20231201000000, 3072, "test_modulus")]
-        mock_open.side_effect = PermissionError("Permission denied")
-
-        generator = ModuliGenerator(mock_config)
-        output_dir = Path(temp_dir) / "nonexistent"
-
-        with pytest.raises(PermissionError):
-            generator.save_moduli(output_dir)

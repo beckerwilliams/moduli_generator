@@ -1,35 +1,82 @@
-from importlib.resources.abc import TraversableResources
+from importlib import resources
+from pathlib import Path
 
 
-class ModuliTraversableResources(TraversableResources):
+def get_data_resources():
+    """
+    Get a list of all code and data resources available from the 'data' package resources.
+    Uses importlib.resources to access resources that have been unpacked from a Python wheel.
 
-    def __init__(self, package):
-        super().__init__()
-        self.package = package
+    Returns:
+        list: A list of dictionaries containing the path and type of each resource.
+    """
+    # Initialize an empty list to store the resources
+    resources_list = []
 
-    def open_resource(self, path):
-        super().open_resource()
+    # Get the data resource from the package using importlib.resources
+    data_resource = resources.files("data")
 
-    def is_resource(self, path):
-        super().is_resource()
+    # Walk through all files in the resource
+    def traverse_resource(resource, parent_path=""):
+        # Traverse directories recursively
+        for item in resource.iterdir():
+            # Create path relative to data directory
+            rel_path = str(Path(parent_path) / item.name)
 
-    def contents(self):
-        super().contents()
+            if item.is_file():
+                # Determine the file type based on extension
+                ext = Path(item.name).suffix
+                if ext == ".sh":
+                    file_type = "shell script"
+                elif ext == ".sql":
+                    file_type = "SQL script"
+                elif ext == ".py":
+                    file_type = "Python script"
+                elif ext == ".txt":
+                    file_type = "text file"
+                elif ext == ".md":
+                    file_type = "markdown file"
+                elif ext == ".json":
+                    file_type = "JSON file"
+                elif ext == ".pyc":
+                    file_type = "compiled Python file"
+                else:
+                    file_type = "unknown"
 
-    def path(self, path):
-        super().path()
+                # Get the full path (this may be different from the filesystem path in wheel)
+                with resources.as_file(item) as file_path:
+                    full_path = str(file_path)
+
+                resources_list.append(
+                    {"path": rel_path, "type": file_type, "full_path": full_path}
+                )
+            elif item.is_dir():
+                # Recursively traverse subdirectories
+                traverse_resource(item, rel_path)
+
+    # Start traversal from the root data resource
+    traverse_resource(data_resource)
+
+    return resources_list
 
 
-TraversableResources.register(ModuliTraversableResources)
+def list_data_resources():
+    """
+    Print a list of all code and data resources available from the package resources.
+    Uses importlib.resources to access resources that have been unpacked from a Python wheel.
+    """
+    resources = get_data_resources()
+
+    print("Available resources in package data:")
+    print("----------------------------------------")
+    for resource in resources:
+        print(f"Path: {resource['path']}")
+        print(f"Type: {resource['type']}")
+        print(f"Full path: {resource['full_path']}")
+        print("----------------------------------------")
+
+    return resources
 
 
-for resource in resources.contents("data.bash_scripts"):
-
-    data_path = resources.path("data.bash_scripts", resource)
-    print(f"data_path: {data_path}")
-
-
-resources = ModuliTraversableResources("data.bash_scripts")
-
-# Loaders that wish to support resource reading should implement a get_resource_reader(fullname)
-# method as specified by importlib.resources.abc.ResourceReader.
+if __name__ == "__main__":
+    list_data_resources()

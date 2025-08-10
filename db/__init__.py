@@ -21,7 +21,6 @@ __all__ = [
     "parse_mysql_config",
     "get_mysql_config_value",
     "is_valid_identifier_sql",
-    "Error",
 ]
 
 
@@ -166,6 +165,7 @@ def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
         raise ValueError(f"Error parsing configuration file: {e}")
 
 
+# noinspection PyUnreachableCode
 def get_mysql_config_value(
     cnf: Dict[str, Dict[str, str]], section: str, key: str, default: Any = None
 ) -> Any:
@@ -187,7 +187,6 @@ def get_mysql_config_value(
     # Type validation - None config should raise TypeError
     if cnf is None:
         raise TypeError("config cannot be None")
-
     if not isinstance(cnf, dict):
         raise TypeError(f"config must be dict, got {type(cnf).__name__}")
     if not isinstance(section, str):
@@ -342,6 +341,7 @@ class MariaDBConnector:
             self.logger.error(f"Error writing to file {output_file}: {err}")
             raise
 
+    # noinspection PyUnreachableCode
     def __init__(self, config: ModuliConfig = default_config) -> "MariaDBConnector":
         """
         Initializes a class instance with provided configuration parameters and sets up a MariaDB
@@ -767,14 +767,14 @@ class MariaDBConnector:
             table_name (str): Name of the database table from which records are to
                 be deleted. Must be a valid SQL identifier.
             where_clause (tuple, optional): Condition specifying which rows to delete.
-                If provided, must be in a format supported by the database's parameterized
+                If provided, it must be in a format supported by the database's parameterized
                 query system.
 
         Returns:
             int: The number of rows affected by the delete operation.
 
         Raises:
-            RuntimeError: If the table name is invalid or if an error occurs while
+            RuntimeError: If the table name is invalid, or if an error occurs while
                 executing the delete operation.
         """
         try:
@@ -977,7 +977,7 @@ class MariaDBConnector:
             if not is_valid_identifier_sql(self.db_name):
                 raise RuntimeError("Invalid database name")
 
-            # Build the SQL query that does all counting within the query
+            # Build the SQL query that does all the counting within the query
             # table = f'{self.db_name}.moduli'
             table = ".".join((self.db_name, self.table_name))
             query = f"""

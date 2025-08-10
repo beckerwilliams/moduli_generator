@@ -1,109 +1,97 @@
-# Moduli Generator Command Line Installer
+# Command Line Installation Guide
 
-## Pre-Requisites
+This guide walks you through installing the Moduli Generator using the command line installer.
 
-- OpenSSH >=9.9p2
-    - Assure installed at or above the required version
-- MariaDB >=11.4
-    - Assure `'moduli_generator'@'%'` has been created, and that you have the password available at install
+## Prerequisites
 
-- **MariaDB is Operational, `'moduli_generator'@'%'` has been created and the user's `password` obtained.**
+Before installation, ensure you're platform meets the following requirements:
 
-## Installation Overview
+- Python ≥ 3.12
+- OpenSSH ≥ 9.9p2
+- MariaDB Client ≥ 11.4
+- A MariaDB user account `'moduli_generator'@'%'` with appropriate permissions
+- The password for your `'moduli_generator'@'%'` database user
 
-The installer script will:
+## Installation Process
 
-- Prompt the use for the `'moduli_generatort'@'%'` password
-- Create and install the MariaDB User Profile, `${MODULI_HOME}/moduli_generator.cnf
-- Creates a temporary virtual environment and build the python wheel
-- Installs wheel and launches the `moduli_generator` virtual application environment
+### Step 1: Download the Installer
 
-____
+Download the installer script from one of these sources:
 
-At start, the Installer will prompt the user for the MariaDB user attributes for the `'`moduli_generator'@'%'`,
-and create the runtime profile in `${MODULI_HOME}/moduli_generator.cnf`:
+- Direct
+  download: [install_mg.sh](https://raw.githubusercontent.com/beckerwilliams/moduli_generator/HEAD/data/bash_scripts/install_mg.sh) (
+  right-click to save)
+- Terminal download (using curl):
+  ```bash
+  curl -fsSL -o install_mg.sh https://raw.githubusercontent.com/beckerwilliams/moduli_generator/HEAD/data/bash_scripts/install_mg.sh
+  ```
 
-```bash
-[ Database Configuration ]
-Enter MariaDB host [localhost]:            # Default
-Enter MariaDB port [3306]:                 # Default
-Enter database name [moduli_db]:           # Default
-Enter MariaDB username [moduli_generator]: # Default
-Enter MariaDB password:  # (YOUR moduli_generator pass word)
-✓ Database configuration complete
-```
-
-After entering the MariaDB password, the installer will run to completion.
-____
-
-## The Installation Script
-
-In the example below, we download the Moduli Generator Command Line Installer from GitHub and move it to the chosen
-application home, `${HOME}/moduli_generator`.
-
-- Raw script URL (
-  stable): https://raw.githubusercontent.com/beckerwilliams/moduli_generator/HEAD/data/bash_scripts/install_mg.sh
-    - [download install_mg (right-click to download)](https://raw.githubusercontent.com/beckerwilliams/moduli_generator/HEAD/data/bash_scripts/install_mg.sh)
-
-- Repository view: https://github.com/beckerwilliams/moduli_generator/blob/HEAD/data/bash_scripts/install_mg.sh
-
-## Open a Terminal session
-
-### Perform the Installation
-
-### Create `Moduli Generator` Application Home
+### Step 2: Create and Use Application Directory
 
 ```bash
-cd ~
-mkdir -p moduli_generator # This is the application home; used as ${CWD} by install_mg.sh
+mkdir -p ~/moduli_generator
+cd ~/moduli_generator
 ```
 
-### Change to the application build directory
+### Step 3: Prepare and Run the Installer
 
-``` bash
-cd moduli_generator
-```
-
-### Download the installer script
-
-```bash
-curl -fsSL -o install_mg.sh \
-  https://raw.githubusercontent.com/beckerwilliams/moduli_generator/HEAD/data/bash_scripts/install_mg.sh
-```
-
-### Make installer script executable
+Make the installer executable and run it:
 
 ```bash
 chmod +x ./install_mg.sh
-```
-
-### Run the install
-
-```bash
 ./install_mg.sh
 ```
 
-#### Example Install Reponse Trace:
+### Step 4: Configuration
 
-[Sample Install Response Log](installer_response.md)
+When prompted, enter your database connection details:
 
-If successful, the installation will display the following at completion:
+```
+[ Database Configuration ]
+Enter MariaDB host [localhost]:            # Press Enter for default
+Enter MariaDB port [3306]:                 # Press Enter for default
+Enter database name [moduli_db]:           # Press Enter for default
+Enter MariaDB username [moduli_generator]: # Press Enter for default
+Enter MariaDB password:                    # Enter your password
+```
 
-```bash
+## What the Installer Does
+
+The installer performs these tasks automatically:
+
+1. Collects database configuration information
+2. Creates the database connection profile at `${MODULI_HOME}/moduli_generator.cnf`
+3. Creates a temporary virtual environment and builds the Python wheel
+4. Installs the wheel and sets up the application environment
+
+## Verification
+
+On successful installation, you'll see:
+
+```
 ✓ Runtime installation completed successfully
 ✓ Installation completed successfully!
 To activate the environment, run: source .venv/bin/activate
 To test the installation, run: moduli_generator --help
 ```
 
-When the installer completes, you should have a complete installation of the Moduli Generator application.
+## Testing Your Installation
 
-____
-
-## Try it Out!
+Verify your installation works by running:
 
 ```bash
 moduli_generator -h
 ```
 
+This should display the help information for the Moduli Generator tool.
 
+## Troubleshooting
+
+If you encounter any issues during installation, check:
+
+- [Sample Installation Log](installation_response.md) for comparison
+- That your MariaDB user has the correct permissions
+- That all prerequisites are correctly installed
+
+For additional help, please refer to the
+project's [GitHub issues page](https://github.com/beckerwilliams/moduli_generator/issues).

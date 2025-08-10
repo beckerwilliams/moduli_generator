@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from config import default_config
-from config.arg_parser import _moduli_generator_argparser, local_config
+from config.argparser_moduli_generator import _moduli_generator_argparser, local_config
 
 
 class TestModuliGeneratorArgParser:
@@ -469,7 +469,7 @@ class TestConfigMainEntryPoint:
             }
 
             # Import and execute the module's __main__ block directly
-            import config.arg_parser
+            import config.argparser_moduli_generator
 
             # Simulate running the module as __main__
             with patch.object(config.arg_parser, "__name__", "__main__"):

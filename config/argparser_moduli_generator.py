@@ -93,6 +93,11 @@ def _moduli_generator_argparser() -> Namespace:
         default=default_config.delete_records_on_moduli_write,
         help="Delete records on moduli write",
     )
+    parser.add_argument(
+        "--version",
+        action="store_true",
+        help="Display version information",
+    )
     return parser.parse_args()
 
 
@@ -114,6 +119,13 @@ def local_config(args: Namespace = None) -> ModuliConfig:
     # Create a custom configuration based on the command line arguments
     if args is None:
         args = _moduli_generator_argparser()
+
+    # If --version is set in command line call, Print out version and exit
+    if args.version:
+        from config import __version__
+
+        print(f"Moduli Generator v{__version__}")
+        exit(0)
 
     # Create the config object first
     config = default_config.with_base_dir(args.moduli_home)

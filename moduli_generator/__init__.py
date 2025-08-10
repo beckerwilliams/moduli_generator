@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import concurrent.futures
 import subprocess
-from json import dump
 from logging import DEBUG, INFO, Logger
 from pathlib import PosixPath as Path
 from typing import Any, Dict, List
@@ -36,8 +35,17 @@ class ModuliGenerator:
             created as needed.
     """
 
-    def __repr__(self):
-        return ", ".join(
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the object.
+
+        The method constructs a formatted string that combines specific attributes
+        of the object into a single output using colons as separators.
+
+        Returns:
+            str: A formatted string representation of the object.
+        """
+        return ":".join(
             tuple(
                 {"moduli_home": self.config.moduli_dir},
                 {"version": self.version},
@@ -484,46 +492,15 @@ class ModuliGenerator:
         try:
             self.db.export_screened_moduli(screened_moduli)
 
-            # Cleanup lefover moduli files
+            # Cleanup leftover moduli files
             moduli_files = self._list_moduli_files()
-            if len(moduli_files) and not self.config.preserve_moduli_after_dbstore:
+            if not self.config.preserve_moduli_after_dbstore:
                 for file in moduli_files:
                     file.unlink()
         except Error as err:
             self.logger.error(f"Error storing moduli: {err}")
 
         self.logger.info(f"Moduli Stored in MariaDB database: {len(screened_moduli)}")
-
-        return self
-
-    def save_moduli(self, output_dir: Path = None) -> "ModuliGenerator":
-        """
-        Save moduli data to JSON file in the specified directory.
-
-        If no directory is specified, the default moduli_home from config is used.
-
-        Args:
-            output_dir (Path, optional): Directory to save the moduli data.
-                Defaults to config.moduli_home.
-
-        Returns:
-            ModuliGenerator: self for method chaining
-        """
-        if output_dir is None:
-            output_dir = self.config.moduli_home
-
-        # Make sure directory exists
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-        # Parse moduli files
-        moduli_data = self._parse_moduli_files()
-
-        # Save to JSON file
-        output_file = output_dir / f"moduli_{iso_utc_timestamp()}.json"
-        with output_file.open("w") as f:
-            dump(moduli_data, f, indent=2)
-
-        self.logger.info(f"Saved moduli data to {output_file}")
 
         return self
 

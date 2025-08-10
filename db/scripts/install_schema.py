@@ -1,10 +1,9 @@
-from pathlib import Path
 from argparse import ArgumentParser
+from pathlib import Path
 
-from config import DEFAULT_MARIADB
+from config import DEFAULT_MARIADB, default_config
 from db import Error, MariaDBConnector
 from db.scripts.db_schema_for_named_db import get_moduli_generator_schema_statements
-from config import default_config
 
 __all__ = ["InstallSchema"]
 
@@ -128,16 +127,19 @@ class InstallSchema(object):
                 file, splits the content into individual SQL statements, and executes them.
 
         Args:
-            schema_file (Path): Path to the SQL schema file. If not provided, a default             file path "db/schema/ssh_moduli_schema.sql" is used.
+            schema_file (Path): Path to the SQL schema file. If not provided, the default
+                   schema file from data.schema.ssh_moduli_schema.sql package resource is used.
 
         Returns:
             bool: True if the schema installation completes successfully,             False otherwise.
         """
-        if schema_file is None:
-            schema_file = Path("db/schema/ssh_moduli_schema.sql")
-
         try:
-            # Check if the schema file exists
+            # If no schema file is provided, return False
+            if schema_file is None:
+                print("No schema file provided")
+                return False
+
+            # Check if the provided schema file exists
             if not schema_file.exists():
                 print(f"Schema file not found: {schema_file}")
                 return False

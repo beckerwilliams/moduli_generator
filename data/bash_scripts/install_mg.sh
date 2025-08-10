@@ -289,8 +289,6 @@ build_wheel() {
     ##################################
     # CLOSE BUILD Virtual Environment
     ##################################
-    # shellcheck disable=SC2210
-    deactivate > 2>&1 /dev/null
     cd "${CWD}" || { echo -e "${RED}Failed to return to CWD${NC}"; return 1; }
     if [[ "${WORK_DIR}" != "/" && -d "${WORK_DIR}" ]]; then
         rm -rf "${WORK_DIR}"

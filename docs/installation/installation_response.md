@@ -1,6 +1,4 @@
-# resp
-
-./install_mg.sh
+### intallation response
 
 ```bash
 [MG_User@localhost ~/tmp %] mkdir moduli_generator && cd moduli_generator  [15:57:00]

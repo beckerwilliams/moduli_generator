@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "moduli_generator"
-version = "2.1.36"
+version = "2.1.37"
 description = "A secure, high-performance SSH moduli file generator with database integration for cryptographic key exchange operations"
 authors = ["Ron Williams <becker.williams@gmail.com>"]
 readme = "docs/README.md"
@@ -35,9 +35,10 @@ classifiers = [
 packages = [
     { include = "config" },
     { include = "db" },
-	{ include = "moduli_generator" }
+	{ include = "moduli_generator" },
+	{ include = "data" }
 ]
-include = ["data/**/*"]
+
 
 [tool.poetry.urls]
 Homepage = "https://github.com/beckerwilliams/moduli_generator"
@@ -50,7 +51,8 @@ moduli_generator = "moduli_generator.__main__:main"
 moduli_stats = "db.scripts.moduli_stats:main"
 install_schema = "db.scripts.install_schema:main"
 restart_screening = "moduli_generator.restart:main"
-write_ssh2_moduli_file = "moduli_generator.write_ssh2_moduli_file:main"
+write_ssh_moduli_file = "moduli_generator.write_ssh2_moduli_file:main"
+changelog = "changelog_generator.scripts.show:main"
 
 [tool.poetry.dependencies]
 python = ">=3.12,<4.0"

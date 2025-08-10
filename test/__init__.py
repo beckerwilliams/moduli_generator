@@ -1,4 +1,4 @@
-from get_version import get_version
+from config.get_version import get_version
 
 """
 Test Suite for Moduli Generator

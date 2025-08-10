@@ -30,7 +30,7 @@ except Exception:
 # If package metadata fails, use pyproject.toml fallback
 if __version__ is None:
     try:
-        from get_version import get_version
+        from config.get_version import get_version
 
         __version__ = get_version()
     except Exception as e:

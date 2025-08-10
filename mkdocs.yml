@@ -57,26 +57,28 @@ extra_javascript:
 
 nav:
   - Home: index.md
+  - API Reference:
+      - API: API/index.md
+
+  - Installation:
+      - Command Line Installer: installation/command_line_installer.md
+
   - User Guides:
       - Overview: user_guides/index.md
       - Usage: user_guides/usage.md
       - Restart: user_guides/restart.md
-  - API Reference:
-      - Overview: api_reference/index.md
-      - Moduli Generator: api_reference/moduli_generator.md
-      - Configuration: api_reference/config.md
-      - Database: api_reference/db.md
+
   - Database:
       - Overview: database/index.md
       - Integration: database/integration.md
       - MariaDB: database/mariadb.md
       - Schema Verification: database/schema_verification.md
-  - Installation:
-      - Command Line Installer: installation/command_line_installer.md
+
   - Development:
       - Overview: development/index.md
       - Improvements: development/improvements.md
       - Refactoring: development/refactoring.md
+
   - Examples:
       - Overview: examples/index.md
 

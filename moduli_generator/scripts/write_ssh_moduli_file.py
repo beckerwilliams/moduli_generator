@@ -2,7 +2,7 @@
 from sys import exit
 
 # Import the default configuration
-from config import ModuliConfig, arg_parser, iso_utc_time_notzinfo
+from config import ModuliConfig, iso_utc_time_notzinfo
 from moduli_generator import ModuliGenerator
 
 
