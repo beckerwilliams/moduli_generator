@@ -1,6 +1,9 @@
 # Command Line Installation Guide
 
-This guide walks you through installing the Moduli Generator using the command line installer.
+1. Install the `moduli_generator` application _first,_ and then
+2. Install the `moduli_generator` SQL schema and user spec _in_ your MariaDB database.
+
+[MariaDB Server Integration & Optional Install](../database/mariadb.md)
 
 ## Prerequisites
 
@@ -9,8 +12,6 @@ Before installation, ensure you're platform meets the following requirements:
 - Python ≥ 3.12
 - OpenSSH ≥ 9.9p2
 - MariaDB Client ≥ 11.4
-- A MariaDB user account `'moduli_generator'@'%'` with appropriate permissions
-- The password for your `'moduli_generator'@'%'` database user
 
 ## Installation Process
 

@@ -1,13 +1,34 @@
 # MariaDB for `Moduli Generator`
 
+## Installations and Configuration
+
+### Pre-requisites
+
+- **Initial, Pre-MariaDB Integration Installation of [Moduli Generator](../installation/command_line_installer.md).**
+
+The MariaDB User Spec `${MODULI_HOME}/moduli_generator.cnf` is the _runtime_ owner of the application and its database.
+It is limited to `Moduli Generator`'s database, `moduli_db`, and it's associated tables and views.
+
+To bootstrap, we need a MariaDB `priviliged` or `administrative` user, granted privileges to create the `moduli_db`
+database, tables, and views, and to create the `moduli_generator` application user.
+
+The script below, `install_schema`, will prompt for the `privileged` user's `name` and `password`. It relies on the
+client connection parameters created in the [Command Line Installer](../installation/command_line_installer.md) to
+obtain the
+balance of MariaDB configuration parameters before attemtping installation of `moduli_generator`'s database or user.
+
+____
+
+## MariaDB
+
 The MariaDB codebase is actively supported by MariaDB.com.
 It's the preferred replacement for MySQL Database, which is no longer supported.
 
-In the Moduli Generator pre-Install below, we'll
+The `install_schema` script below will:
 
-- Create `Moduli Generator`'s **`mariadb.cnf`** file: `${HOME}/.moduli_generator/moduli_generator.cnf`
+- Use `Moduli Generator`'s previously created  **`mariadb.cnf`**: `${HOME}/.moduli_generator/moduli_generator.cnf`
 
-- Install the `Moduli Generator`'s database, tables, and views. (requires _privilged_ db access)
+- Install the `Moduli Generator`'s database, tables, and views. (requires _privilged_ db access credentials)
 
 - Create the `Moduli Generator` application user:  `'moduli_generator'@'%'`, and grant it
   `ALL PRIVILEGES ON moduli_db.*`
@@ -21,6 +42,8 @@ In the Moduli Generator pre-Install below, we'll
 - **MacOsX** - homebrew - `brew install mariadb@11.4`
 - **FreeBSD >=14.2** - portmaster - `portmaster databases/mariadb114-server`
 
+____
+
 ## Configuring MariaDB for `Moduli Generator`
 
 ### Moduli Generator's User and DB
@@ -33,25 +56,10 @@ file, `${CWD}/privileged_mariadb.cnf`
 
   `CREATE`, `CREATE USER`, and `WITH GRANT OPTION` on `*.*`
 
-**Privileged MariaDB User Profile (temporary/configuration only)**: `${cwd}/privileged_mariadb.cnf`
-
-```priuileged_mariadb.cnf
-#
-# This group is read both by the client and the server
-# use it for options that affect everything, see
-# https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#option-groups
-#
-[client]
-host                                = <HOSTNAME>
-port	                            = 3306
-socket	                            = /var/run/mysql/mysql.sock
-password                            = <PASSWORD>
-user                                = <USERNAME>
-ssl                                 = true
-```
 
 **Moduli Generator Application Owner**: `${HOME}/.moduli_generator/moduli_generator.cnf`
 
+This profile is created during the [Command Line Installer](../installation/command_line_installer.md) steps.
 ```moduli_generator.cnf
 #
 # This group is read both by the client and the server
@@ -59,16 +67,13 @@ ssl                                 = true
 # https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#option-groups
 #
 [client]
-host                                = <HOSTNAME>
-port	                            = 3306
+host                                = <actual.hostname.hostname.provided.by.installer>
+port                                = 3306
 socket	                            = /var/run/mysql/mysql.sock
-password                            = <PASSWORD>
 user                                = moduli_generator
+password                            = <actual.password.provided.by.installer>
 ssl                                 = true
 ```
-
-_**Replace**_ `<HOSTNAME>`, `<USERNAME>`, and `<PASSWORD>` above, with credentials as configured in your MariaDB
-Instance.
 
 ____
 
@@ -76,8 +81,9 @@ ____
 
 ### Pre-requisites
 
-- Python Virtual Environment: ${cwd}/.venv
-- `moduli_generator` installed in virtual environment
+- [Command_Line_installer](../installation/command_line_installer.md)
+- `${HOME}/.moduli_generator/moduli_generator.cnf` exists after command line installer
+- `username` and `password` for administrative user.
 
 ### Install
 
@@ -85,6 +91,7 @@ Navigate to your chosen runtime directory (where .venv is installed): `${cwd}`
 At the command line, type
 
 ```bash
+cd ${HOME}/moduli_generator
 source .venv/bin/activate
 install_schema <privileged_mariadb.cnf> --moduli-db-name moduli_db
 ```
@@ -117,7 +124,7 @@ Replace '<MODULI_GENERATOR_PASSWORD>' with your chosen `moduli_generator` user p
 
 ### Pre-Requisites
 
-MariaDB >=11.8.2
+MariaDB >=11.4.2
 
 #### Install Moduli Generator Schema
 

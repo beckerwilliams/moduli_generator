@@ -53,7 +53,7 @@ ____
 
 ```bash
 # Installations
-cp ssh2-moduli_<timestamp> /etc/ssh/moduli
+cp ssh-moduli_<timestamp> /etc/ssh/moduli
 ```
 
 ____
