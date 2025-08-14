@@ -434,9 +434,12 @@ build_moduli_generator() {
 }
 
 schema_installer() {
-	install_schema --mariadb-cnf ${HOME}/.moduli_generator/privilged.tmp
+	$(install_schema --mariadb-cnf ${HOME}/.moduli_generator/privilged.tmp)
 }
 
+cleanup() {  # Remove Temporary Privileged Credentials -
+	rm -rf ${config_dir}/*.tmp 2>&1 /dev/null
+}
 #########################################################################################################
 # MAIN
 #########################################################################################################
@@ -481,6 +484,8 @@ if ! schema_installer; then
 	echo -e "${RED}Moduli Generator User and Schema Installer Failed${NC}"
 	exit 1
 fi
+
+cleanup
 
 echo -e "${GREEN}✓ Installation completed successfully!${NC}"
 echo -e "${BLUE}To activate the environment, run: source ${VENV_DIR}/bin/activate${NC}"
