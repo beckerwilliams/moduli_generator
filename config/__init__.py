@@ -10,7 +10,6 @@ from os import environ as osenv
 from pathlib import PosixPath as Path
 from typing import Final
 
-
 # Try to get the version from package metadata first
 try:
     from importlib.metadata import version
@@ -45,57 +44,54 @@ __all__ = [
     "iso_utc_timestamp",
     "iso_utc_time_notzinfo",
     "strip_punction_from_datetime_str",
-    "DEFAULT_MARIADB",
+    "DEFAULT_MARIADB_DB_NAME",
     "DEFAULT_MARIADB_CNF",
     "DEFAULT_KEY_LENGTHS",
-    "TEST_MARIADB",
+    "TEST_MARIADB_DB_NAME",
     "__version__",
 ]
 
 # TEST PARAMETERS
-TEST_MARIADB: Final[str] = "test_moduli_db"
+TEST_MARIADB_DB_NAME: Final[str] = "test_moduli_db"
 
 # Moduli Generator Module's directory structure
-DEFAULT_DIR: Final[Path] = Path.home() / ".moduli_generator"
-DEFAULT_CANDIDATES_DIR: Final[str] = ".candidates"
-DEFAULT_MODULI_DIR: Final[str] = ".moduli"
-DEFAULT_LOG_DIR: Final[str] = ".logs"
-
-# The only log file this module recognizes
-DEFAULT_LOG_FILE: Final[str] = "moduli_generator.log"
+DEFAULT_MODULI_GENERATOR_HOME: Final[Path] = Path.home() / ".moduli_generator"
 
 # SSH-KEYGEN Generator settings
 DEFAULT_KEY_LENGTHS: Final[tuple[int, ...]] = (3072, 4096, 6144, 7680, 8192)
-DEFAULT_GENERATOR_TYPE: Final[int] = 2
 DEFAULT_NICE_VALUE: Final[int] = 15
-DEFAULT_CONFIG_ID: Final[int] = 1  # JOIN to Moduli File Constants
-
 # MariaDB Configuration File (mysql.cnf)
 DEFAULT_MARIADB_CNF: Final[str] = "moduli_generator.cnf"
 
 # Operational Database, Tables, and Views
-DEFAULT_MARIADB: Final[str] = "moduli_db"
+DEFAULT_MARIADB_DB_NAME: Final[str] = "moduli_db"
 DEFAULT_MARIADB_TABLE: Final[str] = "moduli"
 DEFAULT_MARIADB_VIEW: Final[str] = "moduli_view"
 
 # Flag to Delete Records from Moduli DB after successfully extracting and writing a complete ssh / moduli file
-DEFAULT_PRESERVE_MODULI_AFTER_DBSTORE: Final[bool] = True
+DEFAULT_PRESERVE_MODULI_AFTER_DBSTORE: Final[bool] = False
 
-# Flag to delete records on moduli write
+# Flag to delete records on moduli write tbd - Verify Records Written before deleting Source Files
+# OTHERWISE we'll leave the cruft. The DB is Guaranteed to contain Unique Moduli
+DEFAULT_MODULI_RECORDS_PER_KEYLENGTH: Final[int] = 20
+#  ref: https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl
 DEFAULT_DELETE_RECORDS_ON_MODULI_WRITE: Final[bool] = False
 
+####### The Following are Program Constants
+CONST_CANDIDATES_DIR: Final[str] = ".candidates"
+CONST_MODULI_DIR: Final[str] = ".moduli"
+CONST_LOG_DIR: Final[str] = ".logs"
+# The only log file this module recognizes
+CONST_LOG_FILE_NAME: Final[str] = "moduli_generator.log"
+CONST_SSH_MODULI_FILE_PREFIX: Final[str] = f"ssh-moduli_"
+# The number of moduli per key-length to capture in each produced moduli file
+CONST_GENERATOR_TYPE: Final[int] = 2
+CONST_CONFIG_ID: Final[int] = 1  # JOIN to Moduli File Constants
 # Screened Moduli File Pattern
-DEFAULT_MODULI_FILENAME_PATTERN: Final[re] = r"moduli_????_*"
-DEFAULT_CANDIDATE_IDX_FILENAME_PATTERN: Final[re] = (
+CONST_MODULI_FILENAME_PATTERN: Final[re] = r"moduli_????_*"
+CONST_CANDIDATE_IDX_FILENAME_PATTERN: Final[re] = (
     r".candidates_????_????????????????????"
 )
-
-DEFAULT_MODULI_PREFIX: Final[str] = f"ssh-moduli_"
-# The number of moduli per key-length to capture in each produced moduli file
-DEFAULT_MODULI_RECORDS_PER_KEYLENGTH: Final[int] = 20
-
-
-#  ref: https://x.com/i/grok/share/ioGsEbyEPkRYkfUfPMj1TuHgl
 
 
 def iso_utc_timestamp(compress: bool = False) -> str:
@@ -192,37 +188,38 @@ class ModuliConfig:
                 variable or a pre-defined directory if not specified.
         """
         # Use user-provided base dir, or env var, or default to ~/.moduli_assembly
-        self.moduli_home = Path(base_dir or osenv.get("MODULI_HOME", DEFAULT_DIR))
+        self.moduli_home = Path(
+            base_dir or osenv.get("MODULI_HOME", DEFAULT_MODULI_GENERATOR_HOME)
+        )
 
         # Define subdirectories as properties
-        self.candidates_dir = self.moduli_home / DEFAULT_CANDIDATES_DIR
-        self.moduli_dir = self.moduli_home / DEFAULT_MODULI_DIR
-        self.log_dir = self.moduli_home / DEFAULT_LOG_DIR
-
-        # Default log files
-        self.log_file = self.log_dir / DEFAULT_LOG_FILE
+        self.candidates_dir = self.moduli_home / CONST_CANDIDATES_DIR
+        self.moduli_dir = self.moduli_home / CONST_MODULI_DIR
+        self.log_dir = self.moduli_home / CONST_LOG_DIR
+        self.log_file = self.log_dir / CONST_LOG_FILE_NAME
+        # `config_id` links `moduli_db.moduli` to `moduli_file_constants.moduli` to yield the view
+        self.config_id = CONST_CONFIG_ID
+        # SSH-Key Screening Generator Type (ssh-keygen)
+        self.generator_type = CONST_GENERATOR_TYPE
+        #
+        self.moduli_file_pattern = CONST_MODULI_FILENAME_PATTERN
+        self.candidate_idx_pattern = CONST_CANDIDATE_IDX_FILENAME_PATTERN
+        self.moduli_file_pfx = CONST_SSH_MODULI_FILE_PREFIX
 
         # Other defaults (For Generation and Screening, And Linking to Moduli File Constants Table (config_id)
         self.key_lengths = DEFAULT_KEY_LENGTHS
-        self.generator_type = DEFAULT_GENERATOR_TYPE
         self.nice_value = DEFAULT_NICE_VALUE
 
         # Configure MariaDB
-        self.db_name = DEFAULT_MARIADB
+        self.db_name = DEFAULT_MARIADB_DB_NAME
         self.table_name = DEFAULT_MARIADB_TABLE
         self.view_name = DEFAULT_MARIADB_VIEW
         self.records_per_keylength = DEFAULT_MODULI_RECORDS_PER_KEYLENGTH
 
-        # Constants joined via this record number in the Constants table
-        self.config_id = DEFAULT_CONFIG_ID
-
         # Default Mariadb Configuration
         self.mariadb_cnf = self.moduli_home / DEFAULT_MARIADB_CNF
-        self.moduli_file_pattern = DEFAULT_MODULI_FILENAME_PATTERN
-        self.candidate_idx_pattern = DEFAULT_CANDIDATE_IDX_FILENAME_PATTERN
 
         # Default moduli output files
-        self.moduli_file_pfx = DEFAULT_MODULI_PREFIX
         self.moduli_file = self.moduli_home / DEFAULT_MODULI_FILE
 
         # Delete on successful Write Flag
@@ -271,8 +268,8 @@ class ModuliConfig:
 
         if not self.moduli_home.exists():
             Path(self.moduli_home).mkdir(parents=True, exist_ok=True)
-        if not (self.moduli_home / DEFAULT_LOG_DIR).exists():
-            Path(self.moduli_home / DEFAULT_LOG_DIR).mkdir(parents=True, exist_ok=True)
+        if not (self.moduli_home / CONST_LOG_DIR).exists():
+            Path(self.moduli_home / CONST_LOG_DIR).mkdir(parents=True, exist_ok=True)
 
         # Set logging to use UTC time globally
         import logging

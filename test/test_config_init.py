@@ -421,7 +421,7 @@ class TestModuleIntegration:
             default_config,
             iso_utc_timestamp,
             strip_punction_from_datetime_str,
-            DEFAULT_MARIADB,
+            DEFAULT_MARIADB_DB,
             DEFAULT_MARIADB_CNF,
             DEFAULT_KEY_LENGTHS,
             TEST_MARIADB,
@@ -434,14 +434,14 @@ class TestModuleIntegration:
         assert iso_utc_timestamp is not None
         assert strip_punction_from_datetime_str is not None
         assert is_valid_identifier_sql is not None
-        assert DEFAULT_MARIADB is not None
+        assert DEFAULT_MARIADB_DB is not None
         assert DEFAULT_MARIADB_CNF is not None
         assert DEFAULT_KEY_LENGTHS is not None
         assert TEST_MARIADB is not None
 
     def test_constants_values(self):
         """Test that constants have expected values and types."""
-        from config import DEFAULT_KEY_LENGTHS, TEST_MARIADB, DEFAULT_MARIADB
+        from config import DEFAULT_KEY_LENGTHS, TEST_MARIADB, DEFAULT_MARIADB_DB
 
         assert isinstance(DEFAULT_KEY_LENGTHS, tuple)
         assert len(DEFAULT_KEY_LENGTHS) > 0
@@ -450,5 +450,5 @@ class TestModuleIntegration:
         assert isinstance(TEST_MARIADB, str)
         assert len(TEST_MARIADB) > 0
 
-        assert isinstance(DEFAULT_MARIADB, str)
-        assert len(DEFAULT_MARIADB) > 0
+        assert isinstance(DEFAULT_MARIADB_DB, str)
+        assert len(DEFAULT_MARIADB_DB) > 0

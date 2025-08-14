@@ -16,6 +16,13 @@ from config import (
     strip_punction_from_datetime_str,
 )
 
+DEFAULT_MARIADB_HOST = "localhost"
+DEFAULT_MARIADB_PORT = 3306
+DEFAULT_MARIADB_USER = "moduli_generator"
+DEFAULT_MARIADB_PASSWORD = None
+DEFAULT_MARIADB_SSL = True
+DEFAULT_MARIADB_SOCKET = "/var/run/mysqld/mysqld.sock"
+
 __all__ = [
     "MariaDBConnector",
     "parse_mysql_config",
@@ -167,7 +174,7 @@ def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
 
 # noinspection PyUnreachableCode
 def get_mysql_config_value(
-    cnf: Dict[str, Dict[str, str]], section: str, key: str, default: Any = None
+        cnf: Dict[str, Dict[str, str]], section: str, key: str, default: Any = None
 ) -> Any:
     """
     Get a specific value from the parsed MySQL config dictionary.
@@ -280,7 +287,7 @@ class MariaDBConnector:
             yield connection
         except Error as err:
             self.logger.error(f"Error getting connection from pool: {err}")
-            raise
+            raise RuntimeError(err)
         finally:
             if connection:
                 connection.close()  # Returns connection to pool
@@ -361,19 +368,16 @@ class MariaDBConnector:
         """
         for key, value in config.__dict__.items():
             if key in [
+                "test_moduli_db",
+                "moduli_home",
+                "key_lengths",
+                "nice_value",
                 "mariadb_cnf",
                 "db_name",
-                "moduli_home",
-                # "base_dir",
-                "moduli_file_pfx",
-                "moduli_file",
                 "table_name",
                 "view_name",
-                "config_id",
-                "key_lengths",
                 "records_per_keylength",
                 "delete_records_on_moduli_write",
-                "delete_records_on_read",
             ]:
                 setattr(self, key, value)
 
@@ -410,9 +414,10 @@ class MariaDBConnector:
                 "password": mysql_cnf["password"],
             }
 
-            # Add database parameter if db_name is available
-            if hasattr(self, "db_name") and self.db_name:
-                pool_params["database"] = self.db_name
+            # tbd - We need to login to the DB BEFORE the To-Be Created DB Exists - Delselect Database in CNF
+            # # Add database parameter if db_name is available
+            # if hasattr(self, "db_name") and self.db_name:
+            #     pool_params["database"] = self.db_name
 
             self.pool = ConnectionPool(**pool_params)
             self.logger.info(f"Connection pool created with size: 10")
@@ -425,11 +430,11 @@ class MariaDBConnector:
         # Skip schema verification if using mock objects or in the test environment
         try:
             is_test_env = (
-                hasattr(config, "__class__")
-                and "Mock" in str(config.__class__)
-                or "pytest" in str(type(config))
-                or hasattr(config, "_mock_name")
-                or str(config).startswith("<Mock")
+                    hasattr(config, "__class__")
+                    and "Mock" in str(config.__class__)
+                    or "pytest" in str(type(config))
+                    or hasattr(config, "_mock_name")
+                    or str(config).startswith("<Mock")
             )
 
             if is_test_env:
@@ -447,11 +452,11 @@ class MariaDBConnector:
         except (NameError, RuntimeError) as err:
             # Log the error but don't fail initialization in test environments
             is_test_env = (
-                hasattr(config, "__class__")
-                and "Mock" in str(config.__class__)
-                or "pytest" in str(type(config))
-                or hasattr(config, "_mock_name")
-                or str(config).startswith("<Mock")
+                    hasattr(config, "__class__")
+                    and "Mock" in str(config.__class__)
+                    or "pytest" in str(type(config))
+                    or hasattr(config, "_mock_name")
+                    or str(config).startswith("<Mock")
             )
 
             if is_test_env:
@@ -468,7 +473,7 @@ class MariaDBConnector:
                 )
 
     def sql(
-        self, query: str, params: Optional[tuple] = None, fetch: bool = True
+            self, query: str, params: Optional[tuple] = None, fetch: bool = True
     ) -> Optional[List[Dict]]:
         """
         Executes an SQL query on the connected database, with support for parameterized queries.
@@ -587,7 +592,7 @@ class MariaDBConnector:
                 raise RuntimeError(f"Database update failed: {err}")
 
     def execute_batch(
-        self, queries: List[str], params_list: Optional[List[tuple]] = None
+            self, queries: List[str], params_list: Optional[List[tuple]] = None
     ) -> bool:
         """
         Execute multiple SQL queries in a batch with optional parameters.
@@ -632,7 +637,7 @@ class MariaDBConnector:
             raise RuntimeError(f"Batch query execution failed: {err}")
 
     def _add_without_transaction(
-        self, connection, timestamp: int, key_size: int, modulus: str
+            self, connection, timestamp: int, key_size: int, modulus: str
     ) -> int:
         """
         Inserts a new record into the database table without wrapping the operation
@@ -652,8 +657,8 @@ class MariaDBConnector:
         """
         # Validate identifiers
         if not (
-            is_valid_identifier_sql(self.db_name)
-            and is_valid_identifier_sql(self.table_name)
+                is_valid_identifier_sql(self.db_name)
+                and is_valid_identifier_sql(self.table_name)
         ):
             self.logger.error("Invalid database or table name")
             return 0
@@ -668,7 +673,7 @@ class MariaDBConnector:
                 return last_id
         except Error as err:
             self.logger.error(f"Error inserting candidate: {err}")
-            raise  # Re-raise to let transaction context manager handle rollback
+            raise RuntimeError(err)
 
     def add(self, timestamp: int, key_size: int, modulus: str) -> int:
         """
@@ -687,8 +692,8 @@ class MariaDBConnector:
         """
         # Validate identifiers
         if not (
-            is_valid_identifier_sql(self.db_name)
-            and is_valid_identifier_sql(self.table_name)
+                is_valid_identifier_sql(self.db_name)
+                and is_valid_identifier_sql(self.table_name)
         ):
             self.logger.error("Invalid database or table name")
             return 0
@@ -728,8 +733,8 @@ class MariaDBConnector:
             Returns True if successful, False otherwise.
         """
         if not (
-            is_valid_identifier_sql(self.db_name)
-            and is_valid_identifier_sql(self.table_name)
+                is_valid_identifier_sql(self.db_name)
+                and is_valid_identifier_sql(self.table_name)
         ):
             self.logger.error("Invalid database or table name")
             return False
@@ -863,9 +868,9 @@ class MariaDBConnector:
 
             # Validate identifiers
             if not (
-                is_valid_identifier_sql(self.db_name)
-                and is_valid_identifier_sql(self.table_name)
-                and is_valid_identifier_sql(self.view_name)
+                    is_valid_identifier_sql(self.db_name)
+                    and is_valid_identifier_sql(self.table_name)
+                    and is_valid_identifier_sql(self.view_name)
             ):
                 raise RuntimeError(
                     f"Invalid database, table, or view name:\n\t{self.db_name}\n"
@@ -1170,7 +1175,7 @@ class MariaDBConnector:
                 )
                 config_result = self.execute_select(config_query)
                 verification_results["configuration_data"] = (
-                    config_result[0]["count"] > 0
+                        config_result[0]["count"] > 0
                 )
 
                 if not verification_results["configuration_data"]:

@@ -10,7 +10,7 @@ def _moduli_generator_argparser() -> Namespace:
     """
     Parse command-line arguments for the Moduli Generator and return the parsed arguments.
 
-        This function uses the `argparse` module to define and parse command-line options used
+        This function uses the `argparser` module to define and parse command-line options used
         for managing the secure moduli generation process. It provides a variety of configurable
         options, including base directory settings, directory paths for storing generated moduli,
         and specific configuration file paths. Additionally, the function supports specifying
@@ -98,6 +98,12 @@ def _moduli_generator_argparser() -> Namespace:
         action="store_true",
         help="Display version information",
     )
+    parser.add_argument(
+        "--restart",
+        action="store_true",
+        default="store_false",
+        help="Restart Interrupted Moduli Screening"
+    )
     return parser.parse_args()
 
 
@@ -110,17 +116,18 @@ def local_config(args: Namespace = None) -> ModuliConfig:
         and applies specific settings based on the user-provided options.
 
     Args:
-        args (Namespace): A Namespace object containing command line parameters that are required         to customize the configuration.
+        args (Namespace): A Namespace object containing command line parameters that are required
+                 to customize the configuration.
 
     Returns:
-        ModuliConfig: A customized configuration object with updated properties based on         the provided namespace.
+        ModuliConfig: A customized configuration object with updated properties based on the provided namespace.
     """
 
     # Create a custom configuration based on the command line arguments
     if args is None:
         args = _moduli_generator_argparser()
 
-    # If --version is set in command line call, Print out version and exit
+    # If --version is set in the command line call, Print out the version and exit
     if args.version:
         from config import __version__
 
@@ -148,6 +155,7 @@ def local_config(args: Namespace = None) -> ModuliConfig:
     config.ensure_directories()
     config.key_lengths = tuple(args.key_lengths)
     config.nice_value = args.nice_value
+    config.restart = args.restart
 
     return config
 

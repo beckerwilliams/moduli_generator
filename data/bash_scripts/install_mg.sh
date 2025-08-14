@@ -193,15 +193,16 @@ prompt_database_config() {
         read -p "Enter database name [moduli_db]: " db_name
         db_name=${db_name:-"moduli_db"}
 
-        read -p "Enter MariaDB username [moduli_generator]: " db_user
-        db_user=${db_user:-"moduli_generator"}
+#        read -p "Enter MariaDB username [moduli_generator]: " db_user
+        db_user='moduli_generator'
 
-        read -s -p "Enter MariaDB password: " db_pass
-        echo
-        if [[ -z "$db_pass" ]]; then
-            echo -e "${RED}Password is required${NC}"
-            continue
-        fi
+#        read -s -p "Enter MariaDB password: " db_pass
+#        echo
+#        if [[ -z "$db_pass" ]]; then
+#            echo -e "${RED}Password is required${NC}"
+#            continue
+#        fi
+		db_pass=''
 
         break
     done
@@ -368,7 +369,6 @@ fi
 ###############################################
 # Create, Update, BUILD WHEEL, Store in ${CWD}
 ###############################################
-
 if ! build_wheel; then
     echo -e "${RED}build_wheel FAILED${NC}"
     exit 1

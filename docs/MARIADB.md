@@ -24,12 +24,12 @@ Location: `${cwd}/privileged_mariadb.cnf`
 
 ```ini
 [client]
-host = <HOSTNAME>
-port = 3306
-socket = /var/run/mysql/mysql.sock
+host     = <HOSTNAME>
+port     = 3306
+socket   = /var/run/mysql/mysql.sock
 password = <PASSWORD>
-user = <USERNAME>
-ssl = true
+user     = <USERNAME>
+ssl      = true
 ```
 
 ### Moduli Generator Application Configuration
@@ -38,12 +38,12 @@ Location: `${HOME}/.moduli_generator/moduli_generator.cnf`
 
 ```ini
 [client]
-host = <HOSTNAME>
-port = 3306
-socket = /var/run/mysql/mysql.sock
+host     = <HOSTNAME>
+port     = 3306
+socket   = /var/run/mysql/mysql.sock
 password = <PASSWORD>
-user = moduli_generator
-ssl = true
+user     = moduli_generator
+ssl      = true
 ```
 
 > Replace `<HOSTNAME>`, `<USERNAME>`, and `<PASSWORD>` with your actual MariaDB credentials.
@@ -65,7 +65,6 @@ install_schema <privileged_mariadb.cnf> --moduli-db-name moduli_db
 ```
 
 This will create:
-
 - A database named `moduli_db`
 - Tables: `moduli`, `mod-fl-consts`, and `moduli_archive`
 - A view: `moduli_view`

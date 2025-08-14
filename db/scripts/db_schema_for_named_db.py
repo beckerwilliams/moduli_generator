@@ -96,8 +96,9 @@ def get_moduli_generator_schema_statements(
             "fetch": False,
         },
         {
-            "query": f"INSERT INTO {moduli_db}.mod_fl_consts (config_id, type, tests, trials, generator, description) \
-                        VALUES (%s, %s, %s, %s, %s, %s)",
+            "query": f"""INSERT INTO {moduli_db}.mod_fl_consts (config_id, type, tests, trials, generator, description)
+                        VALUES (%s, %s, %s, %s, %s, %s) \
+                        """,
             "params": (
                 1,
                 "2",

@@ -41,8 +41,12 @@ def main(config: ModuliConfig = None):
     )
 
     # The Invocation - Generates Candidates and Screens for High Qualtiy DH GEX Moduli
+
     try:
-        (ModuliGenerator(config).generate_moduli().store_moduli().write_moduli_file())
+        if args.restart:
+            (ModuliGenerator(config).restart_screening().store_moduli())
+        else:
+            (ModuliGenerator(config).generate_moduli().store_moduli().write_moduli_file())
 
     except ValueError as err:
         logger.error(f"Moduli Generation Failed: {err}")

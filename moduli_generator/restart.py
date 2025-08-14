@@ -3,6 +3,7 @@ from sys import exit
 
 # Import the default configuration
 from config import ModuliConfig, iso_utc_time_notzinfo
+from config.argparser_moduli_generator import local_config
 from moduli_generator import ModuliGenerator
 
 
@@ -19,7 +20,7 @@ def main(config: ModuliConfig = None):
     """
 
     if not config:
-        config = arg_parser.local_config()
+        config = local_config()
 
     logger = config.get_logger()
     logger.name = __name__

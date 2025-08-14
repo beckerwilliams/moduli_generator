@@ -11,34 +11,33 @@ readme = "docs/README.md"
 license = "MIT"
 keywords = ["cryptography", "ssh", "moduli", "security"]
 classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: System Administrators",
-    "Intended Audience :: Developers",
-    "Intended Audience :: Information Technology",
-    "Topic :: Security :: Cryptography",
-    "Topic :: System :: Systems Administration",
-    "Topic :: Security",
-    "Topic :: Internet",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Environment :: Console",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3 :: Only",
-    "Operating System :: POSIX :: Linux",
-    "Operating System :: Unix",
-    "Operating System :: MacOS",
-    "Environment :: Console",
-    "Natural Language :: English",
-    "Typing :: Typed"
+	"Development Status :: 4 - Beta",
+	"Intended Audience :: System Administrators",
+	"Intended Audience :: Developers",
+	"Intended Audience :: Information Technology",
+	"Topic :: Security :: Cryptography",
+	"Topic :: System :: Systems Administration",
+	"Topic :: Security",
+	"Topic :: Internet",
+	"Topic :: Software Development :: Libraries :: Python Modules",
+	"Environment :: Console",
+	"Programming Language :: Python :: 3",
+	"Programming Language :: Python :: 3.12",
+	"Programming Language :: Python :: 3.13",
+	"Programming Language :: Python :: 3 :: Only",
+	"Operating System :: POSIX :: Linux",
+	"Operating System :: Unix",
+	"Operating System :: MacOS",
+	"Environment :: Console",
+	"Natural Language :: English",
+	"Typing :: Typed"
 ]
 packages = [
-    { include = "config" },
-    { include = "db" },
+	{ include = "config" },
+	{ include = "db" },
 	{ include = "moduli_generator" },
 	{ include = "data" }
 ]
-
 
 [tool.poetry.urls]
 Homepage = "https://github.com/beckerwilliams/moduli_generator"
@@ -69,6 +68,7 @@ pytest-mock = ">=3.12.0"
 pytest-asyncio = ">=0.23.0"
 toml = ">=0.10.2"
 coverage = "^7.10.2"
+poetry = "==1.8.5"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = ">=1.6.1"
