@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Function to prompt for database configuration and create config file
-create_moduli_config() {
+create_privilged_config() {
     local config_dir="${HOME}/.moduli_generator"
-    local config_file="${config_dir}/moduli_generator.cnf"
+    local config_file="${config_dir}/privileged.tmp"
 
     echo -e "${BLUE}[ Database Configuration Setup ]${NC}"
     echo -e "${YELLOW}Please provide MariaDB connection details for the moduli_generator user:${NC}"
@@ -13,21 +13,17 @@ create_moduli_config() {
 
     # Prompt for database configuration
     while true; do
-        read -p "MariaDB hostname [localhost]: " db_host
-        db_host=${db_host:-"localhost"}
-
-        read -p "MariaDB port [3306]: " db_port
-        db_port=${db_port:-"3306"}
-
-        read -p "MariaDB socket [/var/run/mysql/mysql.sock]: " db_socket
-        db_socket=${db_socket:-"/var/run/mysql/mysql.sock"}
-
-        read -p "Database name [moduli_db]: " db_name
-        db_name=${db_name:-"moduli_db"}
 
         # Username is fixed as per the application design
-        db_user="moduli_generator"
-        echo -e "${BLUE}Using application user: ${db_user}${NC}"
+        while true; do
+	        read -p "Privilged MariaDB User (root user?): " db_user
+	        echo
+	        if [[ -n "$db_user" ]]; then
+	        	break
+	        else
+	        	echo "${RED}Username cannot be empty. Please Try Again (or ctrl-c to escape)"
+        	fi
+        done
 
         while true; do
             read -s -p "Enter password for ${db_user}: " db_password
@@ -39,18 +35,23 @@ create_moduli_config() {
             fi
         done
 
+        read -p "MariaDB hostname [localhost]: " db_host
+        db_host=${db_host:-"localhost"}
+
+        read -p "MariaDB port [3306]: " db_port
+        db_port=${db_port:-"3306"}
+
         read -p "Enable SSL [true]: " db_ssl
         db_ssl=${db_ssl:-"true"}
 
         # Display configuration summary
         echo
         echo -e "${YELLOW}Configuration Summary:${NC}"
-        echo "  Host: ${db_host}"
-        echo "  Port: ${db_port}"
-        echo "  Socket: ${db_socket}"
-        echo "  Database: ${db_name}"
         echo "  User: ${db_user}"
         echo "  SSL: ${db_ssl}"
+        echo "  Host: ${db_host}"
+        echo "  Port: ${db_port}"
+
         echo
 
         while true; do
@@ -75,10 +76,8 @@ create_moduli_config() {
 [client]
 host                                = ${db_host}
 port	                            = ${db_port}
-socket	                            = ${db_socket}
-password                            = ${db_password}
 user                                = ${db_user}
-database                            = ${db_name}
+password                            = ${db_password}
 ssl                                 = ${db_ssl}
 
 EOF
@@ -94,7 +93,7 @@ EOF
 
 # Function to test database connection
 test_database_connection() {
-    local config_file="${HOME}/.moduli_generator/moduli_generator.cnf"
+    local config_file="${HOME}/.moduli_generator/privileged.tmp"
 
     if [[ ! -f "${config_file}" ]]; then
         echo -e "${RED}✗ Configuration file not found: ${config_file}${NC}"
@@ -131,5 +130,5 @@ test_database_connection() {
 ######
 # Main
 ######
-create_moduli_config
+create_privilged_config
 test_database_connection

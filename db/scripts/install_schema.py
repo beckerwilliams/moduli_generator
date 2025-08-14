@@ -4,7 +4,6 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from config import DEFAULT_MARIADB_CNF, DEFAULT_MARIADB_DB_NAME, default_config
-# from config import DEFAULT_MARIADB_CNF, DEFAULT_MARIADB_DB, default_config
 from db import MariaDBConnector, parse_mysql_config
 from db.scripts.db_schema_for_named_db import get_moduli_generator_schema_statements
 
@@ -47,14 +46,20 @@ def create_moduli_generator_user(db_conn, database, password=None):
 
     # SQL statements to create user, grant privileges, and flush privileges
     statements = [
-        # Create user if not exists
+        # Create User 'moduli_generator'@'%' and Grant All
         f"CREATE USER IF NOT EXISTS 'moduli_generator'@'%' IDENTIFIED BY '{password}' "
-        "MAX_CONNECTIONS_PER_HOUR 100 MAX_UPDATES_PER_HOUR 200 MAX_USER_CONNECTIONS 50",
+        "WITH MAX_CONNECTIONS_PER_HOUR 100 MAX_UPDATES_PER_HOUR 200 MAX_USER_CONNECTIONS 50",
 
-        # Grant privileges
-        f"GRANT ALL PRIVILEGES ON {database}.* TO 'moduli_generator'@'%' WITH GRANT OPTION",
+        # GRANT ALL with GRANT OPTION on `moduli_generator`@'%'
+        f"GRANT ALL PRIVILEGES ON {database}.* TO 'moduli_generator'@'%'",
+        f"GRANT PROXY ON ''@'%' TO 'moduli_generator'@'%'",
+        "FLUSH PRIVILEGES",
 
-        # Flush privileges
+        # CREATE USER `moduli_generator`@`localhost` & GRANT ALL with GRANT OPTION on `moduli_generator`@'localhost'
+        f"CREATE USER IF NOT EXISTS 'moduli_generator'@'localhost' IDENTIFIED BY '{password}' "
+        "WITH MAX_CONNECTIONS_PER_HOUR 100 MAX_UPDATES_PER_HOUR 200 MAX_USER_CONNECTIONS 50",
+
+        f"GRANT ALL PRIVILEGES ON {database}.* TO 'moduli_generator'@'localhost'",
         "FLUSH PRIVILEGES"
     ]
 
@@ -149,7 +154,7 @@ class InstallSchema(object):
         Args:
             db_connector (MariaDBConnector): Instance of MariaDBConnector used for connecting to the MariaDB database.
             db_name (str): Name of the database where the schema will be installed. If not provided,
-            it defaults to the configured DEFAULT_MARIADB constant.
+            it defaults to the configured DEFAULT_MARIADB constant.7
         """
         self.db_conn = db_connector
         self.db_name = db_name
@@ -397,12 +402,13 @@ def main():
         tmp_config = parse_mysql_config(default_cnf)
         tmp_config["client"]["user"] = args.mariadb_admin_username
         tmp_config["client"]["password"] = args.mariadb_admin_password
+        tmp_config["client"]["host"] = args.mariadb_host
         # Eliminate database record from tmp_config if exists.
         # We don't want an error selecting a database that has yet to be created
         if "database" in tmp_config["client"]:
             del tmp_config["client"]["database"]  # assure no database record
 
-        # At install - we need `None` Specified for  DATABASE specified in Connection Request
+        # At installation - we need `None` Specified for DATABASE specified in Connection Request
         config.db_name = args.moduli_db_name
 
         config.mariadb_cnf = (
@@ -421,19 +427,19 @@ def main():
         )
 
         # MariaDB.cnf Temporary Config File Attributes
-        def build_tmp_cnf(config: dict) -> str:
+        def build_tmp_cnf(local_config: dict) -> str:
             # Assure no DB is specified
-            if "database" in config["client"]:
-                del config["client"]["database"]
+            if "database" in local_config["client"]:
+                del local_config["client"]["database"]
 
             """Build MariaDB Config File from Config"""
-            tmp_cnf = ""
-            for key, value in config.items():
-                tmp_cnf += f"[{key}]\n"
+            local_cnf = ""
+            for key, value in local_config.items():
+                local_cnf += f"[{key}]\n"
                 for k, v in value.items():
-                    tmp_cnf += f"{k} = {v}\n"
-                tmp_cnf += "\n"
-            return tmp_cnf
+                    local_cnf += f"{k} = {v}\n"
+                local_cnf += "\n"
+            return local_cnf
 
         # assemble priviliged.CNF file content
         tmp_cnf = build_tmp_cnf(tmp_config)
@@ -469,14 +475,14 @@ def main():
         ######################################################################################################
         print("\nCreating moduli_generator user and finalizing configuration...")
 
-        # 1. Create moduli_generator user with generated password and grant privileges
+        # 1. Create the moduli_generator user with the generated password and grant privileges
         password = create_moduli_generator_user(db_connector, config.db_name)
 
         # 2. Update the application owner's configuration file
         config_path = update_moduli_generator_config(
             database=config.db_name,
             username="moduli_generator",
-            # password=password
+            password=password
         )
 
         print(f"Successfully created moduli_generator user and updated configuration at {config_path}")

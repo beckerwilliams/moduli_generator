@@ -15,24 +15,20 @@ Before installation, ensure you're platform meets the following requirements:
 
 ## Installation Process
 
-### Step 1: Download the Installer
-
-Download the installer script from one of these sources:
-
-- Direct
-  download: [install_mg.sh](https://raw.githubusercontent.com/beckerwilliams/moduli_generator/HEAD/data/bash_scripts/install_mg.sh) (
-  right-click to save)
-- Terminal download (using curl):
-  ```bash
-  curl -fsSL -o install_mg.sh https://raw.githubusercontent.com/beckerwilliams/moduli_generator/HEAD/data/bash_scripts/install_mg.sh
-  ```
-
-### Step 2: Create and Use Application Directory
+### Step 1: Create and Use Application Directory
 
 ```bash
 mkdir -p ~/moduli_generator
 cd ~/moduli_generator
 ```
+
+### Step 2: Download the Installer
+
+Cut and paste the following command into your terminal:
+
+  ```bash
+  curl -fsSL -o install_mg.sh https://raw.githubusercontent.com/beckerwilliams/moduli_generator/HEAD/data/bash_scripts/install_mg.sh
+  ```
 
 ### Step 3: Prepare and Run the Installer
 
@@ -47,13 +43,12 @@ chmod +x ./install_mg.sh
 
 When prompted, enter your database connection details:
 
-```
+```list
 [ Database Configuration ]
 Enter MariaDB host [localhost]:            # Press Enter for default
 Enter MariaDB port [3306]:                 # Press Enter for default
 Enter database name [moduli_db]:           # Press Enter for default
 Enter MariaDB username [moduli_generator]: # Press Enter for default
-Enter MariaDB password:                    # Enter your password
 ```
 
 ## What the Installer Does

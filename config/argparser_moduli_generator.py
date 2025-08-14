@@ -101,7 +101,7 @@ def _moduli_generator_argparser() -> Namespace:
     parser.add_argument(
         "--restart",
         action="store_true",
-        default="store_false",
+        default=False,
         help="Restart Interrupted Moduli Screening"
     )
     return parser.parse_args()

@@ -8,6 +8,7 @@ edit_uri: edit/main/docs/
 theme:
   name: material
   features:
+    - content.code.copy
     - navigation.tabs
     - navigation.sections
     - navigation.expand
@@ -102,11 +103,12 @@ nav:
 #      - license.md
 
 markdown_extensions:
-  - admonition
-  - pymdownx.details
   - pymdownx.superfences
   - pymdownx.highlight:
       anchor_linenums: true
+  - attr_list
+  - admonition
+  - pymdownx.details
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.tabbed:
