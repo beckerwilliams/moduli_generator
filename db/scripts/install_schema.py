@@ -489,6 +489,9 @@ def main():
     else:
         print("Failed to install database schema")
 
+    # On the more than likely chance there's a privleged.tmp (mysql.cnf) file in ${MODULI_GENERATOR_HOME}, remove it!
+    (config.moduli_home / config.privileged_tmp_file).unlink(missing_ok=True)
+
 
 if __name__ == "__main__":
     exit(main())

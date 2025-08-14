@@ -433,6 +433,10 @@ build_moduli_generator() {
     return 0
 }
 
+schema_installer() {
+	install_schema --mariadb-cnf ${HOME}/.moduli_generator/privilged.tmp
+}
+
 #########################################################################################################
 # MAIN
 #########################################################################################################
@@ -471,6 +475,11 @@ fi
 if ! build_moduli_generator; then
     echo -e "${RED}Build Moduli Generator Failed${NC}"
     exit 1
+fi
+
+if ! schema_installer; then
+	echo -e "${RED}Moduli Generator User and Schema Installer Failed${NC}"
+	exit 1
 fi
 
 echo -e "${GREEN}✓ Installation completed successfully!${NC}"
