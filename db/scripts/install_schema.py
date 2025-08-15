@@ -293,8 +293,8 @@ def argparser() -> ArgumentParser:
     args.add_argument(
         "--mariadb-cnf",
         type=str,
-        default=config.privileged_tmp_file,
-        help="Path to MariaDB _privileged_ configuration | default ${MODULI_GENERATOR_HOME}/.moduli_generator/privileged.tmp"
+        default="privileged.tmp",
+        help="Path to Privileged MariaDB Config: default ${MODULI_GENERATOR_HOME}/.moduli_generator/privileged.tmp"
     )
     args.add_argument(
         "--mariadb-admin-username",
