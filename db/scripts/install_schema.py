@@ -18,10 +18,13 @@ def generate_random_password(length=16):
         length (int): Length of the password. Default is 16 characters.
 
     Returns:
-        str: A random password containing a mix of letters, digits, and punctuation.
+        str: A random password containing a mix of letters, digits, and punctuation,
+             excluding single and double quotes.
     """
     # Define character sets
-    alphabet = string.ascii_letters + string.digits + string.punctuation
+    letters_digits = string.ascii_letters + string.digits
+    safe_punctuation = ''.join(c for c in string.punctuation if c not in ['"', "'"])
+    alphabet = letters_digits + safe_punctuation
 
     # Generate the password using secrets module
     password = ''.join(secrets.choice(alphabet) for _ in range(length))
