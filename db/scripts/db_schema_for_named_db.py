@@ -96,6 +96,16 @@ def get_moduli_generator_schema_statements(
             "fetch": False,
         },
         {
+            "query": f"CREATE INDEX idx_size ON {moduli_db}.moduli_archive(size)",
+            "params": None,
+            "fetch": False,
+        },
+        {
+            "query": f"CREATE INDEX idx_timestamp ON {moduli_db}.moduli_archive(timestamp)",
+            "params": None,
+            "fetch": False,
+        },
+        {
             "query": f"""INSERT INTO {moduli_db}.mod_fl_consts (config_id, type, tests, trials, generator, description)
                         VALUES (%s, %s, %s, %s, %s, %s) \
                         """,

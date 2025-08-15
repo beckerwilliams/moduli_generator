@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # Import the default configuration
-from config import ModuliConfig, iso_utc_time_notzinfo
+from config import ModuliConfig, argparser_moduli_generator, iso_utc_time_notzinfo
 from db import MariaDBConnector
 
 
@@ -18,7 +18,7 @@ def main(config: ModuliConfig = None):
     """
 
     if not config:
-        config = arg_parser.local_config()
+        config = argparser_moduli_generator.local_config()
 
     logger = config.get_logger()
     logger.name = __name__

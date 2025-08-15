@@ -450,7 +450,7 @@ class TestConfigCoverageImprovement:
                 pass
 
         # Test final Exception fallback path
-        with patch("get_version.get_version", return_value="1.0.0") as mock_get_version:
+        with patch("config.get_version.get_version", return_value="1.0.0") as mock_get_version:
             # Simulate the final fallback scenario
             try:
                 raise Exception("Simulate final fallback")

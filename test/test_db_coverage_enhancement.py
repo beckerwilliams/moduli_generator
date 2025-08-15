@@ -56,8 +56,10 @@ class TestDBCoverageEnhancement:
         mock_is_valid.side_effect = [True, False, True]
 
         connector = MariaDBConnector(valid_mock_config)
+        # Ensure connector has the moduli_file attribute to avoid attribute error
+        connector.moduli_file = "test_moduli.txt"
 
-        with pytest.raises(RuntimeError, match="Invalid database, table, or view name"):
+        with pytest.raises(RuntimeError, match="Invalid database, table, or view name:"):
             connector.write_moduli_file()
 
     @patch("db.parse_mysql_config")

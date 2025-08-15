@@ -93,6 +93,7 @@ CONST_CANDIDATE_IDX_FILENAME_PATTERN: Final[re] = (
     r".candidates_????_????????????????????"
 )
 CONST_PRIVILEGED_TMP_FILE: Final[str] = "privileged.tmp"
+CONST_MARIADB_PASSWORD_LENGTH: Final[int] = 32
 
 
 def iso_utc_timestamp(compress: bool = False) -> str:
@@ -232,6 +233,7 @@ class ModuliConfig:
 
         # Set name of Privleged Temporary MariaDB Config File
         self.privileged_tmp_file = CONST_PRIVILEGED_TMP_FILE
+        self.password_length = CONST_MARIADB_PASSWORD_LENGTH
 
     def ensure_directories(self) -> "ModuliConfig":
         """

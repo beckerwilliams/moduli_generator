@@ -5,6 +5,8 @@ from logging import DEBUG, INFO, Logger
 from pathlib import PosixPath as Path
 from typing import Any, Dict, List
 
+import mariadb
+
 from config import ModuliConfig, default_config, iso_utc_timestamp
 from db import MariaDBConnector
 from moduli_generator.utils.validators import validate_subprocess_args
@@ -497,7 +499,7 @@ class ModuliGenerator:
             if not self.config.preserve_moduli_after_dbstore:
                 for file in moduli_files:
                     file.unlink()
-        except RuntimeError as err:
+        except (RuntimeError, mariadb.Error) as err:
             self.logger.error(f"Error storing moduli: {err}")
 
         self.logger.info(f"Moduli Stored in MariaDB database: {len(screened_moduli)}")

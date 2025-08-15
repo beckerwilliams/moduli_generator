@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 from pathlib import PosixPath as Path
 from sys import exit
 
-from config import DEFAULT_MARIADB_CNF, TEST_MARIADB, default_config
+from config import DEFAULT_MARIADB_CNF, TEST_MARIADB_DB_NAME, default_config
 from db.scripts.install_schema import InstallSchema
 from moduli_generator import ModuliGenerator
 
@@ -34,7 +34,7 @@ def arg_parser():
     argparse.add_argument(
         "--mariadb-name",
         type=str,
-        default=TEST_MARIADB,
+        default=TEST_MARIADB_DB_NAME,
         help="Name of the database to create and Initialize",
     )
     argparse.add_argument(

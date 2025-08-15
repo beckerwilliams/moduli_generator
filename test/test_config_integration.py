@@ -179,9 +179,9 @@ class TestLocalConfigFunction:
     """Test cases for the local_config function."""
 
     @pytest.mark.integration
-    @patch("config.arg_parser._moduli_generator_argparser")
+    @patch("config.argparser_moduli_generator._moduli_generator_argparser")
     @patch("config.default_config.with_base_dir")
-    @patch("config.arg_parser.is_valid_identifier_sql")
+    @patch("db.is_valid_identifier_sql")
     def test_local_config_with_none_args(
         self, mock_is_valid, mock_with_base_dir, mock_argparser
     ):
@@ -227,7 +227,7 @@ class TestLocalConfigFunction:
 
     @pytest.mark.integration
     @patch("config.default_config.with_base_dir")
-    @patch("config.arg_parser.is_valid_identifier_sql")
+    @patch("db.is_valid_identifier_sql")
     def test_local_config_with_provided_args(self, mock_is_valid, mock_with_base_dir):
         """Test local_config function with provided arguments."""
         # Setup mocks
@@ -271,7 +271,7 @@ class TestLocalConfigFunction:
 
     @pytest.mark.integration
     @patch("config.default_config.with_base_dir")
-    @patch("config.arg_parser.is_valid_identifier_sql")
+    @patch("db.is_valid_identifier_sql")
     def test_local_config_invalid_database_name(
         self, mock_is_valid, mock_with_base_dir
     ):
@@ -288,6 +288,7 @@ class TestLocalConfigFunction:
         mock_args.delete_records_on_moduli_write = False
         mock_args.key_lengths = [4096]
         mock_args.nice_value = 0
+        mock_args.version = False
 
         mock_config = MagicMock()
         mock_with_base_dir.return_value = mock_config
@@ -304,7 +305,7 @@ class TestLocalConfigFunction:
 
     @pytest.mark.integration
     @patch("config.default_config.with_base_dir")
-    @patch("config.arg_parser.is_valid_identifier_sql")
+    @patch("db.is_valid_identifier_sql")
     def test_local_config_database_name_validation_edge_cases(
         self, mock_is_valid, mock_with_base_dir
     ):
@@ -337,6 +338,7 @@ class TestLocalConfigFunction:
             mock_args.delete_records_on_moduli_write = False
             mock_args.key_lengths = [4096]
             mock_args.nice_value = 0
+            mock_args.version = False
 
             mock_is_valid.return_value = is_valid
 
@@ -351,7 +353,7 @@ class TestLocalConfigFunction:
 
     @pytest.mark.integration
     @patch("config.default_config.with_base_dir")
-    @patch("config.arg_parser.is_valid_identifier_sql")
+    @patch("db.is_valid_identifier_sql")
     def test_local_config_path_construction(self, mock_is_valid, mock_with_base_dir):
         """Test local_config path construction logic."""
         # Setup mocks
@@ -366,6 +368,7 @@ class TestLocalConfigFunction:
         mock_args.delete_records_on_moduli_write = False
         mock_args.key_lengths = [4096]
         mock_args.nice_value = 0
+        mock_args.version = False
 
         mock_config = MagicMock()
         mock_config.moduli_home = Path("/base/path")
@@ -383,7 +386,7 @@ class TestLocalConfigFunction:
 
     @pytest.mark.integration
     @patch("config.default_config.with_base_dir")
-    @patch("config.arg_parser.is_valid_identifier_sql")
+    @patch("db.is_valid_identifier_sql")
     def test_local_config_key_lengths_tuple_conversion(
         self, mock_is_valid, mock_with_base_dir
     ):
@@ -400,6 +403,7 @@ class TestLocalConfigFunction:
         mock_args.delete_records_on_moduli_write = False
         mock_args.key_lengths = [3072, 4096, 8192]  # List input
         mock_args.nice_value = 0
+        mock_args.version = False
 
         mock_config = MagicMock()
         mock_config.moduli_home = Path("/test/home")
@@ -415,7 +419,7 @@ class TestLocalConfigFunction:
 
     @pytest.mark.integration
     @patch("config.default_config.with_base_dir")
-    @patch("config.arg_parser.is_valid_identifier_sql")
+    @patch("db.is_valid_identifier_sql")
     def test_local_config_ensure_directories_called(
         self, mock_is_valid, mock_with_base_dir
     ):
@@ -432,6 +436,7 @@ class TestLocalConfigFunction:
         mock_args.delete_records_on_moduli_write = False
         mock_args.key_lengths = [4096]
         mock_args.nice_value = 0
+        mock_args.version = False
 
         mock_config = MagicMock()
         mock_config.moduli_home = Path("/test/home")
@@ -449,7 +454,7 @@ class TestConfigMainEntryPoint:
     """Test cases for the config module main entry point."""
 
     @pytest.mark.integration
-    @patch("config.arg_parser.local_config")
+    @patch("config.argparser_moduli_generator.local_config")
     @patch("builtins.print")
     def test_config_main_entry_point(self, mock_print, mock_local_config):
         """Test the __main__ entry point of the config module."""
@@ -472,9 +477,9 @@ class TestConfigMainEntryPoint:
             import config.argparser_moduli_generator
 
             # Simulate running the module as __main__
-            with patch.object(config.arg_parser, "__name__", "__main__"):
+            with patch.object(config.argparser_moduli_generator, "__name__", "__main__"):
                 # Execute the actual __main__ block code
-                mg_args = config.arg_parser.local_config()
+                mg_args = config.argparser_moduli_generator.local_config()
                 print(
                     f"Moduli Generator Commands, Flags, and Options, Using default config: {mg_args}"
                 )
@@ -510,9 +515,10 @@ class TestConfigIntegrationScenarios:
             "--delete-records-on-moduli-write",
         ],
     )
+    @patch("argparse.ArgumentParser.parse_args")
     @patch("config.default_config.with_base_dir")
-    @patch("config.arg_parser.is_valid_identifier_sql")
-    def test_production_like_configuration(self, mock_is_valid, mock_with_base_dir):
+    @patch("db.is_valid_identifier_sql")
+    def test_production_like_configuration(self, mock_is_valid, mock_with_base_dir, mock_parse_args):
         """Test production-like configuration scenario."""
         # Setup mocks
         mock_config = MagicMock()
@@ -520,6 +526,22 @@ class TestConfigIntegrationScenarios:
         mock_with_base_dir.return_value = mock_config
         mock_is_valid.return_value = True
 
+        # Mock the parsed args
+        mock_args = MagicMock()
+        mock_args.moduli_home = "/production/moduli"
+        mock_args.moduli_db = "production_moduli"
+        mock_args.candidates_dir = "candidates"
+        mock_args.moduli_dir = "moduli"
+        mock_args.log_dir = "logs"
+        mock_args.mariadb_cnf = "test.cnf"
+        mock_args.records_per_keylength = 500
+        mock_args.delete_records_on_moduli_write = True
+        mock_args.key_lengths = [4096, 8192]
+        mock_args.nice_value = 15
+        mock_args.version = False
+        mock_args.restart = False
+        mock_parse_args.return_value = mock_args
+        
         # Execute complete workflow
         args = _moduli_generator_argparser()
         config = local_config(args)
@@ -539,14 +561,31 @@ class TestConfigIntegrationScenarios:
 
     @pytest.mark.integration
     @patch("sys.argv", ["moduli_generator", "--moduli-db", "invalid_db_name!"])
+    @patch("argparse.ArgumentParser.parse_args")
     @patch("config.default_config.with_base_dir")
-    @patch("config.arg_parser.is_valid_identifier_sql")
-    def test_error_handling_integration(self, mock_is_valid, mock_with_base_dir):
+    @patch("db.is_valid_identifier_sql")
+    def test_error_handling_integration(self, mock_is_valid, mock_with_base_dir, mock_parse_args):
         """Test error handling integration scenario."""
         # Setup mocks
         mock_config = MagicMock()
         mock_with_base_dir.return_value = mock_config
         mock_is_valid.return_value = False
+
+        # Setup mock arguments
+        mock_args = MagicMock()
+        mock_args.moduli_home = "/test/home"
+        mock_args.moduli_db = "invalid_db_name!"
+        mock_args.candidates_dir = "candidates"
+        mock_args.moduli_dir = "moduli"
+        mock_args.log_dir = "logs"
+        mock_args.mariadb_cnf = "test.cnf"
+        mock_args.records_per_keylength = 100
+        mock_args.delete_records_on_moduli_write = False
+        mock_args.key_lengths = [4096]
+        mock_args.nice_value = 0
+        mock_args.version = False
+        mock_args.restart = False
+        mock_parse_args.return_value = mock_args
 
         # Execute and expect error
         args = _moduli_generator_argparser()
@@ -574,7 +613,7 @@ class TestConfigIntegrationScenarios:
         ],
     )
     @patch("config.default_config.with_base_dir")
-    @patch("config.arg_parser.is_valid_identifier_sql")
+    @patch("db.is_valid_identifier_sql")
     def test_extreme_values_configuration(self, mock_is_valid, mock_with_base_dir):
         """Test configuration with extreme but valid values."""
         # Setup mocks
@@ -594,9 +633,9 @@ class TestConfigIntegrationScenarios:
         assert mock_config.nice_value == -20
 
     @pytest.mark.integration
-    @patch("config.arg_parser._moduli_generator_argparser")
+    @patch("config.argparser_moduli_generator._moduli_generator_argparser")
     @patch("config.default_config.with_base_dir")
-    @patch("config.arg_parser.is_valid_identifier_sql")
+    @patch("db.is_valid_identifier_sql")
     def test_config_workflow_with_mocked_argparser(
         self, mock_is_valid, mock_with_base_dir, mock_argparser
     ):
@@ -613,6 +652,8 @@ class TestConfigIntegrationScenarios:
         mock_args.delete_records_on_moduli_write = True
         mock_args.key_lengths = [4096, 8192]
         mock_args.nice_value = 5
+        mock_args.version = False
+        mock_args.restart = False
         mock_argparser.return_value = mock_args
 
         mock_config = MagicMock()

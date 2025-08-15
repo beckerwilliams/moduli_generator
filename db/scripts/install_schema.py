@@ -4,22 +4,23 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from config import DEFAULT_MARIADB_CNF, DEFAULT_MARIADB_DB_NAME, default_config
-from db import MariaDBConnector, parse_mysql_config
+from db import Error, MariaDBConnector, parse_mysql_config
 from db.scripts.db_schema_for_named_db import get_moduli_generator_schema_statements
 
 __all__ = ["InstallSchema"]
 
 
-def generate_random_password(length=16):
+def generate_random_password(length=default_config.password_length) -> str:
     """
-    Generate a cryptographically secure random password.
+    Generates a random password of the specified length, consisting of letters, digits,
+    and MariaDB-recommended safe special characters. This method utilizes cryptographically
+    secure random number generation to ensure unpredictability of the password.
 
     Args:
-        length (int): Length of the password. Default is 16 characters.
+        length (int): The desired length of the generated password.
 
     Returns:
-        str: A random password containing a mix of letters, digits, and punctuation,
-             excluding single and double quotes.
+        str: A randomly generated password containing letters, digits, and safe special characters.
     """
     # Define character sets
     letters_digits = string.ascii_letters + string.digits
@@ -89,7 +90,7 @@ def update_moduli_generator_config(database, username, password):
         Path: Path to the updated configuration file.
     """
     # Path to the final configuration file
-    config_path = Path.home() / ".moduli_generator" / DEFAULT_MARIADB_CNF
+    config_path = Path.home() / ".moduli_generator" / default_config.mariadb_cnf
 
     # Ensure directory exists
     config_dir = config_path.parent
@@ -149,7 +150,7 @@ class InstallSchema(object):
     """
 
     def __init__(
-            self, db_connector: MariaDBConnector, db_name: str = DEFAULT_MARIADB_DB_NAME
+            self, db_connector: MariaDBConnector, db_name: str = default_config.db_name
     ):
         """
         Initializes the class with database connection, database name, and schema statements.
@@ -419,7 +420,7 @@ def main():
         config.mariadb_cnf = (
                 Path.home()
                 / ".moduli_generator"
-                / Path(DEFAULT_MARIADB_CNF).with_suffix(".tmp")
+                / Path(config.mariadb_cnf).with_suffix(".tmp")
         )
 
         # MariaDB.cnf HEADER
@@ -463,7 +464,7 @@ def main():
 
     # Create a single database connector instance
     db_connector = MariaDBConnector(config)
-    
+
     # Create an installer and run installation
     installer = InstallSchema(db_connector, config.db_name)
 
@@ -479,6 +480,8 @@ def main():
         # Now let's create `moduli_generator` user and finalize the application owner's `moduli_generator.cnf`
         ######################################################################################################
         print("\nCreating moduli_generator user and finalizing configuration...")
+
+        # tbd - Need HOST & PORT from privileged.tmp, i.e. load it, modify with below
 
         # 1. Create the moduli_generator user with the generated password and grant privileges
         password = create_moduli_generator_user(db_connector, config.db_name)

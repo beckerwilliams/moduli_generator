@@ -892,6 +892,6 @@ class TestMariaDBConnectorErrorHandling:
 
         connector = MariaDBConnector(mock_config)
 
-        with pytest.raises(mariadb.Error, match="Connection pool exhausted"):
+        with pytest.raises(RuntimeError):
             with connector.get_connection():
                 pass

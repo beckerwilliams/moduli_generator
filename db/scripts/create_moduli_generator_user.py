@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from pathlib import PosixPath as Path
 from sys import exit
 
-from config import DEFAULT_MARIADB_DB
+from config import DEFAULT_MARIADB_DB_NAME
 from db import MariaDBConnector
 
 
@@ -98,8 +98,10 @@ def main():
 
     db = MariaDBConnector()
     db.mariadb_cnf = Path(args.mariadb_cnf)
-    # print(create_moduli_generator_user())
-    db.execute_batch(create_moduli_generator_user())
+
+    # Create the user with the default database name
+    password = create_moduli_generator_user(db, DEFAULT_MARIADB_DB_NAME)
+    print(f"Generated password: {password}")
 
 
 if __name__ == "__main__":

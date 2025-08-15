@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from config import ModuliConfig
+from config import DEFAULT_MARIADB_DB_NAME, ModuliConfig
 from db import Error, MariaDBConnector
 from db.scripts import create_moduli_generator_user, initialize_moduli_generator, install_schema, moduli_stats, \
     verify_schema
@@ -81,22 +81,22 @@ class TestVerifySchema:
         mock_connector.assert_called_once_with(mock_config)
         mock_config.get_logger.return_value.error.assert_called()
 
-    @patch("db.scripts.verify_schema.arg_parser")
+    @patch("db.scripts.verify_schema.argparser_moduli_generator")
     @patch("db.scripts.verify_schema.MariaDBConnector")
     def test_verify_schema_no_config(
-            self, mock_connector, mock_arg_parser, mock_config
+            self, mock_connector, mock_argparser_moduli_generator, mock_config
     ):
         """Test schema verification without passing a config."""
         # Setup
         mock_connector.return_value = MagicMock()
-        mock_arg_parser.local_config.return_value = mock_config
+        mock_argparser_moduli_generator.local_config.return_value = mock_config
 
         # Execute
         result = verify_schema.main()
 
         # Verify
         assert result == 0
-        mock_arg_parser.local_config.assert_called_once()
+        mock_argparser_moduli_generator.local_config.assert_called_once()
         mock_connector.assert_called_once_with(mock_config)
 
 
@@ -110,7 +110,7 @@ class TestModuliStats:
         config.log_file = "test.log"
         return config
 
-    @patch("db.scripts.moduli_stats.argparser.ArgumentParser.parse_args")
+    @patch("db.scripts.moduli_stats.argparse.ArgumentParser.parse_args")
     @patch("db.scripts.moduli_stats.dump")
     @patch("db.scripts.moduli_stats.MariaDBConnector")
     @patch("db.scripts.moduli_stats.Path")
@@ -149,7 +149,7 @@ class TestModuliStats:
         mock_db.stats.assert_called_once()
         mock_dump.assert_called_once()
 
-    @patch("db.scripts.moduli_stats.argparser.ArgumentParser.parse_args")
+    @patch("db.scripts.moduli_stats.argparse.ArgumentParser.parse_args")
     @patch("db.scripts.moduli_stats.Path.open")
     @patch("db.scripts.moduli_stats.MariaDBConnector")
     def test_moduli_stats_default_output_file(
@@ -180,7 +180,7 @@ class TestModuliStats:
         mock_db.stats.assert_called_once()
         mock_open.assert_called_once()
 
-    @patch("db.scripts.moduli_stats.argparser.ArgumentParser.parse_args")
+    @patch("db.scripts.moduli_stats.argparse.ArgumentParser.parse_args")
     @patch("db.scripts.moduli_stats.Path.open")
     @patch("db.scripts.moduli_stats.MariaDBConnector")
     def test_moduli_stats_with_args(
@@ -207,7 +207,7 @@ class TestModuliStats:
         mock_db.stats.assert_called_once()
         mock_open.assert_called_once()
 
-    @patch("db.scripts.moduli_stats.argparser.ArgumentParser.parse_args")
+    @patch("db.scripts.moduli_stats.argparse.ArgumentParser.parse_args")
     @patch("db.scripts.moduli_stats.dump")
     @patch("db.scripts.moduli_stats.MariaDBConnector")
     @patch("db.scripts.moduli_stats.Path")
@@ -532,33 +532,36 @@ class TestCreateModuliGeneratorUser:
 
     def test_create_moduli_generator_user_default(self):
         """Test create_moduli_generator_user with default password."""
+        # Setup
+        mock_db_conn = MagicMock()
+        
         # Execute
-        result = create_moduli_generator_user.create_moduli_generator_user()
+        result = create_moduli_generator_user.create_moduli_generator_user(mock_db_conn, "test_db")
 
         # Verify
-        assert len(result) == 3
-        assert "CREATE USER IF NOT EXISTS" in result[0]
-        assert "GRANT ALL PRIVILEGES" in result[1]
-        assert "FLUSH PRIVILEGES" in result[2]
-        assert "'<PASSWORD>'" in result[0]
+        assert isinstance(result, str)  # Should return a password string
+        assert len(result) > 0  # Password should not be empty
+        mock_db_conn.sql.assert_called()  # SQL execution should be called
 
     def test_create_moduli_generator_user_custom_password(self):
         """Test create_moduli_generator_user with custom password."""
+        # Setup
+        mock_db_conn = MagicMock()
+        custom_password = "test_password"
+        
         # Execute
         result = create_moduli_generator_user.create_moduli_generator_user(
-            "test_password"
+            mock_db_conn, "test_db", custom_password
         )
 
         # Verify
-        assert len(result) == 3
-        assert "CREATE USER IF NOT EXISTS" in result[0]
-        assert "IDENTIFIED BY 'test_password'" in result[0]
-        assert "GRANT ALL PRIVILEGES" in result[1]
-        assert "FLUSH PRIVILEGES" in result[2]
+        assert result == custom_password  # Should return the same password that was passed in
+        mock_db_conn.sql.assert_called()  # SQL execution should be called
 
-    @patch("db.scripts.create_moduli_generator_user.argparser")
+    @patch("db.scripts.create_moduli_generator_user.argparse")
     @patch("db.scripts.create_moduli_generator_user.MariaDBConnector")
-    def test_main_success(self, mock_connector, mock_argparse):
+    @patch("db.scripts.create_moduli_generator_user.create_moduli_generator_user")
+    def test_main_success(self, mock_create_user, mock_connector, mock_argparse):
         """Test main function success."""
         # Setup
         mock_args = MagicMock()
@@ -569,19 +572,22 @@ class TestCreateModuliGeneratorUser:
         mock_db = MagicMock()
         mock_connector.return_value = mock_db
 
+        mock_create_user.return_value = "generated_password"
+
         # Execute
         create_moduli_generator_user.main()
 
         # Verify
         mock_connector.assert_called_once()
-        mock_db.execute_batch.assert_called_once()
+        mock_create_user.assert_called_once_with(mock_db, DEFAULT_MARIADB_DB_NAME)
         assert mock_db.mariadb_cnf == Path("/path/to/config.cnf")
 
-    @patch("db.scripts.create_moduli_generator_user.argparser")
+    @patch("db.scripts.create_moduli_generator_user.argparse")
     @patch("db.scripts.create_moduli_generator_user.MariaDBConnector")
+    @patch("db.scripts.create_moduli_generator_user.create_moduli_generator_user")
     @patch("db.scripts.create_moduli_generator_user.print")
-    def test_main_prints_statements(self, mock_print, mock_connector, mock_argparse):
-        """Test that main function prints SQL statements."""
+    def test_main_prints_statements(self, mock_print, mock_create_user, mock_connector, mock_argparse):
+        """Test that main function prints password."""
         # Setup
         mock_args = MagicMock()
         mock_args.mariadb_cnf = "/path/to/config.cnf"
@@ -591,19 +597,22 @@ class TestCreateModuliGeneratorUser:
         mock_db = MagicMock()
         mock_connector.return_value = mock_db
 
+        # Mock the create_moduli_generator_user function to return a password
+        test_password = "generated_password"
+        mock_create_user.return_value = test_password
+
         # Execute
         create_moduli_generator_user.main()
 
         # Verify
-        mock_print.assert_called_once()
-        # The argument to print should be the result of create_moduli_generator_user("faux_password")
-        printed_arg = mock_print.call_args[0][0]
-        assert isinstance(printed_arg, list)
-        assert len(printed_arg) == 3
+        mock_print.assert_called()
+        # The argument to print should include the generated password
+        mock_print.assert_any_call(f"Generated password: {test_password}")
 
-    @patch("db.scripts.create_moduli_generator_user.argparser")
+    @patch("db.scripts.create_moduli_generator_user.argparse")
     @patch("db.scripts.create_moduli_generator_user.MariaDBConnector")
-    def test_main_db_error(self, mock_connector, mock_argparse):
+    @patch("db.scripts.create_moduli_generator_user.create_moduli_generator_user")
+    def test_main_db_error(self, mock_create_user, mock_connector, mock_argparse):
         """Test main function with database error."""
         # Setup
         mock_args = MagicMock()
@@ -612,8 +621,10 @@ class TestCreateModuliGeneratorUser:
         mock_argparse.return_value = mock_args
 
         mock_db = MagicMock()
-        mock_db.execute_batch.side_effect = RuntimeError("Database error")
         mock_connector.return_value = mock_db
+
+        # Make the create_moduli_generator_user function raise an error
+        mock_create_user.side_effect = RuntimeError("Database error")
 
         # Execute with exception expectation
         with pytest.raises(RuntimeError):
@@ -630,7 +641,7 @@ class TestDbSchemaForNamedDb:
 
         # Verify
         assert isinstance(result, list)
-        assert len(result) == 8  # Check that all expected statements are present
+        assert len(result) == 10  # Check that all expected statements are present
 
         # Check each statement type exists
         assert "CREATE DATABASE" in result[0]["query"]
@@ -649,13 +660,19 @@ class TestDbSchemaForNamedDb:
         assert "moduli_archive" in result[4]["query"]
 
         assert "CREATE INDEX idx_size" in result[5]["query"]
+        assert "test_moduli_db.moduli" in result[5]["query"]
         assert "CREATE INDEX idx_timestamp" in result[6]["query"]
+        assert "test_moduli_db.moduli" in result[6]["query"]
+        assert "CREATE INDEX idx_size" in result[7]["query"]
+        assert "test_moduli_db.moduli_archive" in result[7]["query"]
+        assert "CREATE INDEX idx_timestamp" in result[8]["query"]
+        assert "test_moduli_db.moduli_archive" in result[8]["query"]
 
         # Check INSERT statement has parameters
-        assert "INSERT INTO" in result[7]["query"]
-        assert "mod_fl_consts" in result[7]["query"]
-        assert result[7]["params"] is not None
-        assert len(result[7]["params"]) == 6
+        assert "INSERT INTO" in result[9]["query"]
+        assert "mod_fl_consts" in result[9]["query"]
+        assert result[9]["params"] is not None
+        assert len(result[9]["params"]) == 6
 
     def test_get_moduli_generator_schema_statements_custom_db(self):
         """Test get_moduli_generator_schema_statements with custom database name."""
@@ -664,7 +681,7 @@ class TestDbSchemaForNamedDb:
 
         # Verify
         assert isinstance(result, list)
-        assert len(result) == 8  # Check that all expected statements are present
+        assert len(result) == 10  # Check that all expected statements are present
 
         # Verify custom database name is used
         for statement in result:

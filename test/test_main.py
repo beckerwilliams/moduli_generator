@@ -47,6 +47,9 @@ def test_main_with_value_error(mock_config):
         mock_generator_class.return_value = mock_generator
         mock_generator.generate_moduli.side_effect = ValueError("Test error")
 
+        # Set restart attribute to False so generate_moduli is called
+        mock_config.restart = False
+
         # Execute main function
         result = main(mock_config)
 
@@ -67,6 +70,9 @@ def test_main_with_general_exception(mock_config):
         mock_generator_class.return_value = mock_generator
         mock_generator.generate_moduli.side_effect = Exception("Test error")
 
+        # Set restart attribute to False so generate_moduli is called
+        mock_config.restart = False
+
         # Execute main function
         result = main(mock_config)
 
@@ -81,9 +87,9 @@ def test_main_with_general_exception(mock_config):
 @pytest.mark.unit
 def test_main_with_no_config():
     """Test the main function when no config is provided."""
-    # Mock the arg_parser.local_config to return a mock config
+    # Mock the argparser_moduli_generator.local_config to return a mock config
     with patch(
-        "moduli_generator.__main__.arg_parser.local_config"
+            "moduli_generator.__main__.argparser_moduli_generator.local_config"
     ) as mock_local_config:
         mock_config = MagicMock()
         mock_local_config.return_value = mock_config
@@ -123,6 +129,9 @@ def test_main_chain_calls(mock_config):
         mock_generator.generate_moduli.return_value = mock_generator
         mock_generator.store_moduli.return_value = mock_generator
         mock_generator.write_moduli_file.return_value = mock_generator
+
+        # Set restart attribute to False so generate_moduli is called
+        mock_config.restart = False
 
         # Execute main function
         result = main(mock_config)
