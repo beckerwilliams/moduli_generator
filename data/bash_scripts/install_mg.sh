@@ -30,13 +30,108 @@ VENV_DIR=.venv
 MK_VENV="${PYTHON} -m venv"
 
 ACTIVATE_SCRIPT="${VENV_DIR}/bin/activate"
-MODULI_GENERATOR_DIR=${PROJECT_NAME}
+MODULI_GENERATOR_APP=${PROJECT_NAME}
+
+# Config Directory
+MODULI_GENERATOR_CONFIG_DIR="${HOME}/.moduli_generator"
+TEMP_CONFIG_PRIVILGED_CNF=${MODULI_GENERATOR_CONFIG_DIR}/privileged.tmp
 
 # Global variable for wheel file
 wheel_file=""
 
 ##############################################################################################
 echo -e "${PURPLE}Project Name: ${PROJECT_NAME}\n\tWORK_DIR: ${WORK_DIR}\n\tCWD: ${CWD}${NC}"
+
+# Create Credentials and MariaDB Config for `moduli_generator` user
+create_privileged_config() {
+
+    # Create config directory if it doesn't exist
+    ${MKDIR} "${MODULI_GENERATOR_CONFIG_DIR}"
+
+    echo -e "${BLUE}[ Database Configuration Setup ]${NC}"
+    echo -e "${YELLOW}Please provide MariaDB connection details for the moduli_generator user:${NC}"
+    echo
+
+    # Prompt for database configuration
+    while true; do
+
+        # Username is fixed as per the application design
+        while true; do
+        	echo "${GREEN}Please collect the privilged MariaDB's account _username_ and _password_ for use, Now!${NC}"
+	        read -p "Privilged MariaDB _username_ (i.e., an admin): " db_user
+	        echo
+	        if [[ -n "$db_user" ]]; then
+	        	break
+	        else
+	        	echo "${RED}Username cannot be empty. Please Try Again (or ctrl-c to escape)"
+        	fi
+        done
+
+        while true; do
+            read -s -p "Enter password for ${db_user}: " db_password
+            echo
+            if [[ -n "$db_password" ]]; then
+                break
+            else
+                echo -e "${RED}Password cannot be empty. Please try again.${NC}"
+            fi
+        done
+
+        read -p "MariaDB hostname [localhost]: " db_host
+        db_host=${db_host:-"localhost"}
+
+        read -p "MariaDB port [3306]: " db_port
+        db_port=${db_port:-"3306"}
+
+        read -p "Enable SSL [true]: " db_ssl
+        db_ssl=${db_ssl:-"true"}
+
+        # Display configuration summary
+        echo
+        echo -e "${YELLOW}Configuration Summary:${NC}"
+        echo "  User: ${db_user}"
+        echo "  SSL: ${db_ssl}"
+        echo "  Host: ${db_host}"
+        echo "  Port: ${db_port}"
+
+        echo
+
+        while true; do
+            read -p "Is this configuration correct? (y/n): " confirm
+            case $confirm in
+                [Yy]* ) break 2;;
+                [Nn]* )
+                    echo -e "${YELLOW}Let's try again...${NC}"
+                    echo
+                    break;;
+                * ) echo "Please answer yes or no.";;
+            esac
+        done
+    done
+
+    # Generate the configuration file
+    cat > "${TEMP_CONFIG_PRIVILGED_CNF}" << EOF
+# This group is read both by the client and the server
+# use it for options that affect everything, see
+# https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#option-groups
+#
+[client]
+host                                = ${db_host}
+port	                            = ${db_port}
+user                                = ${db_user}
+password                            = ${db_password}
+ssl                                 = ${db_ssl}
+
+EOF
+
+    # Set secure permissions on config file
+    chmod 600 "${TEMP_CONFIG_PRIVILGED_CNF}"
+
+    echo -e "${GREEN}✓ Configuration file created: ${TEMP_CONFIG_PRIVILGED_CNF}${NC}"
+    echo -e "${BLUE}File permissions set to 600 (owner read/write only)${NC}"
+
+    return 0
+}
 
 # Function to verify git installation
 verify_git() {
@@ -179,128 +274,6 @@ install_poetry_in_venv() {
     fi
 }
 
-create_privileged_config() {
-    local config_dir="${HOME}/.moduli_generator"
-    local config_file="${config_dir}/privileged.tmp"
-
-    echo -e "${BLUE}[ Database Configuration Setup ]${NC}"
-    echo -e "${YELLOW}Please provide MariaDB connection details for the moduli_generator user:${NC}"
-    echo
-
-    # Create config directory if it doesn't exist
-    ${MKDIR} "${config_dir}"
-
-    # Prompt for database configuration
-    while true; do
-
-        # Username is fixed as per the application design
-        while true; do
-	        read -p "Privilged MariaDB User (root user?): " db_user
-	        echo
-	        if [[ -n "$db_user" ]]; then
-	        	break
-	        else
-	        	echo "${RED}Username cannot be empty. Please Try Again (or ctrl-c to escape)"
-        	fi
-        done
-
-        while true; do
-            read -s -p "Enter password for ${db_user}: " db_password
-            echo
-            if [[ -n "$db_password" ]]; then
-                break
-            else
-                echo -e "${RED}Password cannot be empty. Please try again.${NC}"
-            fi
-        done
-
-        read -p "MariaDB hostname [localhost]: " db_host
-        db_host=${db_host:-"localhost"}
-
-        read -p "MariaDB port [3306]: " db_port
-        db_port=${db_port:-"3306"}
-
-        read -p "Enable SSL [true]: " db_ssl
-        db_ssl=${db_ssl:-"true"}
-
-        # Display configuration summary
-        echo
-        echo -e "${YELLOW}Configuration Summary:${NC}"
-        echo "  User: ${db_user}"
-        echo "  SSL: ${db_ssl}"
-        echo "  Host: ${db_host}"
-        echo "  Port: ${db_port}"
-
-        echo
-
-        while true; do
-            read -p "Is this configuration correct? (y/n): " confirm
-            case $confirm in
-                [Yy]* ) break 2;;
-                [Nn]* )
-                    echo -e "${YELLOW}Let's try again...${NC}"
-                    echo
-                    break;;
-                * ) echo "Please answer yes or no.";;
-            esac
-        done
-    done
-
-    # Generate the configuration file
-    cat > "${config_file}" << EOF
-# This group is read both by the client and the server
-# use it for options that affect everything, see
-# https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#option-groups
-#
-[client]
-host                                = ${db_host}
-port	                            = ${db_port}
-user                                = ${db_user}
-password                            = ${db_password}
-ssl                                 = ${db_ssl}
-
-EOF
-
-    # Set secure permissions on config file
-    chmod 600 "${config_file}"
-
-    echo -e "${GREEN}✓ Configuration file created: ${config_file}${NC}"
-    echo -e "${BLUE}File permissions set to 600 (owner read/write only)${NC}"
-
-    return 0
-}
-
-# Prompt for database configuration
-#prompt_database_config() {
-#    echo -e "${BLUE}[ Database Configuration ]${NC}"
-#
-#    while true; do
-#        read -p "Enter MariaDB host [localhost]: " db_host
-#        db_host=${db_host:-"localhost"}
-#
-#        read -p "Enter MariaDB port [3306]: " db_port
-#        db_port=${db_port:-"3306"}
-#
-#        read -p "Enter database name [moduli_db]: " db_name
-#        db_name=${db_name:-"moduli_db"}
-#
-#        read -p "Enter MariaDB username [privileged_user]: " db_user
-#        db_user='privileged_user'
-#        read -s -p "Enter MariaDB password: " db_pass
-#        echo
-#        if [[ -z "$db_pass" ]]; then
-#            echo -e "${RED}Password is required${NC}"
-#            continue
-#        fi
-#
-#        break
-#    done
-#
-#
-#
-#    echo -e "${GREEN}✓ Database configuration complete${NC}"
-#}
-
 build_wheel() {
     echo -e "${PURPLE}*** Project Name: ${PROJECT_NAME}\n\tWORK_DIR: ${WORK_DIR}\n\tCWD: ${CWD} ***${NC}"
 
@@ -324,7 +297,7 @@ build_wheel() {
 
     # Change Directory to Installed 'moduli_generator' (project)
     ${ECHO} "${BLUE}[ Entering Moduli Dev Directory ]${NC}"
-    cd "${MODULI_GENERATOR_DIR}" || { echo -e "${RED}Failed to enter moduli_generator directory${NC}"; return 1; }
+    cd "${MODULI_GENERATOR_APP}" || { echo -e "${RED}Failed to enter moduli_generator directory${NC}"; return 1; }
 
     # Check if this is a valid Poetry project
     check_poetry_project || return 1
@@ -434,11 +407,14 @@ build_moduli_generator() {
 }
 
 schema_installer() {
-	$(install_schema --mariadb-cnf ${HOME}/.moduli_generator/privilged.tmp)
+	install_schema --mariadb-cnf ${TEMP_CONFIG_PRIVILGED_CNF}
 }
 
-cleanup() {  # Remove Temporary Privileged Credentials -
-	rm -rf ${config_dir}/*.tmp 2>&1 /dev/null
+# Remove Temporary Privileged Credentials and Installer Script
+cleanup() {
+
+	rm -rf ${MODULI_GENERATOR_CONFIG_DIR}/*.{tmp}
+	rm -rf ${MODULI_GENERATOR_APP}/*.sh
 }
 #########################################################################################################
 # MAIN
