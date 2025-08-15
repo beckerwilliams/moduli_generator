@@ -412,8 +412,8 @@ schema_installer() {
 
 # Remove Temporary Privileged Credentials and Installer Script
 cleanup() {
-
-	rm -rf ${MODULI_GENERATOR_CONFIG_DIR}/*.{tmp}
+	set -e
+	rm -rf ${MODULI_GENERATOR_CONFIG_DIR}/*.tmp
 	rm -rf ${MODULI_GENERATOR_APP}/*.sh
 }
 #########################################################################################################

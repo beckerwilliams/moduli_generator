@@ -20,6 +20,7 @@ Before installation, ensure you're platform meets the following requirements:
 ```bash
 mkdir -p ~/moduli_generator
 cd ~/moduli_generator
+
 ```
 
 ### Step 2: Download the Installer
@@ -28,6 +29,7 @@ Cut and paste the following command into your terminal:
 
   ```bash
   curl -fsSL -o install_mg.sh https://raw.githubusercontent.com/beckerwilliams/moduli_generator/HEAD/data/bash_scripts/install_mg.sh
+
   ```
 
 ### Step 3: Prepare and Run the Installer
@@ -37,6 +39,7 @@ Make the installer executable and run it:
 ```bash
 chmod +x ./install_mg.sh
 ./install_mg.sh
+
 ```
 
 ### Step 4: Configuration
@@ -77,6 +80,7 @@ Verify your installation works by running:
 
 ```bash
 moduli_generator -h
+
 ```
 
 This should display the help information for the Moduli Generator tool.

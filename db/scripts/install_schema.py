@@ -10,6 +10,21 @@ from db.scripts.db_schema_for_named_db import get_moduli_generator_schema_statem
 __all__ = ["InstallSchema"]
 
 
+# MariaDB.cnf Temporary Config File Attributes
+def build_tmp_cnf(local_config: dict) -> str:
+    # Assure no DB is specified
+    if "database" in local_config["client"]:
+        del local_config["client"]["database"]
+
+    """Build MariaDB Config File from Config"""
+    local_cnf = ""
+    for key, value in local_config.items():
+        local_cnf += f"[{key}]\n"
+        for k, v in value.items():
+            local_cnf += f"{k} = {v}\n"
+        local_cnf += "\n"
+    return local_cnf
+
 def generate_random_password(length=default_config.password_length) -> str:
     """
     Generates a random password of the specified length, consisting of letters, digits,
@@ -432,20 +447,6 @@ def main():
             )
         )
 
-        # MariaDB.cnf Temporary Config File Attributes
-        def build_tmp_cnf(local_config: dict) -> str:
-            # Assure no DB is specified
-            if "database" in local_config["client"]:
-                del local_config["client"]["database"]
-
-            """Build MariaDB Config File from Config"""
-            local_cnf = ""
-            for key, value in local_config.items():
-                local_cnf += f"[{key}]\n"
-                for k, v in value.items():
-                    local_cnf += f"{k} = {v}\n"
-                local_cnf += "\n"
-            return local_cnf
 
         # assemble priviliged.CNF file content
         tmp_cnf = build_tmp_cnf(tmp_config)
