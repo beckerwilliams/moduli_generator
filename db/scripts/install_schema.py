@@ -488,6 +488,8 @@ def main():
         priv_cnf_dict = {}
         with privileged_tmp_cnf.open() as priv_cnf:
             priv_cnf_dict = parse_mysql_config(priv_cnf)
+            if "client" not in priv_cnf_dict:
+                raise RuntimeError(f'Missing "client" section in {privileged_tmp_cnf}')
             if 'host' not in priv_cnf_dict["client"]:
                 raise RuntimeError(f'Failed to locate host in {privileged_tmp_cnf}')
 

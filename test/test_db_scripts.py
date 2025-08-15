@@ -404,7 +404,9 @@ class TestInstallSchema:
             "db.scripts.install_schema.MariaDBConnector"
         ) as mock_connector, patch(
             "db.scripts.install_schema.InstallSchema"
-        ) as mock_installer_class:
+        ) as mock_installer_class, patch(
+            "db.scripts.install_schema.parse_mysql_config"
+        ) as mock_parse_mysql_config:
             # Setup mock arguments
             mock_args = MagicMock()
             mock_args.mariadb_cnf = "/path/to/mariadb.cnf"
@@ -422,6 +424,15 @@ class TestInstallSchema:
             mock_installer = MagicMock()
             mock_installer.install_schema_batch.return_value = True
             mock_installer_class.return_value = mock_installer
+
+            # Setup mock for parse_mysql_config
+            mock_parse_mysql_config.return_value = {
+                "client": {
+                    "host": "localhost",
+                    "user": "root",
+                    "password": "password"
+                }
+            }
 
             # Execute
             install_schema.main()
@@ -441,7 +452,9 @@ class TestInstallSchema:
             "db.scripts.install_schema.MariaDBConnector"
         ) as mock_connector, patch(
             "db.scripts.install_schema.InstallSchema"
-        ) as mock_installer_class:
+        ) as mock_installer_class, patch(
+            "db.scripts.install_schema.parse_mysql_config"
+        ) as mock_parse_mysql_config:
             # Setup mock arguments
             mock_args = MagicMock()
             mock_args.mariadb_cnf = "/path/to/mariadb.cnf"
@@ -459,6 +472,15 @@ class TestInstallSchema:
             mock_installer = MagicMock()
             mock_installer.install_schema.return_value = True
             mock_installer_class.return_value = mock_installer
+
+            # Setup mock for parse_mysql_config
+            mock_parse_mysql_config.return_value = {
+                "client": {
+                    "host": "localhost",
+                    "user": "root",
+                    "password": "password"
+                }
+            }
 
             # Execute
             install_schema.main()
