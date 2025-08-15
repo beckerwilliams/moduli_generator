@@ -23,7 +23,8 @@ def generate_random_password(length=16):
     """
     # Define character sets
     letters_digits = string.ascii_letters + string.digits
-    safe_punctuation = ''.join(c for c in string.punctuation if c not in ['"', "'"])
+    # Include only MariaDB.com recommended safe special characters, excluding quotes and backslash
+    safe_punctuation = '+-*/,.,:;!?#$%&@=^_~|<>()[]{}'
     alphabet = letters_digits + safe_punctuation
 
     # Generate the password using secrets module
