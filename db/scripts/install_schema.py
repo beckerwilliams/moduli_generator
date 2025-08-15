@@ -49,7 +49,7 @@ def generate_random_password(length=default_config.password_length) -> str:
     return password
 
 
-def create_moduli_generator_user(db_conn, database, password=None):
+def create_moduli_generator_user(db_conn, database, password=None) -> str:
     """
     Create a moduli_generator database user with appropriate privileges.
 
@@ -92,7 +92,7 @@ def create_moduli_generator_user(db_conn, database, password=None):
     return password
 
 
-def update_moduli_generator_config(database, username, password):
+def update_moduli_generator_config(host, database, username, password) -> Path:
     """
     Update the application owner's moduli_generator.cnf file with the new credentials.
 
@@ -105,7 +105,7 @@ def update_moduli_generator_config(database, username, password):
         Path: Path to the updated configuration file.
     """
     # Path to the final configuration file
-    config_path = Path.home() / ".moduli_generator" / default_config.mariadb_cnf
+    config_path = Path.home() / ".moduli_generator" / "moduli_generator.cnf"
 
     # Ensure directory exists
     config_dir = config_path.parent
@@ -126,6 +126,7 @@ def update_moduli_generator_config(database, username, password):
             "user": username,
             "password": password,
             "database": database,
+            "host": host,
             "default-character-set": "utf8mb4"
         }
     }
@@ -482,17 +483,25 @@ def main():
         ######################################################################################################
         print("\nCreating moduli_generator user and finalizing configuration...")
 
-        # tbd - Need HOST & PORT from privileged.tmp, i.e. load it, modify with below
+        # Need HOST & PORT from privileged.tmp, i.e. get it and install in created config
+        privileged_tmp_cnf = config.moduli_home / config.privileged_tmp_file
+        priv_cnf_dict = {}
+        with privileged_tmp_cnf.open() as priv_cnf:
+            priv_cnf_dict = parse_mysql_config(priv_cnf)
+            if 'host' not in priv_cnf_dict["client"]:
+                raise RuntimeError(f'Failed to locate host in {privileged_tmp_cnf}')
 
         # 1. Create the moduli_generator user with the generated password and grant privileges
         password = create_moduli_generator_user(db_connector, config.db_name)
 
         # 2. Update the application owner's configuration file
         config_path = update_moduli_generator_config(
+            host=priv_cnf_dict["client"]["host"],
             database=config.db_name,
             username="moduli_generator",
             password=password
         )
+        config_path.write_text(config_path.read_text().replace(config.privileged_tmp_file, config.mariadb_cnf.name))
 
         print(f"Successfully created moduli_generator user and updated configuration at {config_path}")
     else:

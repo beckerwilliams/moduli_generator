@@ -6,6 +6,7 @@ from socket import getfqdn
 from typing import Any, Dict, List, Optional
 
 from mariadb import ConnectionPool, Error  # Add this import
+from mkdocs.config.config_options import FilesystemObject
 from typing_extensions import ContextManager
 
 from config import (
@@ -71,7 +72,7 @@ def is_valid_identifier_sql(identifier: str) -> bool:
     return True
 
 
-def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
+def parse_mysql_config(mysql_cnf: FilesystemObject) -> Dict[str, Dict[str, str]]:
     """
     Parse MySQL/MariaDB configuration file and return a dictionary structure.
 
@@ -404,7 +405,7 @@ class MariaDBConnector:
         self.logger.debug(f"Using MariaDB config: {config.mariadb_cnf}")
         self.records_per_keylength = config.records_per_keylength
 
-        # Parse MySQL configuration with defensive handling
+        # Parse MySQL configuration with defensive handling [THIS IS THE PRIVILEGED USER!
         parsed_config = parse_mysql_config(config.mariadb_cnf)
         if not isinstance(parsed_config, dict):
             raise RuntimeError(
@@ -426,16 +427,10 @@ class MariaDBConnector:
                 "pool_size": 10,  # Adjust based on your needs
                 "pool_reset_connection": True,
                 "host": mysql_cnf["host"],
-                "port": int(mysql_cnf["port"]),
+                "port": int(mysql_cnf.get("port", DEFAULT_MARIADB_PORT)),
                 "user": mysql_cnf["user"],
                 "password": mysql_cnf["password"],
             }
-
-            # tbd - We need to login to the DB BEFORE the To-Be Created DB Exists - Delselect Database in CNF
-            # # Add database parameter if db_name is available
-            # if hasattr(self, "db_name") and self.db_name:
-            #     pool_params["database"] = self.db_name
-
             self.pool = ConnectionPool(**pool_params)
             self.logger.info(f"Connection pool created with size: 10")
 

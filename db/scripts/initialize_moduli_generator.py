@@ -68,7 +68,7 @@ def create_moduli_generator_home():
     if Path(args.mariadb_cnf).exists():
         """
         Copy  file from arguments to .moduli_generator base directory
-        Default Location for `moduli_generator.cnf` is user's Home Directory
+        Default Location for `moduli_generator.cnf` is MODULI_HOME (default: ${HOME}/.moduli_generator)
         """
         if not Path(generator.config.mariadb_cnf).exists():
             Path(generator.config.mariadb_cnf).write_text(

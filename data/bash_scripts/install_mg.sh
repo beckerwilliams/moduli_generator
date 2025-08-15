@@ -34,7 +34,7 @@ MODULI_GENERATOR_APP=${PROJECT_NAME}
 
 # Config Directory
 MODULI_GENERATOR_CONFIG_DIR="${HOME}/.moduli_generator"
-TEMP_CONFIG_PRIVILGED_CNF=${MODULI_GENERATOR_CONFIG_DIR}/privileged.tmp
+CONST_PRIVILEGED_TMP_FILE=${MODULI_GENERATOR_CONFIG_DIR}/privileged.tmp
 
 # Global variable for wheel file
 wheel_file=""
@@ -110,7 +110,7 @@ create_privileged_config() {
     done
 
     # Generate the configuration file
-    cat > "${TEMP_CONFIG_PRIVILGED_CNF}" << EOF
+    cat > "${CONST_PRIVILEGED_TMP_FILE}" << EOF
 # This group is read both by the client and the server
 # use it for options that affect everything, see
 # https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#option-groups
@@ -125,9 +125,9 @@ ssl                                 = ${db_ssl}
 EOF
 
     # Set secure permissions on config file
-    chmod 600 "${TEMP_CONFIG_PRIVILGED_CNF}"
+    chmod 600 "${CONST_PRIVILEGED_TMP_FILE}"
 
-    echo -e "${GREEN}✓ Configuration file created: ${TEMP_CONFIG_PRIVILGED_CNF}${NC}"
+    echo -e "${GREEN}✓ Configuration file created: ${CONST_PRIVILEGED_TMP_FILE}${NC}"
     echo -e "${BLUE}File permissions set to 600 (owner read/write only)${NC}"
 
     return 0
@@ -407,7 +407,7 @@ build_moduli_generator() {
 }
 
 schema_installer() {
-	install_schema --mariadb-cnf ${TEMP_CONFIG_PRIVILGED_CNF}
+	install_schema --mariadb-cnf ${CONST_PRIVILEGED_TMP_FILE}
 }
 
 # Remove Temporary Privileged Credentials and Installer Script
