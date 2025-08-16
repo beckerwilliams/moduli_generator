@@ -2,7 +2,7 @@
 
 This document tracks the changes made to the moduli_generator project.
 
-## Version 2.1.37
+## Version 1.0.1
 
 ## 2025-08-09
 
@@ -114,7 +114,7 @@ This document tracks the changes made to the moduli_generator project.
 ## Project Information
 
 * **Project**: moduli_generator
-* **Version**: 2.1.37
+* **Version**: 1.0.1
 * **Description**: A secure, high-performance SSH moduli file generator with database integration for cryptographic key
   exchange operations
 * **Author**: Ron Williams <becker.williams@gmail.com>
