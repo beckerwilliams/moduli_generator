@@ -3,8 +3,8 @@ import string
 from argparse import ArgumentParser
 from pathlib import Path
 
-from config import DEFAULT_MARIADB_CNF, DEFAULT_MARIADB_DB_NAME, default_config
-from db import Error, MariaDBConnector, parse_mysql_config
+from config import DEFAULT_MARIADB_DB_NAME, default_config
+from db import Error, MariaDBConnector
 from db.scripts.db_schema_for_named_db import get_moduli_generator_schema_statements
 
 __all__ = ["InstallSchema"]
@@ -24,6 +24,7 @@ def build_tmp_cnf(local_config: dict) -> str:
             local_cnf += f"{k} = {v}\n"
         local_cnf += "\n"
     return local_cnf
+
 
 def generate_random_password(length=default_config.password_length) -> str:
     """
@@ -309,6 +310,9 @@ class InstallSchema(object):
             return False
 
 
+# NOTE: If config.privleged_tmp_file EXISTS - USE IT (Ignore other inputs)
+# NOTE: If config.privleged_tmp_file DOES NOT EXIST - USE ALL OTHER INPUTS
+
 def argparser() -> ArgumentParser:
     args = ArgumentParser(description="Install SSH Moduli Schema")
     args.add_argument(
@@ -348,7 +352,14 @@ def argparser() -> ArgumentParser:
     args.add_argument(
         "--mariadb-ssl",
         help="SSL Mode of MariaDB Server | Mutually Exclusive with MariaDB Configuration File",
-        default=True)
+        default=True
+    )
+    args.add_argument(
+        "--mariadb-db-name",
+        type=str,
+        default=DEFAULT_MARIADB_DB_NAME,
+        help="Name of the database to create"
+    )
     args.add_argument(
         "--batch",
         action="store_true",
@@ -368,9 +379,14 @@ def main():
     Main script for installing SSH Moduli's database schema.
 
     This script provides functionality to configure and install a database schema
-    into a MariaDB database. It allows users to specify the MariaDB database
-    configuration either via a configuration file or through separate admin
-    credentials. The user can opt for batch execution mode for improved performance.
+    into a MariaDB database. It supports four use cases for configuration:
+
+    1. Using a MariaDB configuration file specified via --mariadb-cnf
+    2. Using admin credentials (username, password, host, port) to create a temporary config
+    3. Using an existing configuration file at ${HOME}/.moduli_generator/moduli_generator.cnf
+    4. Failing if none of the above conditions are met
+
+    The user can opt for batch execution mode for improved performance.
 
     The script uses the `argparser` module for parsing command-line arguments and
     handles required parameters for setting up the database connection. The
@@ -378,86 +394,123 @@ def main():
     instance for either batch or default execution modes.
 
     Raises:
-        SystemExit: If neither a MariaDB configuration file nor admin credentials
-        are provided.
+        SystemExit: If no valid configuration method is available.
 
     Args:
-        --mariadb-cnf (str): Path to the MariaDB configuration file, if available.
-        --admin-username (str): Username of the MariaDB admin user.
-        --admin-password (str): Password for the MariaDB admin user.
+        --mariadb-cnf (str): Path to the MariaDB configuration file.
+        --mariadb-admin-username (str): Username of the MariaDB admin user.
+        --mariadb-admin-password (str): Password for the MariaDB admin user.
+        --mariadb-host (str): Hostname of the MariaDB server (default: localhost).
+        --mariadb-port (int): Port of the MariaDB server (default: 3306).
+        --mariadb-socket (str): Socket path for the MariaDB server.
+        --mariadb-ssl (bool): Whether to use SSL for the connection.
         --batch (bool): Flag to operate in batch execution mode.
         --moduli-db-name (str): Name of the database to create. Defaults to
-        DEFAULT_MARIADB.
+        DEFAULT_MARIADB_DB_NAME.
 
     Example Output:
         The script outputs messages regarding the progress and success or failure
         of database schema installation.
     """
+
+    # NOTE: ANYTIME We're HERE - moduli_home has ALREADY been SETUP but NO LOCAL `moduli_generator.cnf` EXISTS
+    # So the NO CREDENTIALS Setup is Bogus
+
     args = argparser().parse_args()
 
     # Configure database connection
     config = default_config
     config.db_name = args.moduli_db_name
+    config.mariadb_host = args.mariadb_host
+    config.mariadb_port = args.mariadb_port
+    config.mariadb_socket = args.mariadb_socket
+    config.mariadb_ssl = args.mariadb_ssl
+    config.mariadb_db_name = args.mariadb_db_name
 
-    # 1. If maradb.cnf is provided, use it
-    # 2.  otherwise, build mariadb_tmp.cnf from provided credentials AND the connection
-    #       temporary mariadb.cnf file, `moduli_generator_tmp.cnf`, from the profile buit during
-    #       Command Line Installer
+    # Default path for the moduli_generator.cnf file
+    default_cnf_path = config.moduli_generator_home / config.mariadb_cnf_file
+    temporary_cnf_path = config.moduli_generator_home / config.privileged_tmp_file
 
-    # Case 1. Privilged mariadb.cnf
+    # Case A: config.privileged_cnf_file EXISTS - USE IT (Ignore other inputs)
+
+    # Case B: config.privileged_cnf_file DOES NOT EXIST - USE ALL OTHER INPUTS
+
+    if config.privileged_cnf_file.exists() and config.privileged_cnf_file.is_file():
+        config.mariadb_cnf = config.privileged_cnf_file
+        print(f"Using existing config file: {config.mariadb_cnf}")
+    else:
+        create_args = (args.mariadb_admin_username, args.mariadb_admin_password, args.host)
+        config.mariadb_cnf = create_moduli_generator_cnf(*create_args)
+
+    if temporary_cnf_path.exists() and temporary_cnf_path.is_file():
+        config.mariadb_cnf = temporary_cnf_path
+        print(f"Using existing temporary config file: {config.mariadb_cnf}")
+
+    # Case 1: --mariadb-cnf is provided on command line, use that file
     if args.mariadb_cnf:
         config.mariadb_cnf = Path(args.mariadb_cnf)
+        print(f"Using provided MariaDB config file: {config.mariadb_cnf}")
 
-    # Case 2. Separate Admin credentials
-    elif args.mariadb_admin_username and args.mariadb_admin_password:
+        # Check if the file exists
+        if not config.mariadb_cnf.exists():
+            raise SystemExit(f"MariaDB configuration file not found: {config.mariadb_cnf}")
 
-        config.mariadb_cnf = None
+    # Case 2: admin credentials are provided, create a temporary config file  -
 
-        # READ ${HOME}/.moduli_generator/moduli_generator.cnf, use all but username, password to build temp.cnf
-        default_cnf = Path.home() / ".moduli_generator" / DEFAULT_MARIADB_CNF
-        if not (default_cnf.exists() and default_cnf.is_file()):
-            raise SystemExit(
-                "Missing MariaDB configuration file, Please Run `Moduli Generator` Command Line Installer, first."
-            )
+    elif args.mariadb_admin_username and args.mariadb_admin_password and args.host:
+        print("Using provided admin credentials and host argument to create temporary config file")
 
-        # Get current `moduli generator` default profile, Update username and password from user input from args, here
-        tmp_config = parse_mysql_config(default_cnf)
-        tmp_config["client"]["user"] = args.mariadb_admin_username
-        tmp_config["client"]["password"] = args.mariadb_admin_password
-        tmp_config["client"]["host"] = args.mariadb_host
-        # Eliminate database record from tmp_config if exists.
-        # We don't want an error selecting a database that has yet to be created
-        if "database" in tmp_config["client"]:
-            del tmp_config["client"]["database"]  # assure no database record
+        user_build_args = (args.mariadb_admin_username, args.mariadb_admin_password, args.host)
 
-        # At installation - we need `None` Specified for DATABASE specified in Connection Request
-        config.db_name = args.moduli_db_name
+        # Create a new config dictionary with the provided credentials
+        tmp_config = {
+            "client": {
+                "user": args.mariadb_admin_username,
+                "password": args.mariadb_admin_password,
+                "host": args.mariadb_host,
+                "port": args.mariadb_port,
+                "socket": args.mariadb_socket,
+                "ssl": args.mariadb_ssl
+            }
+        }
 
+        # Set the path for the temporary config file
         config.mariadb_cnf = (
                 Path.home()
                 / ".moduli_generator"
-                / Path(config.mariadb_cnf).with_suffix(".tmp")
+                / config.privileged_tmp_file
         )
+
+        # Ensure the .moduli_generator directory exists
+        config.mariadb_cnf.parent.mkdir(parents=True, exist_ok=True)
 
         # MariaDB.cnf HEADER
         hdr = "\n".join(
             (
                 "# This group is read both by the client and the server",
                 "# use it for options that affect everything, see",
-                "# https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#option-groups",
+                "# https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#option-groups"
+                "[client]"
             )
         )
 
-
-        # assemble priviliged.CNF file content
+        # Assemble and write the temporary config file
         tmp_cnf = build_tmp_cnf(tmp_config)
-        # Write the Privileged MariaDB config file
         config.mariadb_cnf.write_text("\n".join((hdr, tmp_cnf)))
-        # Set the Privileged MariaDB config into local config
 
-    # Failure
+    # Case 3: Use the existing moduli_generator.cnf file
+    elif default_cnf_path.exists() and default_cnf_path.is_file():
+        config.mariadb_cnf = default_cnf_path
+        print(f"Using existing MariaDB config file: {config.mariadb_cnf}")
+
+    # Case 4: Fail if none of the above conditions exist
     else:
-        raise SystemExit("Missing MariaDB configuration file or admin credentials")
+        raise SystemExit(
+            "No valid configuration method available. Either:\n"
+            "1. Provide --mariadb-cnf parameter\n"
+            "2. Provide --mariadb-admin-username and --mariadb-admin-password\n"
+            "3. Ensure ${HOME}/.moduli_generator/moduli_generator.cnf exists"
+        )
 
     print(
         f"Installing schema for database: {config.db_name} "
@@ -476,41 +529,10 @@ def main():
         success = installer.install_schema()
 
     if success:
-        print("Database schema installed successfully")
-
-        ######################################################################################################
-        # Now let's create `moduli_generator` user and finalize the application owner's `moduli_generator.cnf`
-        ######################################################################################################
-        print("\nCreating moduli_generator user and finalizing configuration...")
-
-        # Need HOST & PORT from privileged.tmp, i.e. get it and install in created config
-        privileged_tmp_cnf = config.moduli_home / config.privileged_tmp_file
-        priv_cnf_dict = {}
-        with privileged_tmp_cnf.open() as priv_cnf:
-            priv_cnf_dict = parse_mysql_config(priv_cnf)
-            if "client" not in priv_cnf_dict:
-                raise RuntimeError(f'Missing "client" section in {privileged_tmp_cnf}')
-            if 'host' not in priv_cnf_dict["client"]:
-                raise RuntimeError(f'Failed to locate host in {privileged_tmp_cnf}')
-
-        # 1. Create the moduli_generator user with the generated password and grant privileges
-        password = create_moduli_generator_user(db_connector, config.db_name)
-
-        # 2. Update the application owner's configuration file
-        config_path = update_moduli_generator_config(
-            host=priv_cnf_dict["client"]["host"],
-            database=config.db_name,
-            username="moduli_generator",
-            password=password
-        )
-        config_path.write_text(config_path.read_text().replace(config.privileged_tmp_file, config.mariadb_cnf.name))
 
         print(f"Successfully created moduli_generator user and updated configuration at {config_path}")
     else:
         print("Failed to install database schema")
-
-    # On the more than likely chance there's a privleged.tmp (mysql.cnf) file in ${MODULI_GENERATOR_HOME}, remove it!
-    (config.moduli_home / config.privileged_tmp_file).unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

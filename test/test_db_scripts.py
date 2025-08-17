@@ -9,7 +9,7 @@ import pytest
 
 from config import DEFAULT_MARIADB_DB_NAME, ModuliConfig
 from db import Error, MariaDBConnector
-from db.scripts import create_moduli_generator_user, initialize_moduli_generator, install_schema, moduli_stats, \
+from db.scripts import initialize_moduli_generator, install_schema, moduli_stats, \
     verify_schema
 from db.scripts.db_schema_for_named_db import get_moduli_generator_schema_statements
 
