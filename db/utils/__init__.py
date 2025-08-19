@@ -20,6 +20,7 @@ __all__ = [
     "create_privilged_user_and_config",
     "generate_random_password",
     "get_moduli_generator_db_schema_statements",
+    "get_moduli_generator_user_schema_statements",
     "get_mysql_config_value",
     "parse_mysql_config",
     "update_mariadb_app_owner",
@@ -305,6 +306,7 @@ def update_moduli_generator_config(host, database, username, password) -> Path:
     return config_path
 
 
+# Original function commented out for reference
 # def create_moduli_generator_user_schema_statements(database, password=None) -> str:
 #     """
 #     Create a moduli_generator database user with appropriate privileges.
@@ -338,6 +340,62 @@ def update_moduli_generator_config(host, database, username, password) -> Path:
 #         f"GRANT ALL PRIVILEGES ON {database}.* TO 'moduli_generator'@'localhost'",
 #         "FLUSH PRIVILEGES"
 #     ]
+
+
+def get_moduli_generator_user_schema_statements(database, password=None) -> List[Dict[str, Any]]:
+    """
+    Create a moduli_generator database user with appropriate privileges.
+
+    Args:
+        database (str): The database name to grant privileges for.
+        password (str, optional): Password for the moduli_generator user. If None, a random password is generated.
+
+    Returns:
+        List[Dict[str, Any]]: A list of SQL statements with parameters to create and configure the moduli_generator user.
+    """
+    if password is None:
+        password = generate_random_password()
+
+    # SQL statements to create user, grant privileges, and flush privileges
+    return [
+        {
+            "query": "CREATE USER IF NOT EXISTS 'moduli_generator'@'%' IDENTIFIED BY %s "
+                     "WITH MAX_CONNECTIONS_PER_HOUR 100 MAX_UPDATES_PER_HOUR 200 MAX_USER_CONNECTIONS 50",
+            "params": (password,),
+            "fetch": False,
+        },
+        {
+            "query": f"GRANT ALL PRIVILEGES ON {database}.* TO 'moduli_generator'@'%'",
+            "params": None,
+            "fetch": False,
+        },
+        {
+            "query": "GRANT PROXY ON ''@'%' TO 'moduli_generator'@'%'",
+            "params": None,
+            "fetch": False,
+        },
+        {
+            "query": "FLUSH PRIVILEGES",
+            "params": None,
+            "fetch": False,
+        },
+        {
+            "query": "CREATE USER IF NOT EXISTS 'moduli_generator'@'localhost' IDENTIFIED BY %s "
+                     "WITH MAX_CONNECTIONS_PER_HOUR 100 MAX_UPDATES_PER_HOUR 200 MAX_USER_CONNECTIONS 50",
+            "params": (password,),
+            "fetch": False,
+        },
+        {
+            "query": f"GRANT ALL PRIVILEGES ON {database}.* TO 'moduli_generator'@'localhost'",
+            "params": None,
+            "fetch": False,
+        },
+        {
+            "query": "FLUSH PRIVILEGES",
+            "params": None,
+            "fetch": False,
+        }
+    ]
 
 
 def get_moduli_generator_db_schema_statements(
