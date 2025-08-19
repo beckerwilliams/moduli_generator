@@ -92,7 +92,7 @@ CONST_MODULI_FILENAME_PATTERN: Final[re] = r"moduli_????_*"
 CONST_CANDIDATE_IDX_FILENAME_PATTERN: Final[re] = (
     r".candidates_????_????????????????????"
 )
-CONST_PRIVILEGED_TMP_FILE: Final[str] = "privileged.tmp"
+CONST_PRIVILEGED_TMP_CNF: Final[str] = "privileged.tmp"
 CONST_MARIADB_PASSWORD_LENGTH: Final[int] = 32
 
 
@@ -232,7 +232,7 @@ class ModuliConfig:
         self.version = version
 
         # Set name of Privleged Temporary MariaDB Config File
-        self.privileged_tmp_file = CONST_PRIVILEGED_TMP_FILE
+        self.privileged_tmp_cnf = CONST_PRIVILEGED_TMP_CNF
         self.password_length = CONST_MARIADB_PASSWORD_LENGTH
 
     def ensure_directories(self) -> "ModuliConfig":
