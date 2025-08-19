@@ -36,6 +36,10 @@ MODULI_GENERATOR_APP=${PROJECT_NAME}
 MODULI_GENERATOR_CONFIG_DIR="${HOME}/.moduli_generator"
 CONST_PRIVILEGED_TMP_FILE=${MODULI_GENERATOR_CONFIG_DIR}/privileged.tmp
 
+# Log all PIP Output (Don't Echo to User)
+PLOG=pip_install.log
+PIP_LOG="--log $PLOG"
+
 # Global variable for wheel file
 wheel_file=""
 
@@ -259,10 +263,10 @@ install_poetry_in_venv() {
     echo -e "${BLUE}[ Installing Poetry in virtual environment ]${NC}"
 
     # Remove any existing Poetry installation in venv
-    ${PIP} uninstall poetry -y 2>/dev/null || true
+    ${PIP} uninstall poetry -y "${PIP_LOG}" || true
 
     # Install a specific, stable Poetry version
-    ${PIP} install poetry==1.8.3 || { echo -e "${RED}Failed to install poetry${NC}"; return 1; }
+    ${PIP} install poetry==1.8.3 "${PIP_LOG}" || { echo -e "${RED}Failed to install poetry${NC}"; return 1; }
 
     # Verify Poetry installation
     if [[ -f "${POETRY}" ]] && ${POETRY} --version; then
@@ -311,28 +315,28 @@ build_wheel() {
     # Install, Update, and Build POETRY
     ####################################
     ${ECHO} "${BLUE}[ Upgrading pip ]${NC}"
-    ${PIP} install --upgrade pip || { echo -e "${RED}Failed to upgrade pip${NC}"; return 1; }
+    ${PIP} install --upgrade pip "${PIP_LOG}" || { echo -e "${RED}Failed to upgrade pip ${NC}"; return 1; }
 
     # Install Poetry in the virtual environment
-    install_poetry_in_venv || { echo -e "${RED}Failed to install Poetry${NC}"; return 1; }
+    install_poetry_in_venv || { echo -e "${RED}Failed to install Poetry ${NC}"; return 1; }
 
     # Configure Poetry to not create virtual environments (we're already in one)
-    ${POETRY} config virtualenvs.create false || echo -e "${YELLOW}Warning: Failed to configure Poetry${NC}"
+    ${POETRY} config virtualenvs.create false || echo -e "${YELLOW}Warning: Failed to configure Poetry ${NC}"
 
     # Install dependencies first
-    ${ECHO} "${BLUE}[ Installing project dependencies ]${NC}"
-    ${POETRY} install || { echo -e "${RED}Failed to install dependencies${NC}"; return 1; }
+    ${ECHO} "${BLUE}[ Installing project dependencies ] ${NC}"
+    ${POETRY} install || { echo -e "${RED}Failed to install dependencies ${NC}"; return 1; }
 
     # Try to update/lock dependencies
-    ${ECHO} "${BLUE}[ Updating Poetry lock file ]${NC}"
+    ${ECHO} "${BLUE}[ Updating Poetry lock file ] ${NC}"
     if ! ${POETRY} lock --no-update; then
-        echo -e "${YELLOW}Poetry lock failed, trying to regenerate...${NC}"
+        echo -e "${YELLOW}Poetry lock failed, trying to regenerate... ${NC}"
         rm -f poetry.lock
-        ${POETRY} lock || { echo -e "${RED}Failed to generate poetry.lock${NC}"; return 1; }
+        ${POETRY} lock || { echo -e "${RED}Failed to generate poetry.lock ${NC}"; return 1; }
     fi
 
-    ${ECHO} "${BLUE}[ Building moduli_generator wheel ]${NC}"
-    ${POETRY} build || { echo -e "${RED}Failed to build wheel${NC}"; return 1; }
+    ${ECHO} "${BLUE}[ Building moduli_generator wheel ] ${NC}"
+    ${POETRY} build || { echo -e "${RED}Failed to build wheel ${NC}"; return 1; }
 
     #########################################
     # The Product
@@ -387,8 +391,8 @@ build_moduli_generator() {
     # Upgrade version of PIP, Install Moduli Generator Wheel from BUILD Stage
     ${ECHO} "${BLUE}[ Upgrading Virtual Environment and Installing Moduli Generator wheel ]${NC}"
 
-    ${PIP} install --upgrade pip || { echo -e "${RED}Failed to upgrade pip${NC}"; return 1; }
-    ${PIP} install "${wheel_file}" || { echo -e "${RED}Failed to install wheel file${NC}"; return 1; }
+    ${PIP} install --upgrade pip "${PIP_LOG}" || { echo -e "${RED}Failed to upgrade pip${NC}"; return 1; }
+    ${PIP} install "${wheel_file}" "${PIP_LOG}" || { echo -e "${RED}Failed to install wheel file${NC}"; return 1; }
     rm "${wheel_file}" || echo -e "${YELLOW}Warning: Failed to remove wheel file${NC}"
 
     # Print out Build and Install Status
