@@ -12,7 +12,7 @@ def main():
     db = MariaDBConnector(config)
 
     # Install `Moduli Generator` schema
-    db_install = InstallSchema(db, get_moduli_generator_db_schema_statements(config.db_name))
+    db_install = InstallSchema(db, config.db_name, get_moduli_generator_db_schema_statements(config.db_name))
     user_install = InstallSchema(db, config.db_name, get_moduli_generator_user_schema_statements(config.db_name))
 
     if args.batch:

@@ -252,96 +252,6 @@ def cnf_argparser() -> ArgumentParser:
     return args
 
 
-def update_moduli_generator_config(host, database, username, password) -> Path:
-    """
-    Update the application owner's moduli_generator.cnf file with the new credentials.
-
-    Args:
-        database (str): The database name to connect to.
-        username (str): The username for database connection.
-        password (str): The password for database connection.
-
-    Returns:
-        Path: Path to the updated configuration file.
-    """
-    # Path to the final configuration file
-    config_path = config.moduli_home / "moduli_generator.cnf"
-
-    # Ensure directory exists
-    config_dir = config_path.parent
-    config_dir.mkdir(parents=True, exist_ok=True)
-
-    # MariaDB.cnf HEADER
-    hdr = "\n".join(
-        (
-            "# This group is read both by the client and the server",
-            "# use it for options that affect everything, see",
-            "# https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#option-groups",
-        )
-    )
-
-    # Build the configuration content
-    config_content = {
-        "client": {
-            "user": username,
-            "password": password,
-            "database": database,
-            "host": host,
-            "default-character-set": "utf8mb4"
-        }
-    }
-
-    # Format the configuration file content
-    tmp_cnf = ""
-    for key, value in config_content.items():
-        tmp_cnf += f"[{key}]\n"
-        for k, v in value.items():
-            tmp_cnf += f"{k} = {v}\n"
-        tmp_cnf += "\n"
-
-    # Write the configuration file
-    config_path.write_text("\n".join((hdr, tmp_cnf)))
-
-    print(f"Updated configuration file: {config_path}")
-    return config_path
-
-
-# Original function commented out for reference
-# def create_moduli_generator_user_schema_statements(database, password=None) -> str:
-#     """
-#     Create a moduli_generator database user with appropriate privileges.
-#
-#     Args:
-#         db_conn (MariaDBConnector): Database connector instance to execute queries.
-#         database (str): The database name to grant privileges for.
-#         password (str, optional): Password for the moduli_generator user. If None, a random password is generated.
-#
-#     Returns:
-#         str: The password used for the moduli_generator user.
-#     """
-#     if password is None:
-#         password = generate_random_password()
-#
-#     # SQL statements to create user, grant privileges, and flush privileges
-#     return [
-#         # Create User 'moduli_generator'@'%' and Grant All
-#         f"CREATE USER IF NOT EXISTS 'moduli_generator'@'%' IDENTIFIED BY '{password}' "
-#         "WITH MAX_CONNECTIONS_PER_HOUR 100 MAX_UPDATES_PER_HOUR 200 MAX_USER_CONNECTIONS 50",
-#
-#         # GRANT ALL with GRANT OPTION on `moduli_generator`@'%'
-#         f"GRANT ALL PRIVILEGES ON {database}.* TO 'moduli_generator'@'%'",
-#         f"GRANT PROXY ON ''@'%' TO 'moduli_generator'@'%'",
-#         "FLUSH PRIVILEGES",
-#
-#         # CREATE USER `moduli_generator`@`localhost` & GRANT ALL with GRANT OPTION on `moduli_generator`@'localhost'
-#         f"CREATE USER IF NOT EXISTS 'moduli_generator'@'localhost' IDENTIFIED BY '{password}' "
-#         "WITH MAX_CONNECTIONS_PER_HOUR 100 MAX_UPDATES_PER_HOUR 200 MAX_USER_CONNECTIONS 50",
-#
-#         f"GRANT ALL PRIVILEGES ON {database}.* TO 'moduli_generator'@'localhost'",
-#         "FLUSH PRIVILEGES"
-#     ]
-
-
 def get_moduli_generator_user_schema_statements(database, password=None) -> List[Dict[str, Any]]:
     """
     Create a moduli_generator database user with appropriate privileges.
@@ -351,7 +261,8 @@ def get_moduli_generator_user_schema_statements(database, password=None) -> List
         password (str, optional): Password for the moduli_generator user. If None, a random password is generated.
 
     Returns:
-        List[Dict[str, Any]]: A list of SQL statements with parameters to create and configure the moduli_generator user.
+        List[Dict[str, Any]]: A list of SQL statements with parameters to create
+            and configure the moduli_generator user.
     """
     if password is None:
         password = generate_random_password()
@@ -519,54 +430,6 @@ def get_moduli_generator_db_schema_statements(
             "fetch": False,
         },
     ]
-
-
-# def create_privilged_user_and_config(config, args: ArgumentParser):
-#     """
-#     Creates a privileged MariaDB user and configuration file for use with the application.
-#
-#     This function handles two primary cases:
-#     1. When privileged MariaDB credentials (username and password) are provided, it prepares
-#        a temporary configuration file with those credentials.
-#     2. When a valid MariaDB configuration file path is provided, it copies the existing
-#        configuration to a temporary file.
-#
-#     The purpose of the privileged temporary configuration file is to handle scenarios such
-#     as installing or configuring scripts that require elevated privileges during execution.
-#
-#     Args:
-#         args (ArgumentParser): An argument parser containing the necessary command-line
-#             options, such as MariaDB credentials or the configuration file path.
-#     """
-#
-#     # Case 1:
-#     # --mariadb-user-name and --mariadb-password are privleged credentials (If not, you're doing it wrong!)
-#     if args.mariadb_admin_username and args.mariadb_admin_password:
-#
-#         config.out_config = {
-#             "client": {
-#                 "user": args.mariadb_admin_username,  # `moduli_generator`
-#                 "password": args.mariadb_admin_password,
-#                 "host": args.mariadb_host,
-#                 "port": args.mariadb_port,
-#                 "ssl": args.mariadb_ssl
-#             }
-#         }
-#
-#         # Write out privileged temporary config file
-#         # Handles Installer Script Use Case
-#         config.privileged_tmp_cnf.write_text(build_cnf(out_config))
-#
-#     elif Path(args.mariadb_cnf).exists() and Path(args.mariadb_cnf).is_file():
-#         print("Using provided admin CNF and host argument to create temporary config file")
-#
-#         # Copy provided MariaDB config file to the temporary config file
-#         config.privileged_tmp_cnf.write_text(
-#             Path(args.mariadb_cnf).read_text())
-#     else:
-#         print("Using privileged mariadb account")
-#
-#     return config.privileged_tmp_cnf
 
 
 def update_mariadb_app_owner(host, database, username, password) -> Path:
@@ -886,7 +749,7 @@ def create_moduli_generator_cnf(user, host, **kwargs) -> Path:
 def generate_random_password(length=config.password_length) -> str:
     """
     Generates a random password of the specified length, consisting of letters, digits,
-    and MariaDB-recommended safe special characters. This method utilizes cryptographically
+    and MariaDB-recommended safe special characters. This method uses cryptographically
     secure random number generation to ensure unpredictability of the password.
 
     Args:
