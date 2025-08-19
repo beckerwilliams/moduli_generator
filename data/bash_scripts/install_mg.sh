@@ -36,10 +36,6 @@ MODULI_GENERATOR_APP=${PROJECT_NAME}
 MODULI_GENERATOR_CONFIG_DIR="${HOME}/.moduli_generator"
 CONST_PRIVILEGED_TMP_FILE=${MODULI_GENERATOR_CONFIG_DIR}/privileged.tmp
 
-# Logging for Git and Pip
-GIT_LOG=git_install.log
-PIP_LOG=pip_install.log
-
 # Global variable for wheel file
 wheel_file=""
 

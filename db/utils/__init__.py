@@ -281,11 +281,6 @@ def get_moduli_generator_user_schema_statements(database, password=None) -> List
             "fetch": False,
         },
         {
-            "query": "GRANT PROXY ON ''@'%' TO 'moduli_generator'@'%'",
-            "params": None,
-            "fetch": False,
-        },
-        {
             "query": "FLUSH PRIVILEGES",
             "params": None,
             "fetch": False,
