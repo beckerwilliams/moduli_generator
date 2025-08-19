@@ -49,7 +49,7 @@ create_privileged_config() {
     ${MKDIR} "${MODULI_GENERATOR_CONFIG_DIR}"
 
     echo -e "${BLUE}[ Database Configuration Setup ]${NC}"
-    echo -e "${YELLOW}Please provide MariaDB connection details for the moduli_generator user:${NC}"
+    echo -e "${YELLOW}Please provide MariaDB connection details for the moduli_generator user: ${NC}"
     echo
 
     # Prompt for database configuration
@@ -57,13 +57,13 @@ create_privileged_config() {
 
         # Username is fixed as per the application design
         while true; do
-        	echo "${GREEN}Please collect the privilged MariaDB's account _username_ and _password_ for use, Now!${NC}"
+        	echo "${GREEN}Please collect the privilged MariaDB's account _username_ and _password_ for use, Now! ${NC}"
 	        read -p "Privilged MariaDB _username_ (i.e., an admin): " db_user
 	        echo
 	        if [[ -n "$db_user" ]]; then
 	        	break
 	        else
-	        	echo "${RED}Username cannot be empty. Please Try Again (or ctrl-c to escape)"
+	        	echo "${RED}Username cannot be empty. Please Try Again (or ctrl-c to escape) ${NC}"
         	fi
         done
 
@@ -73,7 +73,7 @@ create_privileged_config() {
             if [[ -n "$db_password" ]]; then
                 break
             else
-                echo -e "${RED}Password cannot be empty. Please try again.${NC}"
+                echo -e "${RED}Password cannot be empty. Please try again. ${NC}"
             fi
         done
 
@@ -213,14 +213,14 @@ activate_venv() {
     if [[ -f "$ACTIVATE_SCRIPT" ]]; then
         # shellcheck disable=SC1090
         source "$ACTIVATE_SCRIPT"
-        echo -e "${GREEN}✓ Virtual environment activated${NC}"
+        echo -e "${GREEN}✓ Virtual environment activated ${NC}"
 
         # Update paths to use virtual environment versions - CRITICAL FIX
-        PIP="${VENV_DIR}/bin/pip --no-cache-dir"
+        PIP="${VENV_DIR}/bin/pip"
         POETRY="${VENV_DIR}/bin/poetry"
 
         # Verify we're using the right pip
-        echo -e "${BLUE}Using pip: $(which pip) --no-cache-dir${NC}"
+        echo -e "${BLUE}Using pip: $(which pip) ${NC}"
 
         return 0
     else
@@ -407,14 +407,14 @@ build_moduli_generator() {
 }
 
 schema_installer() {
-	install_schema --mariadb-cnf ${CONST_PRIVILEGED_TMP_FILE}
+	install_moduli_generator_schema --mariadb-cnf "${CONST_PRIVILEGED_TMP_FILE}"
 }
 
 # Remove Temporary Privileged Credentials and Installer Script
 cleanup() {
 	set -e
-	rm -rf ${MODULI_GENERATOR_CONFIG_DIR}/*.tmp
-	rm -rf ${MODULI_GENERATOR_APP}/*.sh
+	rm -rf "${MODULI_GENERATOR_CONFIG_DIR}"/*.tmp
+	rm -rf "${MODULI_GENERATOR_APP}"/*.sh
 }
 #########################################################################################################
 # MAIN

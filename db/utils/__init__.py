@@ -15,12 +15,11 @@ from db import MariaDBConnector
 __all__ = [
     "InstallSchema",
     "create_moduli_generator_cnf",
-    "create_moduli_generator_user_schema_statements",
     "build_cnf",
     "cnf_argparser",
     "create_privilged_user_and_config",
     "generate_random_password",
-    "get_moduli_generator_schema_statements",
+    "get_moduli_generator_db_schema_statements",
     "get_mysql_config_value",
     "parse_mysql_config",
     "update_mariadb_app_owner",
@@ -29,21 +28,17 @@ __all__ = [
 
 class InstallSchema(object):
     """
-    Handles the installation of database schemas using various methods such
-        as parameterized queries, batch execution, or from a schema file.
+    Handles the installation of database schemas through provided statements, batch processing,
+    or from SQL files. This class facilitates schema setup for MariaDB databases.
 
-        This class provides functions to install the database schema efficiently,
-        either by processing defined schema statements, using batch execution
-        for improved performance, or reading and executing schema statements
-        from a file. Its primary purpose is to ensure the database structure
-        is correctly set up based on predefined schema definitions.
+    This class provides functionalities to install schemas by executing individual statements,
+    executing all statements in a single transaction, or loading schema definitions from SQL files.
 
-        :ivar db_conn: Database connector instance to execute queries.
-
-    Args:
-        db_conn (MariaDBConnector): Parameter description.
-        db_name (str): Parameter description.
-        schema_statements (list): Parameter description.
+    Attributes:
+        db_conn (MariaDBConnector): Connector instance to interact with the MariaDB database.
+        db_name (str): Name of the database where schemas are to be installed.
+        schema_statements (List[Dict[str, Any]]): List of schema statements containing 'query' strings
+            and optional 'params' or 'fetch' configurations.
     """
 
     def __init__(
@@ -310,42 +305,42 @@ def update_moduli_generator_config(host, database, username, password) -> Path:
     return config_path
 
 
-def create_moduli_generator_user_schema_statements(database, password=None) -> str:
-    """
-    Create a moduli_generator database user with appropriate privileges.
+# def create_moduli_generator_user_schema_statements(database, password=None) -> str:
+#     """
+#     Create a moduli_generator database user with appropriate privileges.
+#
+#     Args:
+#         db_conn (MariaDBConnector): Database connector instance to execute queries.
+#         database (str): The database name to grant privileges for.
+#         password (str, optional): Password for the moduli_generator user. If None, a random password is generated.
+#
+#     Returns:
+#         str: The password used for the moduli_generator user.
+#     """
+#     if password is None:
+#         password = generate_random_password()
+#
+#     # SQL statements to create user, grant privileges, and flush privileges
+#     return [
+#         # Create User 'moduli_generator'@'%' and Grant All
+#         f"CREATE USER IF NOT EXISTS 'moduli_generator'@'%' IDENTIFIED BY '{password}' "
+#         "WITH MAX_CONNECTIONS_PER_HOUR 100 MAX_UPDATES_PER_HOUR 200 MAX_USER_CONNECTIONS 50",
+#
+#         # GRANT ALL with GRANT OPTION on `moduli_generator`@'%'
+#         f"GRANT ALL PRIVILEGES ON {database}.* TO 'moduli_generator'@'%'",
+#         f"GRANT PROXY ON ''@'%' TO 'moduli_generator'@'%'",
+#         "FLUSH PRIVILEGES",
+#
+#         # CREATE USER `moduli_generator`@`localhost` & GRANT ALL with GRANT OPTION on `moduli_generator`@'localhost'
+#         f"CREATE USER IF NOT EXISTS 'moduli_generator'@'localhost' IDENTIFIED BY '{password}' "
+#         "WITH MAX_CONNECTIONS_PER_HOUR 100 MAX_UPDATES_PER_HOUR 200 MAX_USER_CONNECTIONS 50",
+#
+#         f"GRANT ALL PRIVILEGES ON {database}.* TO 'moduli_generator'@'localhost'",
+#         "FLUSH PRIVILEGES"
+#     ]
 
-    Args:
-        db_conn (MariaDBConnector): Database connector instance to execute queries.
-        database (str): The database name to grant privileges for.
-        password (str, optional): Password for the moduli_generator user. If None, a random password is generated.
 
-    Returns:
-        str: The password used for the moduli_generator user.
-    """
-    if password is None:
-        password = generate_random_password()
-
-    # SQL statements to create user, grant privileges, and flush privileges
-    return [
-        # Create User 'moduli_generator'@'%' and Grant All
-        f"CREATE USER IF NOT EXISTS 'moduli_generator'@'%' IDENTIFIED BY '{password}' "
-        "WITH MAX_CONNECTIONS_PER_HOUR 100 MAX_UPDATES_PER_HOUR 200 MAX_USER_CONNECTIONS 50",
-
-        # GRANT ALL with GRANT OPTION on `moduli_generator`@'%'
-        f"GRANT ALL PRIVILEGES ON {database}.* TO 'moduli_generator'@'%'",
-        f"GRANT PROXY ON ''@'%' TO 'moduli_generator'@'%'",
-        "FLUSH PRIVILEGES",
-
-        # CREATE USER `moduli_generator`@`localhost` & GRANT ALL with GRANT OPTION on `moduli_generator`@'localhost'
-        f"CREATE USER IF NOT EXISTS 'moduli_generator'@'localhost' IDENTIFIED BY '{password}' "
-        "WITH MAX_CONNECTIONS_PER_HOUR 100 MAX_UPDATES_PER_HOUR 200 MAX_USER_CONNECTIONS 50",
-
-        f"GRANT ALL PRIVILEGES ON {database}.* TO 'moduli_generator'@'localhost'",
-        "FLUSH PRIVILEGES"
-    ]
-
-
-def get_moduli_generator_schema_statements(
+def get_moduli_generator_db_schema_statements(
         moduli_db: str = "test_moduli_db",
 ) -> List[Dict[str, Any]]:
     """

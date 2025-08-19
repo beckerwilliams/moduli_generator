@@ -1,6 +1,6 @@
 from config import default_config
 from db import MariaDBConnector
-from db.utils import (InstallSchema, cnf_argparser as argparser, create_moduli_generator_user_schema)
+from db.utils import (InstallSchema, cnf_argparser as argparser, create_moduli_generator_user_schema_statements)
 
 
 def main():
@@ -8,7 +8,7 @@ def main():
     config = default_config
     config.mariadb_cnf = config.moduli_home / config.privileged_tmp_cnf
     db = MariaDBConnector(config)
-    installer = InstallSchema(db, config.db_name, create_moduli_generator_user_schema(config.db_name))
+    installer = InstallSchema(db, config.db_name, create_moduli_generator_user_schema_statements(config.db_name))
 
     if args.batch:
         success = installer.install_schema_batch()

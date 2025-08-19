@@ -6,7 +6,7 @@
 
 [ModuliGenerator](moduli_generator.md)
 
-[MariaDBConnector](db.md)
+[MariaDBConnector](API/db.md)
 
 # Development
 

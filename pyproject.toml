@@ -50,7 +50,7 @@ Issues = "https://github.com/beckerwilliams/moduli_generator/issues"
 [tool.poetry.scripts]
 moduli_generator = "moduli_generator.__main__:main"
 moduli_stats = "db.scripts.moduli_stats:main"
-install_schema = "db.scripts.install_schema:main"
+install_schema = "db.scripts.install_moduli_generator_schema:main"
 restart_screening = "moduli_generator.restart:main"
 write_ssh_moduli_file = "moduli_generator.write_ssh2_moduli_file:main"
 changelog = "changelog_generator.scripts.show:main"
@@ -70,7 +70,7 @@ pytest-mock = ">=3.12.0"
 pytest-asyncio = ">=0.23.0"
 toml = ">=0.10.2"
 coverage = "^7.10.2"
-poetry = "==1.8.5"
+poetry = ">=1.8.3,<2.0"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = ">=1.6.1"
