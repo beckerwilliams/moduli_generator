@@ -7,15 +7,15 @@ from re import compile, sub
 from typing import Any, Dict, List
 
 from config import (
-    DEFAULT_MARIADB_DB_NAME,
-    default_config)
+    default_config as config)
 from db import MariaDBConnector
 
 # from db import MariaDBConnector
 
 __all__ = [
     "InstallSchema",
-    "create_moduli_generator_user",
+    "create_moduli_generator_cnf",
+    "create_moduli_generator_user_schema_statements",
     "build_cnf",
     "cnf_argparser",
     "create_privilged_user_and_config",
@@ -49,7 +49,7 @@ class InstallSchema(object):
     def __init__(
             self,
             db_connector: MariaDBConnector,
-            db_name: str = default_config.db_name,
+            db_name: str = config.db_name,
             schema_statements: List[Dict[str, Any]] = None
     ):
         """
@@ -193,6 +193,69 @@ class InstallSchema(object):
             return False
 
 
+def cnf_argparser() -> ArgumentParser:
+    args = ArgumentParser(description="Install SSH Moduli Schema")
+    args.add_argument(
+        "--mariadb-cnf",
+        type=str,
+        default=None,
+        help="Path to Privileged MariaDB Config: default ${MODULI_GENERATOR_HOME}/.moduli_generator/privileged.tmp"
+    )
+    args.add_argument(
+        "--mariadb-admin-username",
+        help="Privileged MariaDB Username (Admin) | Mutually Exclusive with MariaDB Configuration File",
+        default=None
+    )
+    args.add_argument(
+        "--mariadb-admin-password",
+        help="Privileged MariaDB Password (Admin) | Mutually Exclusive with MariaDB Configuration File",
+        default=None,
+    )
+    args.add_argument(
+
+        "--mariadb-host",
+        help="Hostname of MariaDB Server | Mutually Exclusive with MariaDB Configuration File",
+        default="localhost"
+    )
+    args.add_argument(
+        "--mariadb-db-name",
+        type=str,
+        default=config.db_name,
+        help="Name of the database to create"
+    )
+    args.add_argument(
+        "--mariadb-port",
+        type=int,
+        help="Port of MariaDB Server | Mutually Exclusive with MariaDB Configuration File",
+        default=3306
+    )
+    args.add_argument(
+        "--mariadb-socket",
+        type=str,
+        help="Socket of MariaDB Server | Mutually Exclusive with MariaDB Configuration File",
+        default=None,
+    )
+    args.add_argument(
+        "--mariadb-ssl",
+        action="store_true",
+        help="SSL Mode of MariaDB Server | Mutually Exclusive with MariaDB Configuration File",
+    )
+
+    args.add_argument(
+        "--batch",
+        action="store_true",
+        help="Use batch execution mode for better performance",
+    )
+    args.add_argument(
+        "--output-cnf",
+        type=str,
+        default=str(config.moduli_home / "moduli_generator.cnf"),
+        help="Path to output configuration file"
+    )
+
+    return args
+
+
 def update_moduli_generator_config(host, database, username, password) -> Path:
     """
     Update the application owner's moduli_generator.cnf file with the new credentials.
@@ -206,7 +269,7 @@ def update_moduli_generator_config(host, database, username, password) -> Path:
         Path: Path to the updated configuration file.
     """
     # Path to the final configuration file
-    config_path = Path.home() / ".moduli_generator" / "moduli_generator.cnf"
+    config_path = config.moduli_home / "moduli_generator.cnf"
 
     # Ensure directory exists
     config_dir = config_path.parent
@@ -247,7 +310,7 @@ def update_moduli_generator_config(host, database, username, password) -> Path:
     return config_path
 
 
-def create_moduli_generator_user(db_conn, database, password=None) -> str:
+def create_moduli_generator_user_schema_statements(database, password=None) -> str:
     """
     Create a moduli_generator database user with appropriate privileges.
 
@@ -263,7 +326,7 @@ def create_moduli_generator_user(db_conn, database, password=None) -> str:
         password = generate_random_password()
 
     # SQL statements to create user, grant privileges, and flush privileges
-    statements = [
+    return [
         # Create User 'moduli_generator'@'%' and Grant All
         f"CREATE USER IF NOT EXISTS 'moduli_generator'@'%' IDENTIFIED BY '{password}' "
         "WITH MAX_CONNECTIONS_PER_HOUR 100 MAX_UPDATES_PER_HOUR 200 MAX_USER_CONNECTIONS 50",
@@ -280,75 +343,6 @@ def create_moduli_generator_user(db_conn, database, password=None) -> str:
         f"GRANT ALL PRIVILEGES ON {database}.* TO 'moduli_generator'@'localhost'",
         "FLUSH PRIVILEGES"
     ]
-
-    # Execute the statements
-    for statement in statements:
-        db_conn.sql(statement, fetch=False)
-        print(f"Executed: {statement[:50]}...")
-
-    print(f"Created 'moduli_generator' user with access to '{database}' database")
-    return password
-
-
-def cnf_argparser() -> ArgumentParser:
-    args = ArgumentParser(description="Install SSH Moduli Schema")
-    args.add_argument(
-        "--mariadb-cnf",
-        type=str,
-        default=None,
-        help="Path to Privileged MariaDB Config: default ${MODULI_GENERATOR_HOME}/.moduli_generator/privileged.tmp"
-    )
-    args.add_argument(
-        "--mariadb-admin-username",
-        help="Privileged MariaDB Username (Admin) | Mutually Exclusive with MariaDB Configuration File",
-        default=None
-    )
-    args.add_argument(
-        "--mariadb-admin-password",
-        help="Privileged MariaDB Password (Admin) | Mutually Exclusive with MariaDB Configuration File",
-        default=None,
-    )
-    args.add_argument(
-
-        "--mariadb-host",
-        help="Hostname of MariaDB Server | Mutually Exclusive with MariaDB Configuration File",
-        default="localhost"
-    )
-    args.add_argument(
-        "--mariadb-port",
-        type=int,
-        help="Port of MariaDB Server | Mutually Exclusive with MariaDB Configuration File",
-        default=3306
-    )
-    args.add_argument(
-        "--mariadb-socket",
-        type=str,
-        help="Socket of MariaDB Server | Mutually Exclusive with MariaDB Configuration File",
-        default=None,
-    )
-    args.add_argument(
-        "--mariadb-ssl",
-        help="SSL Mode of MariaDB Server | Mutually Exclusive with MariaDB Configuration File",
-        default=True
-    )
-    args.add_argument(
-        "--mariadb-db-name",
-        type=str,
-        default=DEFAULT_MARIADB_DB_NAME,
-        help="Name of the database to create"
-    )
-    args.add_argument(
-        "--batch",
-        action="store_true",
-        help="Use batch execution mode for better performance",
-    )
-    args.add_argument(
-        "--moduli-db-name",
-        type=str,
-        default=DEFAULT_MARIADB_DB_NAME,
-        help="Name of core `moduli_generator` database",
-    )
-    return args
 
 
 def get_moduli_generator_schema_statements(
@@ -474,52 +468,52 @@ def get_moduli_generator_schema_statements(
     ]
 
 
-def create_privilged_user_and_config(config, args: ArgumentParser):
-    """
-    Creates a privileged MariaDB user and configuration file for use with the application.
-
-    This function handles two primary cases:
-    1. When privileged MariaDB credentials (username and password) are provided, it prepares
-       a temporary configuration file with those credentials.
-    2. When a valid MariaDB configuration file path is provided, it copies the existing
-       configuration to a temporary file.
-
-    The purpose of the privileged temporary configuration file is to handle scenarios such
-    as installing or configuring scripts that require elevated privileges during execution.
-
-    Args:
-        args (ArgumentParser): An argument parser containing the necessary command-line
-            options, such as MariaDB credentials or the configuration file path.
-    """
-
-    # Case 1:
-    # --mariadb-user-name and --mariadb-password are privleged credentials (If not, you're doing it wrong!)
-    if args.mariadb_admin_username and args.mariadb_admin_password:
-
-        config.out_config = {
-            "client": {
-                "user": args.mariadb_admin_username,  # `moduli_generator`
-                "password": args.mariadb_admin_password,
-                "host": args.mariadb_host,
-                "port": args.mariadb_port,
-                "ssl": args.mariadb_ssl
-            }
-        }
-
-        # Write out privileged temporary config file
-        # Handles Installer Script Use Case
-        config.privileged_tmp_cnf.write_text(build_cnf(out_config))
-
-    elif Path(args.mariadb_cnf).exists() and Path(args.mariadb_cnf).is_file():
-        print("Using provided admin CNF and host argument to create temporary config file")
-
-        # Copy provided MariaDB config file to the temporary config file
-        config.privileged_tmp_cnf.write_text(
-            Path(args.mariadb_cnf).read_text())
-    else:
-        print("Using privileged mariadb account")
-
-    return config.privileged_tmp_cnf
+# def create_privilged_user_and_config(config, args: ArgumentParser):
+#     """
+#     Creates a privileged MariaDB user and configuration file for use with the application.
+#
+#     This function handles two primary cases:
+#     1. When privileged MariaDB credentials (username and password) are provided, it prepares
+#        a temporary configuration file with those credentials.
+#     2. When a valid MariaDB configuration file path is provided, it copies the existing
+#        configuration to a temporary file.
+#
+#     The purpose of the privileged temporary configuration file is to handle scenarios such
+#     as installing or configuring scripts that require elevated privileges during execution.
+#
+#     Args:
+#         args (ArgumentParser): An argument parser containing the necessary command-line
+#             options, such as MariaDB credentials or the configuration file path.
+#     """
+#
+#     # Case 1:
+#     # --mariadb-user-name and --mariadb-password are privleged credentials (If not, you're doing it wrong!)
+#     if args.mariadb_admin_username and args.mariadb_admin_password:
+#
+#         config.out_config = {
+#             "client": {
+#                 "user": args.mariadb_admin_username,  # `moduli_generator`
+#                 "password": args.mariadb_admin_password,
+#                 "host": args.mariadb_host,
+#                 "port": args.mariadb_port,
+#                 "ssl": args.mariadb_ssl
+#             }
+#         }
+#
+#         # Write out privileged temporary config file
+#         # Handles Installer Script Use Case
+#         config.privileged_tmp_cnf.write_text(build_cnf(out_config))
+#
+#     elif Path(args.mariadb_cnf).exists() and Path(args.mariadb_cnf).is_file():
+#         print("Using provided admin CNF and host argument to create temporary config file")
+#
+#         # Copy provided MariaDB config file to the temporary config file
+#         config.privileged_tmp_cnf.write_text(
+#             Path(args.mariadb_cnf).read_text())
+#     else:
+#         print("Using privileged mariadb account")
+#
+#     return config.privileged_tmp_cnf
 
 
 def update_mariadb_app_owner(host, database, username, password) -> Path:
@@ -542,7 +536,7 @@ def update_mariadb_app_owner(host, database, username, password) -> Path:
         Path: The path to the generated configuration file.
     """
     # Path to the final configuration file
-    config_path = Path.home() / ".moduli_generator" / "moduli_generator.cnf"
+    config_path = config.moduli_home / "moduli_generator.cnf"
 
     # Ensure directory exists
     config_dir = config_path.parent
@@ -789,7 +783,54 @@ def build_cnf(cnf_attrs: dict) -> str:
     return local_cnf
 
 
-def generate_random_password(length=default_config.password_length) -> str:
+def create_moduli_generator_cnf(user, host, **kwargs) -> Path:
+    """
+    Creates and returns a MariaDB configuration file (CNF) for the moduli generator.
+
+    This function builds and writes a MariaDB CNF file based on the provided client
+    configuration details. If a password is not supplied in the optional arguments,
+    a random password is generated. The CNF file is assembled with a predefined
+    header and client-specific settings derived from the arguments and keyword
+    arguments.
+
+    Args:
+        user (str): The username for the client configuration.
+        host (str): The host for the client configuration.
+        **kwargs: Arbitrary keyword arguments to include additional client-specific
+            configuration settings. If `password` is included, it is used;
+            otherwise, a random password is generated.
+
+    Returns:
+        Path: The path to the generated MariaDB CNF file.
+    """
+    cnf_attrs = {
+        "client": {
+            "user": user,
+            "host": host
+        },
+    }
+    for attr in kwargs:
+        cnf_attrs["client"][attr] = kwargs[attr]
+    # Create a new Random Password if not provided
+    if kwargs.get("password"):
+        cnf_attrs["client"]["password"] = kwargs.get("password")
+    else:  # Generate a random password
+        cnf_attrs["client"]["password"] = generate_random_password()
+
+    # BUILD MariaDB.cnf HEADER
+    hdr = "\n".join(
+        (
+            "# This group is read by the client only.",
+            "# Use it for options that only affect the client, see",
+            "# https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#option-groups",
+        )
+    )
+
+    config.mariadb_cnf.write_text("\n".join((hdr, build_cnf(cnf_attrs))))
+    return config.mariadb_cnf
+
+
+def generate_random_password(length=config.password_length) -> str:
     """
     Generates a random password of the specified length, consisting of letters, digits,
     and MariaDB-recommended safe special characters. This method utilizes cryptographically

@@ -50,6 +50,7 @@ __all__ = [
     "TEST_MARIADB_DB_NAME",
     "__version__",
 ]
+CONST_PROJECT_NAME: Final[str] = "moduli_generator"
 
 # TEST PARAMETERS
 TEST_MARIADB_DB_NAME: Final[str] = "test_moduli_db"
@@ -193,6 +194,7 @@ class ModuliConfig:
         self.moduli_home = Path(
             base_dir or osenv.get("MODULI_HOME", DEFAULT_MODULI_GENERATOR_HOME)
         )
+        self.project_name = CONST_PROJECT_NAME
 
         # Define subdirectories as properties
         self.candidates_dir = self.moduli_home / CONST_CANDIDATES_DIR
