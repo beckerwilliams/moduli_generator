@@ -3,15 +3,15 @@
 #
 # Creates a virtual environment in user's `current working directory` (${CWD})
 #
-# Text colors
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-RED='\033[0;31m'
-YELLOW='\033[0;33m'
-
 # No Color (reset)
-NC='\033[0m'
+NC="\033[0m"
+
+# Text colors
+RED="\033[0;31m"
+GREEN="\033[0;32m"
+YELLOW="\033[0;33m"
+BLUE="\033[0;34m"
+PURPLE="\033[0;35m"
 
 ECHO="echo -e"
 MV="mv"
@@ -36,11 +36,15 @@ MODULI_GENERATOR_APP=${PROJECT_NAME}
 MODULI_GENERATOR_CONFIG_DIR="${HOME}/.moduli_generator"
 CONST_PRIVILEGED_TMP_FILE=${MODULI_GENERATOR_CONFIG_DIR}/privileged.tmp
 
+# Logging for Git and Pip
+GIT_LOG=git_install.log
+PIP_LOG=pip_install.log
+
 # Global variable for wheel file
 wheel_file=""
 
 ##############################################################################################
-echo -e "${PURPLE}Project Name: ${PROJECT_NAME}\n\tWORK_DIR: ${WORK_DIR}\n\tCWD: ${CWD}${NC}"
+echo -e "${PURPLE}" "Project Name: ${PROJECT_NAME}\n\tWORK_DIR: ${WORK_DIR}\n\tCWD:" "${CWD}${NC}"
 
 # Create Credentials and MariaDB Config for `moduli_generator` user
 create_privileged_config() {
@@ -48,8 +52,8 @@ create_privileged_config() {
     # Create config directory if it doesn't exist
     ${MKDIR} "${MODULI_GENERATOR_CONFIG_DIR}"
 
-    echo -e "${BLUE}[ Database Configuration Setup ]${NC}"
-    echo -e "${YELLOW}Please provide MariaDB connection details for the moduli_generator user: ${NC}"
+    echo -e "${BLUE}" "[ Database Configuration Setup ]" "${NC}"
+    echo -e "${YELLOW}" "Please provide MariaDB connection details for the moduli_generator user:" "${NC}"
     echo
 
     # Prompt for database configuration
@@ -57,13 +61,13 @@ create_privileged_config() {
 
         # Username is fixed as per the application design
         while true; do
-        	echo "${GREEN}Please collect the privilged MariaDB's account _username_ and _password_ for use, Now! ${NC}"
+        	echo "${GREEN}" "Please collect the privilged MariaDB's account _username_ and _password_ for use, Now!" "${NC}"
 	        read -p "Privilged MariaDB _username_ (i.e., an admin): " db_user
 	        echo
 	        if [[ -n "$db_user" ]]; then
 	        	break
 	        else
-	        	echo "${RED}Username cannot be empty. Please Try Again (or ctrl-c to escape) ${NC}"
+	        	echo "${RED}" "Username cannot be empty. Please Try Again (or ctrl-c to escape)" "${NC}"
         	fi
         done
 
@@ -73,7 +77,7 @@ create_privileged_config() {
             if [[ -n "$db_password" ]]; then
                 break
             else
-                echo -e "${RED}Password cannot be empty. Please try again. ${NC}"
+                echo -e "${RED}" "Password cannot be empty. Please try again." "${NC}"
             fi
         done
 
@@ -88,7 +92,7 @@ create_privileged_config() {
 
         # Display configuration summary
         echo
-        echo -e "${YELLOW}Configuration Summary:${NC}"
+        echo -e "${YELLOW}" "Configuration Summary: " "${NC}"
         echo "  User: ${db_user}"
         echo "  SSL: ${db_ssl}"
         echo "  Host: ${db_host}"
@@ -101,10 +105,10 @@ create_privileged_config() {
             case $confirm in
                 [Yy]* ) break 2;;
                 [Nn]* )
-                    echo -e "${YELLOW}Let's try again...${NC}"
+                    echo -e "${YELLOW}" "Let's try again..." "${NC}"
                     echo
                     break;;
-                * ) echo "Please answer yes or no.";;
+                * ) echo Please answer yes or no;;
             esac
         done
     done
@@ -127,8 +131,8 @@ EOF
     # Set secure permissions on config file
     chmod 600 "${CONST_PRIVILEGED_TMP_FILE}"
 
-    echo -e "${GREEN}✓ Configuration file created: ${CONST_PRIVILEGED_TMP_FILE}${NC}"
-    echo -e "${BLUE}File permissions set to 600 (owner read/write only)${NC}"
+    echo -e "${GREEN}" "✓ Configuration file created:" "${CONST_PRIVILEGED_TMP_FILE}${NC}"
+    echo -e "${BLUE}" "File permissions set to 600 (owner read/write only)" "${NC}"
 
     return 0
 }
@@ -136,10 +140,10 @@ EOF
 # Function to verify git installation
 verify_git() {
     if command -v git >/dev/null 2>&1; then
-        echo -e "${GREEN}✓ Git is installed: $(git --version)${NC}"
+        echo -e "${GREEN}" "✓ Git is installed: $(git --version)" "${NC}"
         return 0
     else
-        echo -e "${RED}✗ Git is not installed or not available in PATH${NC}"
+        echo -e "${RED}" "✗ Git is not installed or not available in PATH$" "{NC}"
         return 1
     fi
 }
@@ -166,7 +170,7 @@ verify_python312() {
     python_version=$($python_cmd --version 2>&1 | grep -oE '[0-9]+\.[0-9]+')
 
     if [[ -z "$python_version" ]]; then
-        echo -e "${RED}✗ Could not determine Python version for: $python_cmd${NC}"
+        echo -e "${RED}" "✗ Could not determine Python version for:" "$python_cmd${NC}"
         return 1
     fi
 
@@ -178,20 +182,20 @@ verify_python312() {
     required_version=$((3 * 100 + 12))  # 3.12 = 312
 
     if [[ $version_num -ge $required_version ]]; then
-        echo -e "${GREEN}✓ Python $python_version is installed (≥3.12 required): $($python_cmd --version)${NC}"
+        echo -e "${GREEN}" "✓ Python $python_version is installed (≥3.12 required):" "$($python_cmd --version)${NC}"
         # Update PYTHON variable to use the found command
         PYTHON="$python_cmd"
         MK_VENV="${PYTHON} -m venv"
         return 0
     else
-        echo -e "${RED}✗ Python 3.12 or higher required. Found: $($python_cmd --version)${NC}"
+        echo -e "${RED}" "✗ Python 3.12 or higher required. Found:" "$($python_cmd --version)${NC}"
         return 1
     fi
 }
 
 # Main verification function
 verify_requirements() {
-    echo -e "${BLUE}[ Verifying System Requirements ]${NC}"
+    echo -e "${BLUE}" "[ Verifying System Requirements ]" "${NC}"
 
     local git_ok=0
     local python_ok=0
@@ -200,10 +204,10 @@ verify_requirements() {
     verify_python312 || python_ok=1
 
     if [[ $git_ok -eq 0 && $python_ok -eq 0 ]]; then
-        echo -e "${GREEN}✓ All requirements verified successfully${NC}"
+        echo -e "${GREEN}" "✓ All requirements verified successfully" "${NC}"
         return 0
     else
-        echo -e "${RED}✗ Some requirements are missing. Please install the missing components.${NC}"
+        echo -e "${RED}" "✗ Some requirements are missing. Please install the missing components." "${NC}"
         return 1
     fi
 }
@@ -213,18 +217,18 @@ activate_venv() {
     if [[ -f "$ACTIVATE_SCRIPT" ]]; then
         # shellcheck disable=SC1090
         source "$ACTIVATE_SCRIPT"
-        echo -e "${GREEN}✓ Virtual environment activated ${NC}"
+        echo -e "${GREEN}" "✓ Virtual environment activated" "${NC}"
 
         # Update paths to use virtual environment versions - CRITICAL FIX
         PIP="${VENV_DIR}/bin/pip"
         POETRY="${VENV_DIR}/bin/poetry"
 
         # Verify we're using the right pip
-        echo -e "${BLUE}Using pip: $(which pip) ${NC}"
+        echo -e "${BLUE}" "Using pip:" "$(which pip) ${NC}"
 
         return 0
     else
-        echo -e "${RED}✗ Virtual environment activation script not found: $ACTIVATE_SCRIPT${NC}"
+        echo -e "${RED}" ✗ Virtual environment activation script not found:" "$ACTIVATE_SCRIPT" "${NC}"
         return 1
     fi
 }
@@ -232,16 +236,16 @@ activate_venv() {
 # Function to check if Poetry project has pyproject.toml
 check_poetry_project() {
     if [[ ! -f "pyproject.toml" ]]; then
-        echo -e "${RED}✗ No pyproject.toml found. This might not be a Poetry project.${NC}"
+        echo -e "${RED}" "✗ No pyproject.toml found. This might not be a Poetry project." "${NC}"
         return 1
     fi
 
     # Check for either format - PEP 621 or legacy Poetry
     if grep -q "tool.poetry\|project.*name" pyproject.toml; then
-        echo -e "${GREEN}✓ Poetry/PEP 621 project configuration found${NC}"
+        echo -e "${GREEN}" "✓ Poetry/PEP 621 project configuration found$" "{NC}"
         return 0
     else
-        echo -e "${RED}✗ pyproject.toml doesn't contain Poetry or PEP 621 configuration.${NC}"
+        echo -e "${RED}" "✗ pyproject.toml doesn\'t contain Poetry or PEP 621 configuration." "${NC}"
         return 1
     fi
 }
@@ -286,25 +290,25 @@ build_wheel() {
     cd "${WORK_DIR}" || { echo -e "${RED}Failed to enter work directory${NC}"; return 1; }
 
     # Clone Project from Github Repo - now should work since we cleaned up
-    ${ECHO} "${BLUE}[ Cloning moduli_generator from Github ]${NC}"
+    ${ECHO} "${BLUE}" "[ Cloning moduli_generator from Github ]" "${NC}"
     if ! ${GIT} clone "${GITHUB_PROJECT}"; then
-        echo -e "${RED}Cloning moduli_generator FAILED!${NC}"
+        echo -e "${RED}" "Cloning moduli_generator FAILED!" "${NC}"
         # Additional debugging information
-        echo -e "${YELLOW}Current directory contents:${NC}"
+        echo -e "${YELLOW}" "Current directory contents:" "${NC}"
         ls -la
         return 1
     fi
 
     # Change Directory to Installed 'moduli_generator' (project)
-    ${ECHO} "${BLUE}[ Entering Moduli Dev Directory ]${NC}"
+    ${ECHO} "${BLUE}" "[ Entering Moduli Dev Directory ]" "${NC}"
     cd "${MODULI_GENERATOR_APP}" || { echo -e "${RED}Failed to enter moduli_generator directory${NC}"; return 1; }
 
     # Check if this is a valid Poetry project
     check_poetry_project || return 1
 
     # Create and Activate BUILD Virtual Environment
-    ${ECHO} "${BLUE}[ Creating and Activating Moduli Generator's Wheel Builder ]${NC}"
-    ${MK_VENV} "${VENV_DIR}" || { echo -e "${RED}Failed to create virtual environment${NC}"; return 1; }
+    ${ECHO} "${BLUE}" "[ Creating and Activating Moduli Generator\'s Wheel Builder ]" "${NC}"
+    ${MK_VENV} ${VENV_DIR} || { echo -e "${RED}" "Failed to create virtual environment" "${NC}"; return 1; }
     activate_venv || { echo -e "${RED}Failed to activate virtual environment${NC}"; return 1; }
 
     ####################################
