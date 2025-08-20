@@ -267,6 +267,18 @@ def get_moduli_generator_user_schema_statements(database, password=None) -> List
     if password is None:
         password = generate_random_password()
 
+    # Create `moduli_generator.cnf` MariaDB CNF File
+    create_moduli_generator_cnf(
+        config.project_name or 'moduli_generator',
+        args.mariadb_host or 'localhost',
+        **{
+            "port": 3306,
+            "ssl": "false",
+            "database": config.db_name,
+            "password": password
+        })
+
+
     # SQL statements to create user, grant privileges, and flush privileges
     return [
         {

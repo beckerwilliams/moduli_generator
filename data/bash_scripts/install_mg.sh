@@ -295,7 +295,11 @@ activate_venv() {
         # Update paths to use virtual environment versions - CRITICAL FIX
         PIP="${VENV_DIR}/bin/pip"
         POETRY="${VENV_DIR}/bin/poetry"
-
+        
+        # Set up logging paths
+        PIP_LOG_FILE="${CWD}/PIP.LOG"
+        POETRY_LOG_FILE="${CWD}/POETRY.LOG"
+        
         # Verify we're using the right pip
         echo -e "${BLUE}Using pip: $(which pip)${NC}"
 
@@ -336,14 +340,14 @@ install_poetry_in_venv() {
     echo -e "${BLUE}[ Installing Poetry in virtual environment ]${NC}"
 
     # Remove any existing Poetry installation in venv
-    ${PIP} uninstall poetry -y 2>/dev/null || true
+    ${PIP} uninstall poetry -y  >> "${PIP_LOG_FILE}" 2>&1 || true
 
     # Install a specific, stable Poetry version
-    ${PIP} install poetry==1.8.3 || { echo -e "${RED}Failed to install poetry${NC}"; return 1; }
+    ${PIP} install poetry==1.8.3 >> "${PIP_LOG_FILE}" 2>&1 || { echo -e "${RED}Failed to install poetry${NC}"; return 1; }
 
     # Verify Poetry installation
-    if [[ -f "${POETRY}" ]] && ${POETRY} --version; then
-        echo -e "${GREEN}✓ Poetry installed successfully: $(${POETRY} --version)${NC}"
+    if [[ -f "${POETRY}" ]] && ${POETRY} --version >> "${POETRY_LOG_FILE}" 2>&1; then
+        echo -e "${GREEN}✓ Poetry installed successfully${NC}"
         return 0
     else
         echo -e "${RED}✗ Poetry installation verification failed${NC}"
@@ -388,28 +392,31 @@ build_wheel() {
     # Install, Update, and Build POETRY
     ####################################
     ${ECHO} "${BLUE}[ Upgrading pip ]${NC}"
-    ${PIP} install --upgrade pip || { echo -e "${RED}Failed to upgrade pip${NC}"; return 1; }
+    ${PIP} install --upgrade pip >> "${PIP_LOG_FILE}" 2>&1 || { echo -e "${RED}Failed to upgrade pip${NC}"; return 1; }
 
     # Install Poetry in the virtual environment
     install_poetry_in_venv || { echo -e "${RED}Failed to install Poetry${NC}"; return 1; }
 
     # Configure Poetry to not create virtual environments (we're already in one)
-    ${POETRY} config virtualenvs.create false || echo -e "${YELLOW}Warning: Failed to configure Poetry${NC}"
+    ${POETRY} config virtualenvs.create false >> "${POETRY_LOG_FILE}" 2>&1 || echo -e "${YELLOW}Warning: Failed to configure Poetry${NC}"
 
     # Install dependencies first
     ${ECHO} "${BLUE}[ Installing project dependencies ]${NC}"
-    ${POETRY} install || { echo -e "${RED}Failed to install dependencies${NC}"; return 1; }
+    ${POETRY} install >> "${POETRY_LOG_FILE}" 2>&1 || { echo -e "${RED}Failed to install dependencies${NC}"; return 1; }
+    ${ECHO} "${BLUE}Poetry installation output has been logged to ${POETRY_LOG_FILE}${NC}"
 
     # Try to update/lock dependencies
     ${ECHO} "${BLUE}[ Updating Poetry lock file ]${NC}"
-    if ! ${POETRY} lock --no-update; then
+    if ! ${POETRY} lock --no-update >> "${POETRY_LOG_FILE}" 2>&1; then
         echo -e "${YELLOW}Poetry lock failed, trying to regenerate...${NC}"
         rm -f poetry.lock
-        ${POETRY} lock || { echo -e "${RED}Failed to generate poetry.lock${NC}"; return 1; }
+        ${POETRY} lock >> "${POETRY_LOG_FILE}" 2>&1 || { echo -e "${RED}Failed to generate poetry.lock${NC}"; return 1; }
     fi
+    ${ECHO} "${BLUE}Poetry lock output has been logged to ${POETRY_LOG_FILE}${NC}"
 
     ${ECHO} "${BLUE}[ Building moduli_generator wheel ]${NC}"
-    ${POETRY} build || { echo -e "${RED}Failed to build wheel${NC}"; return 1; }
+    ${POETRY} build >> "${POETRY_LOG_FILE}" 2>&1 || { echo -e "${RED}Failed to build wheel${NC}"; return 1; }
+    ${ECHO} "${BLUE}Poetry build output has been logged to ${POETRY_LOG_FILE}${NC}"
 
     #########################################
     # The Product
@@ -464,14 +471,15 @@ build_moduli_generator() {
     # Upgrade version of PIP, Install Moduli Generator Wheel from BUILD Stage
     ${ECHO} "${BLUE}[ Upgrading Virtual Environment and Installing Moduli Generator wheel ]${NC}"
 
-    ${PIP} install --upgrade pip || { echo -e "${RED}" "Failed to upgrade pip${NC}"; return 1; }
-    ${PIP} install "${wheel_file}" || { echo -e "${RED}" "Failed to install wheel file" "${NC}"; return 1; }
+    ${PIP} install --upgrade pip >> "${PIP_LOG_FILE}" 2>&1 || { echo -e "${RED}" "Failed to upgrade pip${NC}"; return 1; }
+    ${PIP} install "${wheel_file}" >> "${PIP_LOG_FILE}" 2>&1 || { echo -e "${RED}" "Failed to install wheel file" "${NC}"; return 1; }
     rm "${wheel_file}" || echo -e "${YELLOW}" "Warning: Failed to remove wheel file" "${NC}"
 
     # Print out Build and Install Status
     ${ECHO} "${GREEN}[ Moduli Generator Installed Successfully ]${NC}"
     ${ECHO} "${BLUE}Virtual Environment Package Manifest:${PURPLE}"
-    ${PIP} list
+    ${PIP} list >> "${PIP_LOG_FILE}" 2>&1
+    ${ECHO} "${BLUE}Package manifest has been logged to ${PIP_LOG_FILE}${NC}"
     ${ECHO} "${NC}"
 
     ##############################

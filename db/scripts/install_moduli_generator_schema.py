@@ -5,7 +5,7 @@ from db.utils import (InstallSchema, cnf_argparser as argparser, get_moduli_gene
                       get_moduli_generator_user_schema_statements)
 
 
-def main():
+def install_schema():
     args = argparser().parse_args()
     # Privileged MariaDB Configuration File, DEFAULT `moduli_generator` user DOES NOT HAVE THESE PRIVILEGES
     config.mariadb_cnf = config.moduli_home / config.privileged_tmp_cnf
@@ -31,4 +31,6 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    install_moduli_generator_cnf
+    install_schema()
+    exit(0)
