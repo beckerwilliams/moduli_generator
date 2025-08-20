@@ -38,9 +38,15 @@ packages = [
 	{ include = "config" },
 	{ include = "db" },
 	{ include = "moduli_generator" },
-	{ include = "data" }
+	{ include = "data" },
+	{ include = "test" }
 ]
-exclude = ["changelog_generator/**"]
+exclude = [
+	"changelog_generator/**",
+	"MG_TEST",
+	"site",
+	"stash"
+]
 
 [tool.poetry.urls]
 Homepage = "https://github.com/beckerwilliams/moduli_generator"
