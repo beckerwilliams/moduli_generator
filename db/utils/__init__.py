@@ -319,6 +319,7 @@ def get_moduli_generator_user_schema_statements(database, password=None) -> List
 
 def get_moduli_generator_db_schema_statements(
         moduli_db: str = "test_moduli_db",
+        password: str = None,  # Hack for the InstallSchema class - We don't use `moduli_generator`'s password here
 ) -> List[Dict[str, Any]]:
     """
     Generates MySQL schema creation and configuration statements for a moduli generator database.
