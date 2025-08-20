@@ -4,7 +4,7 @@ import string
 from argparse import ArgumentParser
 from pathlib import Path
 from re import compile, sub
-from typing import Any, Dict, List
+from typing import (Any, Callable, Dict, List)
 
 from config import (
     default_config as config)
@@ -45,7 +45,7 @@ class InstallSchema(object):
     def __init__(
             self,
             db: MariaDBConnector,
-            schema_statements_function: Function,
+            schema_statements_function: Callable[[str], List[Dict[str, Any]]],
             db_name: str = config.db_name,
             password: str = None
     ):
