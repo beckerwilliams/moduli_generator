@@ -271,8 +271,8 @@ def get_moduli_generator_user_schema_statements(database, password=None) -> List
 
     # Create `moduli_generator.cnf` MariaDB CNF File
     create_moduli_generator_cnf(
-        config.project_name or 'moduli_generator',
-        args.mariadb_host or 'localhost',
+        'moduli_generator',
+        'localhost',
         **{
             "port": 3306,
             "ssl": "false",
