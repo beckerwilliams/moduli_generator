@@ -49,68 +49,67 @@ create_privileged_config() {
     ${MKDIR} "${MODULI_GENERATOR_CONFIG_DIR}"
 
     echo -e "${BLUE}[ Database Configuration Setup ]${NC}"
-    echo -e "${YELLOW}Please provide MariaDB connection details for the moduli_generator user:${NC}"
+    echo -e "${YELLOW}Please choose how you would like to provide MariaDB connection details:${NC}"
     echo
-
-    # Prompt for database configuration
-    while true; do
-
-        # Username is fixed as per the application design
-        while true; do
-        	echo -e "${GREEN}Please collect the privilged MariaDB's account _username_ and _password_ for use, Now! ${NC}"
-	        read -p "Privilged MariaDB _username_ (i.e., an admin): " db_user
-	        echo
-	        if [[ -n "$db_user" ]]; then
-	        	break
-	        else
-	        	echo -e "${RED}Username cannot be empty. Please Try Again (or ctrl-c to escape)${NC}"
-        	fi
-        done
-
-        while true; do
-            read -s -p "Enter password for ${db_user}: " db_password
-            echo
-            if [[ -n "$db_password" ]]; then
-                break
-            else
-                echo -e "${RED}Password cannot be empty. Please try again. ${NC}"
-            fi
-        done
-
-        read -p "MariaDB hostname [localhost]: " db_host
-        db_host=${db_host:-"localhost"}
-
-        read -p "MariaDB port [3306]: " db_port
-        db_port=${db_port:-"3306"}
-
-        read -p "Enable SSL [true]: " db_ssl
-        db_ssl=${db_ssl:-"true"}
-
-        # Display configuration summary
-        echo
-        echo -e "${YELLOW}" "Configuration Summary: " "${NC}"
-        echo "  User: ${db_user}"
-        echo "  SSL: ${db_ssl}"
-        echo "  Host: ${db_host}"
-        echo "  Port: ${db_port}"
-
-        echo
-
-        while true; do
-            read -p "Is this configuration correct? (y/n): " confirm
-            case $confirm in
-                [Yy]* ) break 2;;
-                [Nn]* )
-                    echo -e "${YELLOW}Let's try again...${NC}"
+    
+    # Ask user to select configuration method
+    PS3="Please select an option (1-2): "
+    options=("Enter username and password" "Use existing mariadb.cnf file")
+    
+    select opt in "${options[@]}"; do
+        case $REPLY in
+            1)
+                # Username/password method
+                echo
+                echo -e "${YELLOW}Please provide MariaDB connection details for the moduli_generator user:${NC}"
+                echo
+                
+                # Username is fixed as per the application design
+                while true; do
+                    echo -e "${GREEN}Please collect the privilged MariaDB's account _username_ and _password_ for use, Now! ${NC}"
+                    read -p "Privilged MariaDB _username_ (i.e., an admin): " db_user
                     echo
-                    break;;
-                * ) echo -e "${RED} Please answer yes or no;;${NC}"
-            esac
-        done
-    done
+                    if [[ -n "$db_user" ]]; then
+                        break
+                    else
+                        echo -e "${RED}Username cannot be empty. Please Try Again (or ctrl-c to escape)${NC}"
+                    fi
+                done
 
-    # Generate the configuration file
-    cat > "${CONST_PRIVILEGED_TMP_FILE}" << EOF
+                while true; do
+                    read -s -p "Enter password for ${db_user}: " db_password
+                    echo
+                    if [[ -n "$db_password" ]]; then
+                        break
+                    else
+                        echo -e "${RED}Password cannot be empty. Please try again. ${NC}"
+                    fi
+                done
+
+                read -p "MariaDB hostname [localhost]: " db_host
+                db_host=${db_host:-"localhost"}
+
+                read -p "MariaDB port [3306]: " db_port
+                db_port=${db_port:-"3306"}
+
+                read -p "Enable SSL [true]: " db_ssl
+                db_ssl=${db_ssl:-"true"}
+
+                # Display configuration summary
+                echo
+                echo -e "${YELLOW}" "Configuration Summary: " "${NC}"
+                echo "  User: ${db_user}"
+                echo "  SSL: ${db_ssl}"
+                echo "  Host: ${db_host}"
+                echo "  Port: ${db_port}"
+                echo
+
+                while true; do
+                    read -p "Is this configuration correct? (y/n): " confirm
+                    case $confirm in
+                        [Yy]* ) 
+                            # Generate the configuration file
+                            cat > "${CONST_PRIVILEGED_TMP_FILE}" << EOF
 # This group is read both by the client and the server
 # use it for options that affect everything, see
 # https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#option-groups
@@ -123,11 +122,89 @@ password                            = ${db_password}
 ssl                                 = ${db_ssl}
 
 EOF
+                            echo -e "${GREEN}✓ Configuration file created:" "${CONST_PRIVILEGED_TMP_FILE}${NC}"
+                            break 2;;
+                        [Nn]* )
+                            echo -e "${YELLOW}Let's try again...${NC}"
+                            echo
+                            continue 2;;
+                        * ) echo -e "${RED}Please answer yes or no.${NC}";;
+                    esac
+                done
+                ;;
+                
+            2)
+                # mariadb.cnf file method
+                echo
+                echo -e "${YELLOW}Please provide your MariaDB configuration file for the moduli_generator installation:${NC}"
+                echo
+                
+                # Prompt for mariadb.cnf file
+                while true; do
+                    read -p "Enter the path to your mariadb.cnf file: " mariadb_cnf_path
+                    echo
+
+                    # Check if the file exists and is readable
+                    if [[ ! -f "${mariadb_cnf_path}" ]]; then
+                        echo -e "${RED}File does not exist. Please provide a valid path.${NC}"
+                        continue
+                    fi
+
+                    if [[ ! -r "${mariadb_cnf_path}" ]]; then
+                        echo -e "${RED}File is not readable. Please check permissions.${NC}"
+                        continue
+                    fi
+
+                    # Check if the file contains required client section
+                    if ! grep -q "\[client\]" "${mariadb_cnf_path}"; then
+                        echo -e "${YELLOW}Warning: The provided file may not contain a [client] section.${NC}"
+                        echo -e "${YELLOW}This section is typically required for MariaDB client configuration.${NC}"
+                        
+                        while true; do
+                            read -p "Continue anyway? (y/n): " client_warning
+                            case $client_warning in
+                                [Yy]* ) break;;
+                                [Nn]* )
+                                    echo -e "${YELLOW}Please provide a different configuration file.${NC}"
+                                    continue 2;;
+                                * ) echo -e "${RED}Please answer yes or no.${NC}";;
+                            esac
+                        done
+                    fi
+
+                    # Display file path for confirmation
+                    echo -e "${YELLOW}Configuration File:${NC} ${mariadb_cnf_path}"
+                    echo
+
+                    # Ask for confirmation
+                    while true; do
+                        read -p "Is this configuration file correct? (y/n): " confirm
+                        case $confirm in
+                            [Yy]* ) 
+                                # Copy the user's configuration file to our temporary location
+                                cp "${mariadb_cnf_path}" "${CONST_PRIVILEGED_TMP_FILE}"
+                                echo -e "${GREEN}✓ Configuration file copied to:" "${CONST_PRIVILEGED_TMP_FILE}${NC}"
+                                break 2;;
+                            [Nn]* )
+                                echo -e "${YELLOW}Let's try again...${NC}"
+                                echo
+                                continue 2;;
+                            * ) echo -e "${RED}Please answer yes or no.${NC}";;
+                        esac
+                    done
+                done
+                ;;
+                
+            *)
+                echo -e "${RED}Invalid option. Please select 1 or 2.${NC}"
+                continue
+                ;;
+        esac
+        break
+    done
 
     # Set secure permissions on config file
     chmod 600 "${CONST_PRIVILEGED_TMP_FILE}"
-
-    echo -e "${GREEN}✓ Configuration file created:" "${CONST_PRIVILEGED_TMP_FILE}${NC}"
     echo -e "${BLUE}File permissions set to 600 (owner read/write only)${NC}"
 
     return 0
@@ -407,7 +484,9 @@ build_moduli_generator() {
 }
 
 schema_installer() {
+	activate_venv || { echo -e "${RED}Failed to create runtime virtual environment${NC}"; return 1; }
 	install_schema --mariadb-cnf "${CONST_PRIVILEGED_TMP_FILE}"
+	deactivate || true
 }
 
 # Remove Temporary Privileged Credentials and Installer Script
