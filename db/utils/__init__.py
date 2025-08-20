@@ -59,7 +59,7 @@ class InstallSchema(object):
             it defaults to the configured DEFAULT_MARIADB constant.7
         """
         self.db = db
-        self.schema_statements = schema_statements_function(db_name)
+        self.schema_statements = schema_statements_function(db_name, password=password)
         self.password = password
 
         print(f"Installing schema for database: {db_name}")
