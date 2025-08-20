@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from pathlib import PosixPath as Path
 from re import compile, sub
 from socket import getfqdn
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Final, List, Optional
 
 from mariadb import ConnectionPool, Error  # Add this import
 from mkdocs.config.config_options import FilesystemObject
@@ -18,12 +18,13 @@ from config import (
 )
 from db.test_utils import get_config_mock_status, is_mock_object
 
-DEFAULT_MARIADB_HOST = "localhost"
-DEFAULT_MARIADB_PORT = 3306
-DEFAULT_MARIADB_USER = "moduli_generator"
-DEFAULT_MARIADB_PASSWORD = None
-DEFAULT_MARIADB_SSL = True
-DEFAULT_MARIADB_SOCKET = "/var/run/mysqld/mysqld.sock"
+CONST_CONFIG_ID: Final[int] = 1  # JOIN to Moduli File Constants
+DEFAULT_MARIADB_HOST: Final[str] = "localhost"
+DEFAULT_MARIADB_PORT: Final[int] = 3306
+DEFAULT_MARIADB_USER: Final[str] = "moduli_generator"
+DEFAULT_MARIADB_PASSWORD: Final[str] = None
+DEFAULT_MARIADB_SSL: Final[bool] = True
+DEFAULT_MARIADB_SOCKET: Final[str] = "/var/run/mysqld/mysqld.sock"
 
 __all__ = [
     "MariaDBConnector",
@@ -75,18 +76,27 @@ def is_valid_identifier_sql(identifier: str) -> bool:
 
 def parse_mysql_config(mysql_cnf: FilesystemObject, file_system=None) -> Dict[str, Dict[str, str]]:
     """
-    Parse MySQL/MariaDB configuration file and return a dictionary structure.
+    Parses a MySQL configuration file and converts its contents into a nested dictionary where each
+    key represents a section, and its associated value is another dictionary containing key-value pairs
+    from the corresponding section.
 
     Args:
-        mysql_cnf: Path to config file (str or Path) or file-like object
-        file_system: Optional file system interface for testing, defaults to standard operations
-
-    Returns:
-        Dictionary with sections and key-value pairs
+        mysql_cnf (FilesystemObject): The MySQL configuration file to parse. This can be a string
+            representing the file path, a `Path` object, or a file-like object that supports reading.
+        file_system (Optional[Dict[str, Callable]]): A dictionary of file system operations to be
+            used when interacting with `mysql_cnf`. If None, standard file operations are used.
 
     Raises:
-        ValueError: If the configuration file has parsing errors
-        FileNotFoundError: If the file doesn't exist
+        FileNotFoundError: If the specified file does not exist.
+        ValueError: If the file is a directory or contains parsing errors such as duplicate sections,
+            invalid structure, or other issues.
+        PermissionError: If there are insufficient permissions to access the file.
+        Exception: For any other unexpected errors that occur during parsing.
+
+    Returns:
+        Dict[str, Dict[str, str]]: A dictionary representation of the MySQL configuration file.
+            Each section corresponds to a dictionary of key-value pairs. If the file is empty or contains
+            no valid sections, an empty dictionary is returned.
     """
     # Use standard file operations by default
     if file_system is None:
@@ -367,20 +377,17 @@ class MariaDBConnector:
     # noinspection PyUnreachableCode
     def __init__(self, config: ModuliConfig = default_config) -> "MariaDBConnector":
         """
-        Initializes a class instance with provided configuration parameters and sets up a MariaDB
-                connection pool, along with configured logging for module operations.
-
-                A Detailed connection pool is established using connection parameters parsed from the MariaDB
-                configuration file, ensuring efficient database interaction. Logging is configured for the
-                module using the provided logger in the configuration.
+        Initializes a MariaDBConnector object and configures it with the provided settings. This involves
+        setting up internal attributes, parsing the MariaDB configuration file, establishing a connection
+        pool, and validating the database schema before finalizing the object instantiation.
 
         Args:
-            config (ModuliConfig): Configuration object containing necessary properties for initialization
-                                    such as MariaDB setup, table/view names, logging preferences, and other
-                                    settings.
+            config (ModuliConfig, optional): Configuration object containing settings for the MariaDB
+                connector. If not provided, a default configuration is used.
 
         Raises:
-            RuntimeError: If the connection pool creation fails due to database-related issues.
+            RuntimeError: If the configuration file format is invalid or if critical sections are missing.
+            RuntimeError: If the connection pool creation fails due to connection errors.
         """
         for key, value in config.__dict__.items():
             if key in [
@@ -398,9 +405,9 @@ class MariaDBConnector:
             ]:
                 setattr(self, key, value)
 
-        # Set default config_id if not provided
+        # Set the moduli file constants record with join filed config_id = 1.
         if not hasattr(self, "config_id"):
-            self.config_id = "default"
+            self.config_id: Final[int] = CONST_CONFIG_ID
 
         # Configure MariaDBCOnnedctor's Logger
         self.logger = config.get_logger()

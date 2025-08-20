@@ -1,6 +1,9 @@
-# db.MariaDBConnector.scripts
+# db.MariaDBConnector
 
-::: db.scripts.install_moduli_generator_schema
+::: db
+
 options:
-members: true
-private-members: false
+members: false
+inherited-members: false
+show-inheritance: false
+
