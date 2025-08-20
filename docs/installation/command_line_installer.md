@@ -28,7 +28,7 @@ cd ~/moduli_generator
 Cut and paste the following command into your terminal:
 
   ```bash
-  curl -fsSL -o install_mg.sh https://raw.githubusercontent.com/beckerwilliams/moduli_generator/HEAD/data/bash_scripts/install_mg.sh
+  curl -fsSL -o install_mg.sh https://raw.githubusercontent.com/beckerwilliams/moduli_generator/HEAD/data/bash_scripts/install_wcnf_mg.sh
 
   ```
 
