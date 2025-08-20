@@ -36,7 +36,7 @@ class InstallSchema(object):
     executing all statements in a single transaction, or loading schema definitions from SQL files.
 
     Attributes:
-        db_conn (MariaDBConnector): Connector instance to interact with the MariaDB database.
+        db (MariaDBConnector): Connector instance to interact with the MariaDB database.
         db_name (str): Name of the database where schemas are to be installed.
         schema_statements (List[Dict[str, Any]]): List of schema statements containing 'query' strings
             and optional 'params' or 'fetch' configurations.
@@ -44,22 +44,24 @@ class InstallSchema(object):
 
     def __init__(
             self,
-            db_connector: MariaDBConnector,
+            db: MariaDBConnector,
+            schema_statements_function: Function,
             db_name: str = config.db_name,
-            schema_statements: List[Dict[str, Any]] = None
+            password: str = None
     ):
         """
         Initializes the class with database connection, database name, and schema statements.
                 The initialization process sets up the schema for the specified database.
 
         Args:
-            db_connector (MariaDBConnector): Instance of MariaDBConnector used for connecting to the MariaDB database.
+            db (MariaDBConnector): Instance of MariaDBConnector used for connecting to the MariaDB database.
             db_name (str): Name of the database where the schema will be installed. If not provided,
             it defaults to the configured DEFAULT_MARIADB constant.7
         """
-        self.db_conn = db_connector
-        self.db_name = db_name
-        self.schema_statements = schema_statements
+        self.db = db
+        self.schema_statements = schema_statements_function(self.db_name)
+        self.password = password
+
         print(f"Installing schema for database: {db_name}")
 
     def install_schema(self) -> bool:
@@ -92,7 +94,7 @@ class InstallSchema(object):
                 )
 
                 # Execute the statement with parameters
-                self.db_conn.sql(query, params, fetch)
+                self.db.sql(query, params, fetch)
 
             print("Schema installation completed successfully")
             return True
@@ -129,7 +131,7 @@ class InstallSchema(object):
                     params_list.append(params)
 
             # Execute all statements in a single transaction
-            success = self.db_conn.execute_batch(queries, params_list)
+            success = self.db.execute_batch(queries, params_list)
 
             if success:
                 print("Schema installation completed successfully (batch mode)")
@@ -179,7 +181,7 @@ class InstallSchema(object):
                     continue
 
                 print(f"Executing SQL statement: {statement[:50]}...")
-                self.db_conn.sql(statement, fetch=False)
+                self.db.sql(statement, fetch=False)
 
             print("Schema installation from file completed successfully")
             return True
@@ -265,7 +267,7 @@ def get_moduli_generator_user_schema_statements(database, password=None) -> List
             and configure the moduli_generator user.
     """
     if password is None:
-        password = generate_random_password()
+        raise RuntimeError("Password must be provided")
 
     # Create `moduli_generator.cnf` MariaDB CNF File
     create_moduli_generator_cnf(
@@ -277,7 +279,6 @@ def get_moduli_generator_user_schema_statements(database, password=None) -> List
             "database": config.db_name,
             "password": password
         })
-
 
     # SQL statements to create user, grant privileges, and flush privileges
     return [
@@ -320,17 +321,22 @@ def get_moduli_generator_db_schema_statements(
         moduli_db: str = "test_moduli_db",
 ) -> List[Dict[str, Any]]:
     """
-    Generates and returns a list of database schema setup statements for creating the required
-        moduli-related tables, views, and indexes within a specified database. Additionally, it
-        includes an initial insert statement for populating configuration constants.
+    Generates MySQL schema creation and configuration statements for a moduli generator database.
+
+    This function produces a list of SQL query dictionaries necessary to create the database
+    and its tables, views, and indexes to store and manage moduli and related information.
+    It also includes initialization statements for constants required in the database.
 
     Args:
-        moduli_db (str): Name of the database where the schema will be created. Defaults
-                to 'test_moduli_db'.
+        moduli_db (str): Name of the database to hold moduli-related tables and data. Defaults to
+            "test_moduli_db".
 
     Returns:
-        List[Dict[str, Any]]: A list of dictionaries, each representing an SQL query statement with optional
-                parameters to execute and whether a fetch operation is required.
+        List[Dict[str, Any]]: A list of dictionaries containing SQL queries, optional parameters,
+        and fetch flags for creating and configuring the database schema.
+
+    Raises:
+        ValueError: If the provided `moduli_db` name contains invalid characters.
     """
     # Note: Database/table names cannot be parameterized in MySQL/MariaDB,
     # so we still need to validate and use f-strings for identifiers
@@ -601,7 +607,7 @@ def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
         mysql_cnf = Path(mysql_cnf)
 
     # Handle different input types
-    config = configparser.ConfigParser(
+    cnf = configparser.ConfigParser(
         allow_no_value=True,
         interpolation=None,
         strict=False,  # Allow duplicate sections to be merged
@@ -617,7 +623,7 @@ def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
         # Check if input is a file-like object (has read method)
         if hasattr(mysql_cnf, "read"):
             # Handle file-like objects (StringIO, etc.)
-            config.read_file(mysql_cnf)
+            cnf.read_file(mysql_cnf)
         else:
             # Handle Path objects
             # For real files, check if the file exists first
@@ -638,17 +644,17 @@ def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
                     return {}
 
             # Try to read the file - this handles both real files and mocked files
-            config.read(str(mysql_cnf))
+            cnf.read(str(mysql_cnf))
 
         # If config.read() succeeds but no sections were found, assume an empty file
-        if not config.sections():
+        if not cnf.sections():
             return {}
 
         # Convert to dictionary and cleanup comments
         result = {}
-        for section_name in config.sections():
+        for section_name in cnf.sections():
             result[section_name] = {}
-            for key, value in config.items(section_name):
+            for key, value in cnf.items(section_name):
                 if value is not None:
                     # Strip inline comments (everything after # including whitespace before it)
                     cleaned_value = sub(r"\s*#.*$", "", value).strip()

@@ -7,11 +7,11 @@
 NC="\033[0m"
 
 # Text colors
-RED="\033[0;31m"
-GREEN="\033[0;32m"
-YELLOW="\033[0;33m"
-BLUE="\033[0;34m"
-PURPLE="\033[0;35m"
+RED="\033[0;31m"        # Errors
+GREEN="\033[0;32m"      #
+YELLOW="\033[0;33m"     #
+BLUE="\033[0;34m"       #
+PURPLE="\033[0;35m"     #
 
 ECHO="echo -e"
 MV="mv"
@@ -40,7 +40,7 @@ CONST_PRIVILEGED_TMP_FILE=${MODULI_GENERATOR_CONFIG_DIR}/privileged.tmp
 wheel_file=""
 
 ##############################################################################################
-echo -e "${PURPLE} Project Name: ${PROJECT_NAME}\n\tWORK_DIR: ${WORK_DIR}\n\tCWD: ${CWD}${NC}"
+echo -e "${BLUE} Project Name: ${PROJECT_NAME}\n\tWORK_DIR: ${WORK_DIR}\n\tCWD: ${CWD}${NC}"
 
 # Create Credentials and MariaDB Config for `moduli_generator` user
 create_privileged_config() {
@@ -49,7 +49,7 @@ create_privileged_config() {
     ${MKDIR} "${MODULI_GENERATOR_CONFIG_DIR}"
 
     echo -e "${BLUE}[ Database Configuration Setup ]${NC}"
-    echo -e "${YELLOW}Please choose how you would like to provide MariaDB connection details:${NC}"
+    echo -e "${GREEN}Please choose how you would like to provide MariaDB connection details:${NC}"
     echo
     
     # Ask user to select configuration method
@@ -297,8 +297,9 @@ activate_venv() {
         POETRY="${VENV_DIR}/bin/poetry"
         
         # Set up logging paths
-        PIP_LOG_FILE="${CWD}/PIP.LOG"
-        POETRY_LOG_FILE="${CWD}/POETRY.LOG"
+        PIP_LOG_FILE="${CWD}/pip-install.log"
+        POETRY_LOG_FILE="${CWD}/poetry-install.log"
+        GIT_LOG_FILE="${CWD}/git-install.log"
         
         # Verify we're using the right pip
         echo -e "${BLUE}Using pip: $(which pip)${NC}"
@@ -357,6 +358,11 @@ install_poetry_in_venv() {
 
 build_wheel() {
     echo -e "${PURPLE}*** Project Name: ${PROJECT_NAME}\n\tWORK_DIR: ${WORK_DIR}\n\tCWD: ${CWD} ***${NC}"
+    
+    # Set up Git logging path if not already set
+    if [[ -z "${GIT_LOG_FILE}" ]]; then
+        GIT_LOG_FILE="${CWD}/git-install.log"
+    fi
 
     # Clean up any existing work directory first
     cleanup_work_dir
@@ -368,13 +374,14 @@ build_wheel() {
 
     # Clone Project from Github Repo - now should work since we cleaned up
     ${ECHO} "${BLUE}[ Cloning moduli_generator from Github ]${NC}"
-    if ! ${GIT} clone "${GITHUB_PROJECT}"; then
-        echo -e "${RED}Cloning moduli_generator FAILED! ${NC}"
+    if ! ${GIT} clone "${GITHUB_PROJECT}" >> "${GIT_LOG_FILE}" 2>&1; then
+        echo -e "${RED}Cloning moduli_generator FAILED! See ${GIT_LOG_FILE} for details. ${NC}"
         # Additional debugging information
         echo -e "${YELLOW}Current directory contents: ${NC}"
         ls -la
         return 1
     fi
+    ${ECHO} "${BLUE}Git clone output has been logged to ${GIT_LOG_FILE}${NC}"
 
     # Change Directory to Installed 'moduli_generator' (project)
     ${ECHO} "${BLUE}[ Entering Moduli Dev Directory ]${NC}"
