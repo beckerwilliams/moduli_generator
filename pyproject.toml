@@ -61,6 +61,7 @@ install_schema = "db.scripts.install_moduli_generator_schema:main"
 restart_screening = "moduli_generator.restart:main"
 write_ssh_moduli_file = "moduli_generator.write_ssh2_moduli_file:main"
 changelog = "changelog_generator.scripts.show:main"
+create_moduli_generator_cnf = "db.scripts.create_moduli_generator_cnf:main"
 
 [tool.poetry.dependencies]
 python = ">=3.12,<4.0"

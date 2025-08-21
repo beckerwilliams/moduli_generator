@@ -35,6 +35,7 @@ MODULI_GENERATOR_APP=${PROJECT_NAME}
 # Config Directory
 MODULI_GENERATOR_CONFIG_DIR="${HOME}/.moduli_generator"
 CONST_PRIVILEGED_TMP_FILE=${MODULI_GENERATOR_CONFIG_DIR}/privileged.tmp
+CONST_MODULI_GENERATOR_CNF=${MODULI_GENERATOR_CONFIG_DIR}/moduli_generator.tmp
 
 # Global variable for wheel file
 wheel_file=""
@@ -498,8 +499,14 @@ build_moduli_generator() {
     return 0
 }
 
+create_application_cnf() {
+	activate_venv || { echo -e "${RED}Failed to activate runtime virtual environment${NC}"; return 1; }
+	moduli_generator create_moduli_generator_cnf --mariadb-cnf "${CONST_MODULI_GENERATOR_CNF"
+	deactivate || true
+}
+
 schema_installer() {
-	activate_venv || { echo -e "${RED}Failed to create runtime virtual environment${NC}"; return 1; }
+	activate_venv || { echo -e "${RED}Failed to activate runtime virtual environment${NC}"; return 1; }
 	install_schema --mariadb-cnf "${CONST_PRIVILEGED_TMP_FILE}"
 	deactivate || true
 }
@@ -550,6 +557,11 @@ if ! build_moduli_generator; then
     exit 1
 fi
 
+if ! create_application_cnf; then
+    echo -e "${RED}" "Create Application Configuration Failed" "${NC}"
+    exit 1
+fi
+
 if ! schema_installer; then
 	echo -e "${RED}" "Moduli Generator User and Schema Installer Failed" "${NC}"
 	exit 1
@@ -560,4 +572,3 @@ cleanup
 echo -e "${GREEN}" "✓ Installation completed successfully!" "${NC}"
 echo -e "${BLUE}" "To activate the environment, run: source ${VENV_DIR}/bin/activate" "${NC}"
 echo -e "${BLUE}" "To test the installation, run: moduli_generator --help" "${NC}"
-
