@@ -14,7 +14,7 @@ def main():
     # Generator random password for `moduli_generator` user
     mg_password = generate_random_password()
     # Install `Moduli Generator` schema
-    db_install = InstallSchema(db, get_moduli_generator_db_schema_statements, config.db_name)
+    db_install = InstallSchema(db, get_moduli_generator_db_schema_statements, config.db_name, password=mg_password)
     user_install = InstallSchema(db, get_moduli_generator_user_schema_statements, config.db_name, password=mg_password)
 
     if args.batch:

@@ -1,9 +1,7 @@
 # db.MariaDBConnector
 
-::: db
-
+::: db.MariaDBConnector
 options:
-members: false
-inherited-members: false
+members: true
 show-inheritance: false
 

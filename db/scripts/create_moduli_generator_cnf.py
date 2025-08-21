@@ -3,7 +3,8 @@ from config import default_config as config
 from db.utils import cnf_argparser as argparser, create_moduli_generator_cnf, generate_random_password
 
 
-def main(args):
+def main():
+    args = argparser().parse_args()
 
     create_moduli_generator_cnf(
         config.project_name or 'moduli_generator',
@@ -17,5 +18,4 @@ def main(args):
 
 
 if __name__ == "__main__":
-    args = argparser().parse_args()
-    exit(main(args))
+    exit(main())

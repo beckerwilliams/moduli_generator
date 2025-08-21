@@ -1,5 +1,5 @@
 # config
 
-::: config.argparser_moduli_generator
+::: config
 options:
 members: true
