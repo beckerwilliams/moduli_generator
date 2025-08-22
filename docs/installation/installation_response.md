@@ -1,4 +1,6 @@
-### intallation response
+# intallation response
+
+## Use exisisting privilged.cnf file,
 
 ```bash
 (.venv) [ron@aragorn ~/moduli %] curl -fsSL -o install_mg.sh https://raw.githubusercontent.com/beckerwilliams/moduli_generator/HEAD/data/bash_scripts/install_mg.sh
