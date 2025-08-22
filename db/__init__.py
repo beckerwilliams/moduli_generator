@@ -6,7 +6,6 @@ from socket import getfqdn
 from typing import Any, Dict, Final, List, Optional
 
 from mariadb import ConnectionPool, Error  # Add this import
-from mkdocs.config.config_options import FilesystemObject
 from typing_extensions import ContextManager
 
 from config import (
@@ -74,7 +73,7 @@ def is_valid_identifier_sql(identifier: str) -> bool:
     return True
 
 
-def parse_mysql_config(mysql_cnf: FilesystemObject, file_system=None) -> Dict[str, Dict[str, str]]:
+def parse_mysql_config(mysql_cnf: Path, file_system=None) -> Dict[str, Dict[str, str]]:
     """
     Parses a MySQL configuration file and converts its contents into a nested dictionary where each
     key represents a section, and its associated value is another dictionary containing key-value pairs
@@ -90,7 +89,7 @@ def parse_mysql_config(mysql_cnf: FilesystemObject, file_system=None) -> Dict[st
         FileNotFoundError: If the specified file does not exist.
         ValueError: If the file is a directory or contains parsing errors such as duplicate sections,
             invalid structure, or other issues.
-        PermissionError: If there are insufficient permissions to access the file.
+        PermissionError: If there are not enough permissions to access the file.
         Exception: For any other unexpected errors that occur during parsing.
 
     Returns:
@@ -106,7 +105,7 @@ def parse_mysql_config(mysql_cnf: FilesystemObject, file_system=None) -> Dict[st
             'get_size': lambda p: p.stat().st_size if hasattr(p, 'stat') else 0,
             'read': lambda p: str(p),
         }
-        
+
     # Fix: Check if mysql_cnf is None or empty string
     if mysql_cnf is None or mysql_cnf == "":
         return {}
@@ -415,7 +414,7 @@ class MariaDBConnector:
         self.logger.debug(f"Using MariaDB config: {config.mariadb_cnf}")
         self.records_per_keylength = config.records_per_keylength
 
-        # Parse MySQL configuration with defensive handling [THIS IS THE PRIVILEGED USER!
+        # Parse MySQL configuration with defensive handling - THIS IS THE PRIVILEGED USER!
         parsed_config = parse_mysql_config(config.mariadb_cnf)
         if not isinstance(parsed_config, dict):
             raise RuntimeError(
@@ -498,7 +497,7 @@ class MariaDBConnector:
             self.logger.warning(
                 "Database schema verification failed, but continuing initialization"
             )
-    
+
     def sql(
             self, query: str, params: Optional[tuple] = None, fetch: bool = True
     ) -> Optional[List[Dict]]:
@@ -546,7 +545,7 @@ class MariaDBConnector:
             if params:
                 self.logger.error(f"Parameters: {params}")
             if "SQL execution failed" in str(err):
-                # Match exact error message format expected by test_sql_execution_error
+                # Match the exact error message format expected by test_sql_execution_error
                 raise RuntimeError("Database query failed: SQL execution failed")
             else:
                 raise RuntimeError(f"Database query failed: {err}")
@@ -668,7 +667,7 @@ class MariaDBConnector:
             self.logger.error(f"Error executing batch queries: {err}")
             # Ensure the error message format matches the test's expected pattern
             if "Batch execution failed" in str(err):
-                # Match exact error message format expected by test_batch_execution_error
+                # Match the exact error message format expected by test_batch_execution_error
                 raise RuntimeError("Batch query execution failed: Batch execution failed")
             else:
                 raise RuntimeError(f"Batch query execution failed: {err}")

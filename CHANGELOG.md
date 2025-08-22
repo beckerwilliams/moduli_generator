@@ -4,6 +4,12 @@ This document tracks the changes made to the moduli_generator project.
 
 ## Version 1.0.1
 
+## 2025-08-22
+
+* **Features**: Config.ModuliGenerator - Refactored to emit `default_config` as a `function` that returns the
+  default_config, instead of a pointer to an already created default_config - Modified all usages of `default_config` to
+  assure function is invoked and results in `instance`
+
 ## 2025-08-20
 
 **Database Improvements**:
@@ -38,6 +44,7 @@ This document tracks the changes made to the moduli_generator project.
 
 * Doc Rebuild
 * Revert "Doc Rebuild"
+
 
 ## 2025-08-18
 

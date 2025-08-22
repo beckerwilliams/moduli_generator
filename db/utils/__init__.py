@@ -6,11 +6,8 @@ from pathlib import Path
 from re import compile, sub
 from typing import (Any, Callable, Dict, List)
 
-from db import MariaDBConnector, default_config
-
-# config = ModuliConfig().ensure_directories()
-
-# from db import MariaDBConnector
+from config import default_config
+from db import MariaDBConnector
 
 __all__ = [
     "InstallSchema",
@@ -46,8 +43,7 @@ class InstallSchema(object):
             self,
             db: MariaDBConnector,
             schema_statements_function: Callable[[str], List[Dict[str, Any]]],
-            db_name: str = default_config().db_name,
-            password: str = None
+            db_name: str = default_config().db_name
     ):
         """
         Initializes the class with database connection, database name, and schema statements.
@@ -192,6 +188,7 @@ class InstallSchema(object):
 
 
 def cnf_argparser() -> ArgumentParser:
+    config = default_config()
     args = ArgumentParser(description="Install SSH Moduli Schema")
     args.add_argument(
         "--mariadb-cnf",
@@ -277,6 +274,7 @@ def get_moduli_generator_user_schema_statements(database) -> List[Dict[str, Any]
             SQL query string (`query`), its corresponding parameters (`params`), and a
             `fetch` flag indicating whether the operation requires fetching data.
     """
+    config = default_config()
     password = generate_random_password()
 
     # Create `moduli_generator.cnf` MariaDB CNF File
@@ -353,7 +351,7 @@ def get_moduli_generator_db_schema_statements(moduli_db: str = "test_moduli_db")
 
     return [
         {
-            "query": "CREATE DATABASE IF NOT EXISTS moduli_bb",
+            "query": "CREATE DATABASE IF NOT EXISTS moduli_db",
             "params": None,
             "fetch": False,
         },
@@ -369,6 +367,20 @@ def get_moduli_generator_db_schema_statements(moduli_db: str = "test_moduli_db")
                 description VARCHAR(255) COMMENT 'Moduli Generator (R) OpenSSH2 moduli properties'
             )""",
             "params": None,
+            "fetch": False,
+        },
+        {
+            "query": f"""INSERT INTO moduli_db.mod_fl_consts (config_id, type, tests, trials, generator, description)
+                VALUES (%s, %s, %s, %s, %s, %s) \
+                """,
+            "params": (
+                1,
+                "2",
+                "6",
+                100,
+                2,
+                "Moduli Generator (R) SSH moduli properties",
+            ),
             "fetch": False,
         },
         {
@@ -404,21 +416,6 @@ def get_moduli_generator_db_schema_statements(moduli_db: str = "test_moduli_db")
             "fetch": False,
         },
         {
-            "query": f"""CREATE TABLE IF NOT EXISTS archive_db.moduli (
-            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            timestamp DATETIME NOT NULL,
-            config_id TINYINT UNSIGNED NOT NULL COMMENT 'Foreign key to moduli constants',
-            size INT UNSIGNED NOT NULL COMMENT 'Key size in bits',
-            modulus TEXT NOT NULL COMMENT 'Prime modulus value',
-            modulus_hash VARCHAR(128) GENERATED ALWAYS AS (SHA2(modulus, 512)) STORED COMMENT 'Hash of modulus',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (config_id) REFERENCES mod_fl_consts(config_id),
-            UNIQUE KEY (modulus_hash)
-        )""",
-            "params": None,
-            "fetch": False,
-        },
-        {
             "query": f"CREATE INDEX idx_size ON moduli_db.moduli(size)",
             "params": None,
             "fetch": False,
@@ -429,29 +426,48 @@ def get_moduli_generator_db_schema_statements(moduli_db: str = "test_moduli_db")
             "fetch": False,
         },
         {
-            "query": f"CREATE INDEX idx_size ON moduli_db.moduli_archive(size)",
+            "query": f"""CREATE TABLE IF NOT EXISTS moduli_db.moduli_archive
+                        (
+                            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                            timestamp DATETIME NOT NULL,
+                            config_id TINYINT UNSIGNED NOT NULL COMMENT 'Foreign key to moduli constants',
+                            size INT UNSIGNED NOT NULL COMMENT 'Key size in bits',
+                            modulus TEXT NOT NULL COMMENT 'Prime modulus value',
+                            modulus_hash VARCHAR(128) GENERATED ALWAYS AS (SHA2(modulus, 512)) STORED COMMENT 'Hash of modulus',
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            FOREIGN KEY (config_id) REFERENCES mod_fl_consts(config_id),
+                            UNIQUE KEY (modulus_hash)
+                       )""",
+            "params": None,
+            "fetch": False
+        },
+        {
+            "query": f"""CREATE VIEW IF NOT EXISTS moduli_db.moduli_archive_view AS
+        SELECT
+            m.timestamp,
+            c.type,
+            c.tests,
+            c.trials,
+            m.size,
+            c.generator,
+            m.modulus
+        FROM
+            moduli_db.moduli_archive m
+                JOIN
+            moduli_db.mod_fl_consts c ON m.config_id = c.config_id""",
             "params": None,
             "fetch": False,
+        },
+        {
+            "query": f"CREATE INDEX idx_size ON moduli_db.moduli_archive(size)",
+            "params": None,
+            "fetch": False
         },
         {
             "query": f"CREATE INDEX idx_timestamp ON moduli_db.moduli_archive(timestamp)",
             "params": None,
-            "fetch": False,
-        },
-        {
-            "query": f"""INSERT INTO moduli_db.mod_fl_consts (config_id, type, tests, trials, generator, description)
-                        VALUES (%s, %s, %s, %s, %s, %s) \
-                        """,
-            "params": (
-                1,
-                "2",
-                "6",
-                100,
-                2,
-                "Moduli Generator (R) SSH moduli properties",
-            ),
-            "fetch": False,
-        },
+            "fetch": False
+        }
     ]
 
 
@@ -742,6 +758,7 @@ def create_moduli_generator_cnf(user, host, **kwargs) -> Path:
     Returns:
         Path: The path to the generated MariaDB CNF file.
     """
+    config = default_config()
     cnf_attrs = {
         "client": {
             "user": user,

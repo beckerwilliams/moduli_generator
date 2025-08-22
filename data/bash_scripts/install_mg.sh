@@ -501,7 +501,7 @@ build_moduli_generator() {
 
 create_application_cnf() {
 	activate_venv || { echo -e "${RED}Failed to activate runtime virtual environment${NC}"; return 1; }
-	moduli_generator create_moduli_generator_cnf --mariadb-cnf "${CONST_MODULI_GENERATOR_CNF"
+	moduli_generator create_moduli_generator_cnf --mariadb-cnf "${CONST_MODULI_GENERATOR_CNF}"
 	deactivate || true
 }
 
@@ -569,6 +569,6 @@ fi
 
 cleanup
 
-echo -e "${GREEN}" "✓ Installation completed successfully!" "${NC}"
-echo -e "${BLUE}" "To activate the environment, run: source ${VENV_DIR}/bin/activate" "${NC}"
-echo -e "${BLUE}" "To test the installation, run: moduli_generator --help" "${NC}"
+echo -e "${GREEN}✓ Installation completed successfully!" "${NC}"
+echo -e "${BLUE}To activate the environment, run: source ${VENV_DIR}/bin/activate" "${NC}"
+echo -e "${BLUE}To test the installation, run: moduli_generator --help${NC}"

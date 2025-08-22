@@ -95,7 +95,7 @@ CONST_MODULI_FILENAME_PATTERN: Final[re] = r"moduli_????_*"
 CONST_CANDIDATE_IDX_FILENAME_PATTERN: Final[re] = (
     r".candidates_????_????????????????????"
 )
-CONST_PRIVILEGED_TMP_CNF: Final[str] = "privileged.tmp"
+CONST_PRIVILEGED_TMP_CNF: Final[str] = "privileged.cnf"
 CONST_MARIADB_PASSWORD_LENGTH: Final[int] = 32
 
 

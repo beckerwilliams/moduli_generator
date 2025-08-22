@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 from config import default_config
 from db import MariaDBConnector
-from db.utils import (InstallSchema, cnf_argparser as argparser, generate_random_password,
-                      get_moduli_generator_db_schema_statements, get_moduli_generator_user_schema_statements)
+from db.utils import (InstallSchema, cnf_argparser as argparser, get_moduli_generator_db_schema_statements, get_moduli_generator_user_schema_statements)
 
 
 def main():
@@ -12,11 +11,9 @@ def main():
     config.mariadb_cnf = config.moduli_home / config.privileged_tmp_cnf
     db = MariaDBConnector(config)
 
-    # Generator random password for `moduli_generator` user
-    mg_password = generate_random_password()
     # Install `Moduli Generator` schema
-    db_install = InstallSchema(db, get_moduli_generator_db_schema_statements, config.db_name, password=mg_password)
-    user_install = InstallSchema(db, get_moduli_generator_user_schema_statements, config.db_name, password=mg_password)
+    db_install = InstallSchema(db, get_moduli_generator_db_schema_statements, config.db_name)
+    user_install = InstallSchema(db, get_moduli_generator_user_schema_statements, config.db_name)
 
     if args.batch:
         db_success = db_install.install_schema_batch()
