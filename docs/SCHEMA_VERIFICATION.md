@@ -50,7 +50,7 @@ from db import MariaDBConnector
 from config import default_config
 
 # Create connector instance
-connector = MariaDBConnector(default_config)
+connector = MariaDBConnector(default_config())
 
 # Run schema verification
 results = connector.verify_schema()
@@ -173,7 +173,7 @@ from config import default_config
 
 def main():
     try:
-        connector = MariaDBConnector(default_config)
+        connector = MariaDBConnector(default_config())
         results = connector.verify_schema()
 
         print(f"Schema verification: {results['overall_status']}")

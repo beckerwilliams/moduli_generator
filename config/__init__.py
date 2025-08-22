@@ -11,6 +11,7 @@ from pathlib import PosixPath as Path
 from typing import Final
 
 # Try to get the version from package metadata first
+# noinspection PyBroadException
 try:
     from importlib.metadata import version
 
@@ -28,6 +29,7 @@ except Exception:
 
 # If package metadata fails, use pyproject.toml fallback
 if __version__ is None:
+    # noinspection PyBroadException
     try:
         from config.get_version import get_version
 
@@ -103,10 +105,12 @@ def iso_utc_timestamp(compress: bool = False) -> str:
         to remove non-numeric characters.
 
     Args:
-        compress (bool): Specifies whether the timestamp should be compressed by removing         non-numeric characters.
+        compress (bool): Specifies whether the timestamp should be compressed by removing
+                 non-numeric characters.
 
     Returns:
-        str: The generated UTC timestamp as a string. If `compress` is True, the         timestamp will only contain numeric characters.
+        str: The generated UTC timestamp as a string. If `compress` is True, the
+                 timestamp will only contain numeric characters.
     """
 
     timestamp = iso_utc_time_notzinfo().isoformat()
@@ -142,7 +146,7 @@ def strip_punction_from_datetime_str(timestamp: datetime) -> str:
         timestamp (Datetime): A datetime object to compress into a string.
 
     Returns:
-        str: A string representation of the given datetime with all non-numeric         characters removed.
+        str: A string representation of the given datetime with all non-numeric characters removed.
     """
     return re.sub(r"[^0-9]", "", timestamp.isoformat())
 
@@ -233,7 +237,7 @@ class ModuliConfig:
         # Set Project Version Number
         self.version = version
 
-        # Set name of Privleged Temporary MariaDB Config File
+        # Set the name of Privleged Temporary MariaDB Config File
         self.privileged_tmp_cnf = CONST_PRIVILEGED_TMP_CNF
         self.password_length = CONST_MARIADB_PASSWORD_LENGTH
 
@@ -302,10 +306,12 @@ class ModuliConfig:
                 path to the default log file.
 
         Args:
-            name (Optional[str]): Name of the log file to retrieve. If None, the default log file             path is returned.
+            name (Optional[str]): Name of the log file to retrieve. If None, the default log file
+                         path is returned.
 
         Returns:
-            Path: The full path to the specified log file if a name is provided, or             the default log file path otherwise.
+            Path: The full path to the specified log file if a name is provided, or
+                         the default log file path otherwise.
         """
         if name:
             return self.log_dir / name
@@ -325,7 +331,8 @@ class ModuliConfig:
             base_dir (str): The base directory to be used for initialization.
 
         Returns:
-            ModuliConfig: A new instance of the ModuliConfig class initialized with the given             base directory.
+            ModuliConfig: A new instance of the ModuliConfig class initialized with the given
+                         base directory.
         """
         return ModuliConfig(base_dir)
 
@@ -334,5 +341,19 @@ class ModuliConfig:
         return self.version
 
 
-# Create a default configuration instance
-default_config = ModuliConfig().ensure_directories()
+# Enable FRESH config file creation each invocation of default_config()
+def default_config():
+    """
+    Creates and returns a fresh ModuliConfig instance with directories ensured.
+    
+    This function creates a new ModuliConfig instance on each call and ensures 
+    that all required directories exist before returning it.
+    
+    Returns:
+        ModuliConfig: A newly initialized ModuliConfig instance with directories ensured.
+    """
+    return ModuliConfig().ensure_directories()
+
+
+# Create an alias for ModuliConfig that tests can use via config.config
+config = ModuliConfig

@@ -8,7 +8,7 @@ from config import ModuliConfig, default_config, iso_utc_timestamp
 from db import MariaDBConnector
 
 
-def main(config: ModuliConfig = default_config, output_file=None):
+def main(config: ModuliConfig = default_config(), output_file=None):
     """
     Writes moduli records to a specified output file. Configures logging, connects to
         the MariaDB database using the provided configuration, retrieves moduli records,

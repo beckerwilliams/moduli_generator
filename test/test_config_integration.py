@@ -22,26 +22,27 @@ class TestModuliGeneratorArgParser:
     def test_argparser_default_values(self):
         """Test argument parser with default values."""
         args = _moduli_generator_argparser()
+        config = default_config()
 
         # Verify default values are set correctly
         assert args.candidates_dir == str(
-            default_config.candidates_dir.relative_to(default_config.moduli_home)
+            config.candidates_dir.relative_to(config.moduli_home)
         )
         assert args.delete_records_on_moduli_write is False
-        assert args.key_lengths == default_config.key_lengths
+        assert args.key_lengths == config.key_lengths
         assert args.log_dir == str(
-            default_config.log_dir.relative_to(default_config.moduli_home)
+            config.log_dir.relative_to(config.moduli_home)
         )
         assert args.mariadb_cnf == str(
-            default_config.mariadb_cnf.relative_to(default_config.moduli_home)
+            config.mariadb_cnf.relative_to(config.moduli_home)
         )
         assert args.moduli_dir == str(
-            default_config.moduli_dir.relative_to(default_config.moduli_home)
+            config.moduli_dir.relative_to(config.moduli_home)
         )
-        assert args.moduli_home == str(default_config.moduli_home)
-        assert args.moduli_db == default_config.db_name
-        assert args.nice_value == default_config.nice_value
-        assert args.records_per_keylength == default_config.records_per_keylength
+        assert args.moduli_home == str(config.moduli_home)
+        assert args.moduli_db == config.db_name
+        assert args.nice_value == config.nice_value
+        assert args.records_per_keylength == config.records_per_keylength
 
     @pytest.mark.integration
     @patch("sys.argv", ["moduli_generator", "--key-lengths", "4096", "8192"])
@@ -180,7 +181,7 @@ class TestLocalConfigFunction:
 
     @pytest.mark.integration
     @patch("config.argparser_moduli_generator._moduli_generator_argparser")
-    @patch("config.default_config.with_base_dir")
+    @patch("config.config.with_base_dir")
     @patch("db.is_valid_identifier_sql")
     def test_local_config_with_none_args(
         self, mock_is_valid, mock_with_base_dir, mock_argparser
@@ -226,7 +227,7 @@ class TestLocalConfigFunction:
         assert mock_config.nice_value == 10
 
     @pytest.mark.integration
-    @patch("config.default_config.with_base_dir")
+    @patch("config.config.with_base_dir")
     @patch("db.is_valid_identifier_sql")
     def test_local_config_with_provided_args(self, mock_is_valid, mock_with_base_dir):
         """Test local_config function with provided arguments."""
@@ -270,7 +271,7 @@ class TestLocalConfigFunction:
         assert mock_config.nice_value == -5
 
     @pytest.mark.integration
-    @patch("config.default_config.with_base_dir")
+    @patch("config.config.with_base_dir")
     @patch("db.is_valid_identifier_sql")
     def test_local_config_invalid_database_name(
         self, mock_is_valid, mock_with_base_dir
@@ -304,7 +305,7 @@ class TestLocalConfigFunction:
         mock_is_valid.assert_called_once_with("invalid-db-name!")
 
     @pytest.mark.integration
-    @patch("config.default_config.with_base_dir")
+    @patch("config.config.with_base_dir")
     @patch("db.is_valid_identifier_sql")
     def test_local_config_database_name_validation_edge_cases(
         self, mock_is_valid, mock_with_base_dir
@@ -352,7 +353,7 @@ class TestLocalConfigFunction:
                     local_config(mock_args)
 
     @pytest.mark.integration
-    @patch("config.default_config.with_base_dir")
+    @patch("config.config.with_base_dir")
     @patch("db.is_valid_identifier_sql")
     def test_local_config_path_construction(self, mock_is_valid, mock_with_base_dir):
         """Test local_config path construction logic."""
@@ -385,7 +386,7 @@ class TestLocalConfigFunction:
         assert mock_config.mariadb_cnf == mock_config.moduli_home / "rel_config.cnf"
 
     @pytest.mark.integration
-    @patch("config.default_config.with_base_dir")
+    @patch("config.config.with_base_dir")
     @patch("db.is_valid_identifier_sql")
     def test_local_config_key_lengths_tuple_conversion(
         self, mock_is_valid, mock_with_base_dir
@@ -418,7 +419,7 @@ class TestLocalConfigFunction:
         assert isinstance(mock_config.key_lengths, tuple)
 
     @pytest.mark.integration
-    @patch("config.default_config.with_base_dir")
+    @patch("config.config.with_base_dir")
     @patch("db.is_valid_identifier_sql")
     def test_local_config_ensure_directories_called(
         self, mock_is_valid, mock_with_base_dir
@@ -483,7 +484,7 @@ class TestConfigMainEntryPoint:
                 print(
                     f"Moduli Generator Commands, Flags, and Options, Using default config: {mg_args}"
                 )
-                print("\t\t\t** default_config **")
+                print("\t\t\t** config **")
                 print(f"# Argument: # Value")
                 for item in vars(mg_args):
                     print(f"{item} : {getattr(mg_args, item)}")
@@ -516,7 +517,7 @@ class TestConfigIntegrationScenarios:
         ],
     )
     @patch("argparse.ArgumentParser.parse_args")
-    @patch("config.default_config.with_base_dir")
+    @patch("config.config.with_base_dir")
     @patch("db.is_valid_identifier_sql")
     def test_production_like_configuration(self, mock_is_valid, mock_with_base_dir, mock_parse_args):
         """Test production-like configuration scenario."""
@@ -562,7 +563,7 @@ class TestConfigIntegrationScenarios:
     @pytest.mark.integration
     @patch("sys.argv", ["moduli_generator", "--moduli-db", "invalid_db_name!"])
     @patch("argparse.ArgumentParser.parse_args")
-    @patch("config.default_config.with_base_dir")
+    @patch("config.config.with_base_dir")
     @patch("db.is_valid_identifier_sql")
     def test_error_handling_integration(self, mock_is_valid, mock_with_base_dir, mock_parse_args):
         """Test error handling integration scenario."""
@@ -612,7 +613,7 @@ class TestConfigIntegrationScenarios:
             "-20",
         ],
     )
-    @patch("config.default_config.with_base_dir")
+    @patch("config.config.with_base_dir")
     @patch("db.is_valid_identifier_sql")
     def test_extreme_values_configuration(self, mock_is_valid, mock_with_base_dir):
         """Test configuration with extreme but valid values."""
@@ -634,7 +635,7 @@ class TestConfigIntegrationScenarios:
 
     @pytest.mark.integration
     @patch("config.argparser_moduli_generator._moduli_generator_argparser")
-    @patch("config.default_config.with_base_dir")
+    @patch("config.config.with_base_dir")
     @patch("db.is_valid_identifier_sql")
     def test_config_workflow_with_mocked_argparser(
         self, mock_is_valid, mock_with_base_dir, mock_argparser

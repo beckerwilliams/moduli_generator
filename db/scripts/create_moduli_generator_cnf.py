@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-from config import default_config as config
+from config import default_config
 from db.utils import cnf_argparser as argparser, create_moduli_generator_cnf, generate_random_password
 
 
 def main():
+    config = default_config()
     args = argparser().parse_args()
 
     create_moduli_generator_cnf(

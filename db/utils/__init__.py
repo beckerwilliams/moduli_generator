@@ -6,9 +6,9 @@ from pathlib import Path
 from re import compile, sub
 from typing import (Any, Callable, Dict, List)
 
-from config import (
-    default_config as config)
-from db import MariaDBConnector
+from db import MariaDBConnector, default_config
+
+# config = ModuliConfig().ensure_directories()
 
 # from db import MariaDBConnector
 
@@ -46,7 +46,7 @@ class InstallSchema(object):
             self,
             db: MariaDBConnector,
             schema_statements_function: Callable[[str], List[Dict[str, Any]]],
-            db_name: str = config.db_name,
+            db_name: str = default_config().db_name,
             password: str = None
     ):
         """
@@ -58,9 +58,9 @@ class InstallSchema(object):
             db_name (str): Name of the database where the schema will be installed. If not provided,
             it defaults to the configured DEFAULT_MARIADB constant.7
         """
+        self.config = default_config()
         self.db = db
-        self.schema_statements = schema_statements_function(db_name, password=password)
-        self.password = password
+        self.schema_statements = schema_statements_function(db_name)
 
         print(f"Installing schema for database: {db_name}")
 
@@ -197,6 +197,13 @@ def cnf_argparser() -> ArgumentParser:
         "--mariadb-cnf",
         type=str,
         default=None,
+        help="Path to Standard 'moduli_generator' MariaDB Config: "
+             "default ${MODULI_GENERATOR_HOME}/.moduli_generator/privileged.tmp"
+    )
+    args.add_argument(
+        "--mariadb-privilged-cnf",
+        type=str,
+        default=None,
         help="Path to Privileged MariaDB Config: default ${MODULI_GENERATOR_HOME}/.moduli_generator/privileged.tmp"
     )
     args.add_argument(
@@ -254,20 +261,23 @@ def cnf_argparser() -> ArgumentParser:
     return args
 
 
-def get_moduli_generator_user_schema_statements(database, password=None) -> List[Dict[str, Any]]:
+def get_moduli_generator_user_schema_statements(database) -> List[Dict[str, Any]]:
     """
-    Create a moduli_generator database user with appropriate privileges.
+    Generates a series of SQL statements required to create a database user, assign relevant
+    privileges, and manage connections and updates for the `moduli_generator` user. This
+    method ensures that both remote and localhost access configurations for the user are
+    created, and privileges are applied effectively.
 
     Args:
-        database (str): The database name to grant privileges for.
-        password (str, optional): Password for the moduli_generator user. If None, a random password is generated.
+        database (str): The name of the database for which the user privileges need to
+            be set.
 
     Returns:
-        List[Dict[str, Any]]: A list of SQL statements with parameters to create
-            and configure the moduli_generator user.
+        List[Dict[str, Any]]: A list of dictionaries where each dictionary contains an
+            SQL query string (`query`), its corresponding parameters (`params`), and a
+            `fetch` flag indicating whether the operation requires fetching data.
     """
-    if password is None:
-        raise RuntimeError("Password must be provided")
+    password = generate_random_password()
 
     # Create `moduli_generator.cnf` MariaDB CNF File
     create_moduli_generator_cnf(
@@ -317,10 +327,7 @@ def get_moduli_generator_user_schema_statements(database, password=None) -> List
     ]
 
 
-def get_moduli_generator_db_schema_statements(
-        moduli_db: str = "test_moduli_db",
-        password: str = None,  # Hack for the InstallSchema class - We don't use `moduli_generator`'s password here
-) -> List[Dict[str, Any]]:
+def get_moduli_generator_db_schema_statements(moduli_db: str = "test_moduli_db") -> List[Dict[str, Any]]:
     """
     Generates MySQL schema creation and configuration statements for a moduli generator database.
 
@@ -342,16 +349,18 @@ def get_moduli_generator_db_schema_statements(
     # Note: Database/table names cannot be parameterized in MySQL/MariaDB,
     # so we still need to validate and use f-strings for identifiers
     if not moduli_db.replace("_", "").replace("-", "").isalnum():
-        raise ValueError(f"Invalid database name: {moduli_db}")
+        raise ValueError(f"Invalid database name: moduli_db")
 
     return [
         {
-            "query": f"CREATE DATABASE IF NOT EXISTS {moduli_db}",
+            "query": "CREATE DATABASE IF NOT EXISTS moduli_bb",
             "params": None,
             "fetch": False,
         },
         {
-            "query": f"""CREATE TABLE {moduli_db}.mod_fl_consts (
+            "query": f"""
+            CREATE TABLE moduli_db.mod_fl_consts 
+            (
                 config_id TINYINT UNSIGNED PRIMARY KEY,
                 type ENUM('2', '5') NOT NULL COMMENT 'Generator type (2 or 5)',
                 tests VARCHAR(50) NOT NULL COMMENT 'Tests performed on the modulus',
@@ -363,7 +372,7 @@ def get_moduli_generator_db_schema_statements(
             "fetch": False,
         },
         {
-            "query": f"""CREATE TABLE IF NOT EXISTS {moduli_db}.moduli (
+            "query": f"""CREATE TABLE IF NOT EXISTS moduli_db.moduli (
                 id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                 timestamp DATETIME NOT NULL,
                 config_id TINYINT UNSIGNED NOT NULL COMMENT 'Foreign key to moduli constants',
@@ -378,7 +387,7 @@ def get_moduli_generator_db_schema_statements(
             "fetch": False,
         },
         {
-            "query": f"""CREATE VIEW IF NOT EXISTS {moduli_db}.moduli_view AS
+            "query": f"""CREATE VIEW IF NOT EXISTS moduli_db.moduli_view AS
             SELECT
                 m.timestamp,
                 c.type,
@@ -388,14 +397,14 @@ def get_moduli_generator_db_schema_statements(
                 c.generator,
                 m.modulus
             FROM
-                {moduli_db}.moduli m
+                moduli_db.moduli m
                     JOIN
-                {moduli_db}.mod_fl_consts c ON m.config_id = c.config_id""",
+                moduli_db.mod_fl_consts c ON m.config_id = c.config_id""",
             "params": None,
             "fetch": False,
         },
         {
-            "query": f"""CREATE TABLE IF NOT EXISTS {moduli_db}.moduli_archive (
+            "query": f"""CREATE TABLE IF NOT EXISTS archive_db.moduli (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             timestamp DATETIME NOT NULL,
             config_id TINYINT UNSIGNED NOT NULL COMMENT 'Foreign key to moduli constants',
@@ -410,27 +419,27 @@ def get_moduli_generator_db_schema_statements(
             "fetch": False,
         },
         {
-            "query": f"CREATE INDEX idx_size ON {moduli_db}.moduli(size)",
+            "query": f"CREATE INDEX idx_size ON moduli_db.moduli(size)",
             "params": None,
             "fetch": False,
         },
         {
-            "query": f"CREATE INDEX idx_timestamp ON {moduli_db}.moduli(timestamp)",
+            "query": f"CREATE INDEX idx_timestamp ON moduli_db.moduli(timestamp)",
             "params": None,
             "fetch": False,
         },
         {
-            "query": f"CREATE INDEX idx_size ON {moduli_db}.moduli_archive(size)",
+            "query": f"CREATE INDEX idx_size ON moduli_db.moduli_archive(size)",
             "params": None,
             "fetch": False,
         },
         {
-            "query": f"CREATE INDEX idx_timestamp ON {moduli_db}.moduli_archive(timestamp)",
+            "query": f"CREATE INDEX idx_timestamp ON moduli_db.moduli_archive(timestamp)",
             "params": None,
             "fetch": False,
         },
         {
-            "query": f"""INSERT INTO {moduli_db}.mod_fl_consts (config_id, type, tests, trials, generator, description)
+            "query": f"""INSERT INTO moduli_db.mod_fl_consts (config_id, type, tests, trials, generator, description)
                         VALUES (%s, %s, %s, %s, %s, %s) \
                         """,
             "params": (
@@ -760,7 +769,7 @@ def create_moduli_generator_cnf(user, host, **kwargs) -> Path:
     return config.mariadb_cnf
 
 
-def generate_random_password(length=config.password_length) -> str:
+def generate_random_password(length=default_config().password_length) -> str:
     """
     Generates a random password of the specified length, consisting of letters, digits,
     and MariaDB-recommended safe special characters. This method uses cryptographically

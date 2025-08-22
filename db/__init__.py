@@ -116,7 +116,7 @@ def parse_mysql_config(mysql_cnf: FilesystemObject, file_system=None) -> Dict[st
         mysql_cnf = Path(mysql_cnf)
 
     # Handle different input types
-    config = configparser.ConfigParser(
+    mariadb_cnf = configparser.ConfigParser(
         allow_no_value=True,
         interpolation=None,
         strict=False,  # Allow duplicate sections to be merged
@@ -126,7 +126,7 @@ def parse_mysql_config(mysql_cnf: FilesystemObject, file_system=None) -> Dict[st
         # Check if input is a file-like object (has read method)
         if hasattr(mysql_cnf, "read"):
             # Handle file-like objects (StringIO, etc.)
-            config.read_file(mysql_cnf)
+            mariadb_cnf.read_file(mysql_cnf)
         else:
             # Handle Path objects
             # Check if the file exists
@@ -146,17 +146,17 @@ def parse_mysql_config(mysql_cnf: FilesystemObject, file_system=None) -> Dict[st
                 return {}
 
             # Try to read the file
-            config.read(file_system['read'](mysql_cnf))
+            mariadb_cnf.read(file_system['read'](mysql_cnf))
 
-        # If config.read() succeeds but no sections were found, assume an empty file
-        if not config.sections():
+        # If mariadb_cnf.read() succeeds but no sections were found, assume an empty file
+        if not mariadb_cnf.sections():
             return {}
 
         # Convert to dictionary and cleanup comments
         result = {}
-        for section_name in config.sections():
+        for section_name in mariadb_cnf.sections():
             result[section_name] = {}
-            for key, value in config.items(section_name):
+            for key, value in mariadb_cnf.items(section_name):
                 if value is not None:
                     # Strip inline comments (everything after # including whitespace before it)
                     cleaned_value = sub(r"\s*#.*$", "", value).strip()
@@ -375,7 +375,7 @@ class MariaDBConnector:
             raise
 
     # noinspection PyUnreachableCode
-    def __init__(self, config: ModuliConfig = default_config) -> "MariaDBConnector":
+    def __init__(self, config: ModuliConfig = default_config()) -> "MariaDBConnector":
         """
         Initializes a MariaDBConnector object and configures it with the provided settings. This involves
         setting up internal attributes, parsing the MariaDB configuration file, establishing a connection

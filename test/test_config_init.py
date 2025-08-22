@@ -397,18 +397,18 @@ class TestDefaultConfig:
 
     def test_default_config_exists(self):
         """Test that default_config is properly instantiated."""
-        assert default_config is not None
-        assert isinstance(default_config, ModuliConfig)
+        assert default_config() is not None
+        assert isinstance(default_config(), ModuliConfig)
 
     def test_default_config_directories_ensured(self):
         """Test that default_config has directories ensured."""
         # The default_config should have ensure_directories() called
         # We can verify this by checking that the directories exist
         # (though they might be created in the user's home directory)
-        assert hasattr(default_config, "moduli_home")
-        assert hasattr(default_config, "candidates_dir")
-        assert hasattr(default_config, "moduli_dir")
-        assert hasattr(default_config, "log_dir")
+        assert hasattr(default_config(), "moduli_home")
+        assert hasattr(default_config(), "candidates_dir")
+        assert hasattr(default_config(), "moduli_dir")
+        assert hasattr(default_config(), "log_dir")
 
 
 class TestModuleIntegration:
@@ -430,7 +430,7 @@ class TestModuleIntegration:
 
         # All imports should succeed without error
         assert ModuliConfig is not None
-        assert default_config is not None
+        assert default_config() is not None
         assert iso_utc_timestamp is not None
         assert strip_punction_from_datetime_str is not None
         assert is_valid_identifier_sql is not None

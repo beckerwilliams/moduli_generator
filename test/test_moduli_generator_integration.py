@@ -23,11 +23,15 @@ class TestModuliGeneratorInitialization:
     @pytest.mark.integration
     def test_moduli_generator_init_default_config(self):
         """Test ModuliGenerator initialization with default configuration."""
+        config = default_config()
         generator = ModuliGenerator()
 
-        assert generator.config == default_config
-        assert generator.config.key_lengths == default_config.key_lengths
-        assert generator.config.nice_value == default_config.nice_value
+        # Compare important attributes instead of the objects directly
+        # Since default_config() now creates a new instance each time, we can't compare objects directly
+        assert generator.config.key_lengths == config.key_lengths
+        assert generator.config.nice_value == config.nice_value
+        assert generator.config.moduli_home == config.moduli_home
+        assert generator.config.db_name == config.db_name
 
     @pytest.mark.integration
     def test_moduli_generator_init_custom_config(self, mock_config):
@@ -35,7 +39,7 @@ class TestModuliGeneratorInitialization:
         generator = ModuliGenerator(mock_config)
 
         assert generator.config == mock_config
-        assert generator.config != default_config
+        assert generator.config != default_config()
 
     @pytest.mark.integration
     def test_moduli_generator_db_property(self, mock_db_config):
@@ -479,7 +483,14 @@ class TestModuliGeneratorErrorHandling:
         """Test ModuliGenerator with invalid configuration."""
         # Test with None config should use default
         generator = ModuliGenerator()
-        assert generator.config == default_config
+        default = default_config()
+
+        # Compare important attributes instead of the objects directly
+        # Since default_config() now creates a new instance each time, we can't compare objects directly
+        assert generator.config.key_lengths == default.key_lengths
+        assert generator.config.nice_value == default.nice_value
+        assert generator.config.moduli_home == default.moduli_home
+        assert generator.config.db_name == default.db_name
 
     @pytest.mark.integration
     @patch("db.ConnectionPool")

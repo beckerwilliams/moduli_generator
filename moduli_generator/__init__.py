@@ -56,7 +56,7 @@ class ModuliGenerator:
             )
         )
 
-    def __init__(self, config: ModuliConfig = default_config) -> "ModuliGenerator":
+    def __init__(self, config: ModuliConfig = default_config()) -> "ModuliGenerator":
         """
         Class responsible for managing moduli configuration and related utilities. Handles
         logging configuration paths and supports lazy database initialization to optimize
