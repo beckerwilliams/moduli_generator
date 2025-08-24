@@ -55,10 +55,10 @@ Repository = "https://github.com/beckerwilliams/moduli_generator.git"
 Issues = "https://github.com/beckerwilliams/moduli_generator/issues"
 
 [tool.poetry.scripts]
-moduli_generator = "moduli_generator.__main__:main"
+moduli_generator = "moduli_generator.scripts.__main__:main"
 moduli_stats = "db.scripts.moduli_stats:main"
 install_schema = "db.scripts.install_moduli_generator_schema:main"
-restart_screening = "moduli_generator.restart:main"
+restart_screening = "moduli_generator.scripts.restart:main"
 write_ssh_moduli_file = "moduli_generator.write_ssh2_moduli_file:main"
 changelog = "changelog_generator.scripts.show:main"
 create_moduli_generator_cnf = "db.scripts.create_moduli_generator_cnf:main"
@@ -66,10 +66,9 @@ mariadb_safe_password = "db.scripts.mariadb_safe_password_generator:main"
 
 [tool.poetry.dependencies]
 python = ">=3.12,<4.0"
-mariadb = "1.1.13"
+mariadb = ">=1.1.13"
 configparser = ">=7.2.0"
 typing-extensions = ">=4.14.1,<5.0.0"
-mkdocs = "^1.6.1"
 
 [tool.poetry.group.dev.dependencies]
 black = ">=25.1.0,<26.0.0"
@@ -81,8 +80,6 @@ pytest-asyncio = ">=0.23.0"
 toml = ">=0.10.2"
 coverage = "^7.10.2"
 poetry = ">=1.8.3,<2.0"
-
-
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = ">=1.6.1"

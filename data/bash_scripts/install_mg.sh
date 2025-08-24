@@ -392,7 +392,7 @@ build_wheel() {
     check_poetry_project || return 1
 
     # Create and Activate BUILD Virtual Environment
-    ${ECHO} "${BLUE}[ Creating and Activating Moduli Generator\'s Wheel Builder ]${NC}"
+    ${ECHO} "${BLUE}[ Creating and Activating Moduli Generator's Wheel Builder ]${NC}"
     ${MK_VENV} ${VENV_DIR} || { echo -e "${RED}" "Failed to create virtual environment" "${NC}"; return 1; }
     activate_venv || { echo -e "${RED}Failed to activate virtual environment${NC}"; return 1; }
 

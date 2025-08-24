@@ -24,7 +24,7 @@
       </jdbc-additional-properties>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="MariaDB" uuid="727fcb6e-c03b-471a-aec0-d97e3169f22e">
+    <data-source source="LOCAL" name="mg_admin@localhost" uuid="3057200e-1a62-42f2-8e10-820a8e87d61e">
       <driver-ref>mariadb</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.mariadb.jdbc.Driver</jdbc-driver>

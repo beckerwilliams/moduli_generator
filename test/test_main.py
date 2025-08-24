@@ -9,14 +9,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from moduli_generator.__main__ import main
+from moduli_generator.scripts.__main__ import main
 
 
 @pytest.mark.unit
 def test_main_with_default_config(mock_config):
     """Test the main function with a mock config."""
     # Mock the ModuliGenerator to avoid actual execution and exceptions
-    with patch("moduli_generator.__main__.ModuliGenerator") as mock_generator_class:
+    with patch("moduli_generator.scripts.__main__.ModuliGenerator") as mock_generator_class:
         mock_generator = MagicMock()
         mock_generator_class.return_value = mock_generator
 
@@ -42,7 +42,7 @@ def test_main_with_default_config(mock_config):
 def test_main_with_value_error(mock_config):
     """Test the main function when a ValueError is raised."""
     # Set up ModuliGenerator to raise a ValueError
-    with patch("moduli_generator.__main__.ModuliGenerator") as mock_generator_class:
+    with patch("moduli_generator.scripts.__main__.ModuliGenerator") as mock_generator_class:
         mock_generator = MagicMock()
         mock_generator_class.return_value = mock_generator
         mock_generator.generate_moduli.side_effect = ValueError("Test error")
@@ -65,7 +65,7 @@ def test_main_with_value_error(mock_config):
 def test_main_with_general_exception(mock_config):
     """Test the main function when a general Exception is raised."""
     # Set up ModuliGenerator to raise a general Exception
-    with patch("moduli_generator.__main__.ModuliGenerator") as mock_generator_class:
+    with patch("moduli_generator.scripts.__main__.ModuliGenerator") as mock_generator_class:
         mock_generator = MagicMock()
         mock_generator_class.return_value = mock_generator
         mock_generator.generate_moduli.side_effect = Exception("Test error")
@@ -89,13 +89,13 @@ def test_main_with_no_config():
     """Test the main function when no config is provided."""
     # Mock the argparser_moduli_generator.local_config to return a mock config
     with patch(
-            "moduli_generator.__main__.argparser_moduli_generator.local_config"
+            "moduli_generator.scripts.__main__.argparser_moduli_generator.local_config"
     ) as mock_local_config:
         mock_config = MagicMock()
         mock_local_config.return_value = mock_config
 
         # Mock the ModuliGenerator
-        with patch("moduli_generator.__main__.ModuliGenerator") as mock_generator_class:
+        with patch("moduli_generator.scripts.__main__.ModuliGenerator") as mock_generator_class:
             mock_generator = MagicMock()
             mock_generator_class.return_value = mock_generator
 
@@ -121,7 +121,7 @@ def test_main_with_no_config():
 def test_main_chain_calls(mock_config):
     """Test that the main function correctly chains method calls."""
     # Set up the ModuliGenerator mock
-    with patch("moduli_generator.__main__.ModuliGenerator") as mock_generator_class:
+    with patch("moduli_generator.scripts.__main__.ModuliGenerator") as mock_generator_class:
         mock_generator = MagicMock()
         mock_generator_class.return_value = mock_generator
 
@@ -148,20 +148,20 @@ def test_main_chain_calls(mock_config):
 @pytest.mark.unit
 def test_main_command_line_entry_point():
     """Test the command-line entry point of the module."""
-    with patch("moduli_generator.__main__.main") as mock_main, patch(
-        "moduli_generator.__main__.exit"
+    with patch("moduli_generator.scripts.__main__.main") as mock_main, patch(
+            "moduli_generator.scripts.__main__.exit"
     ) as mock_exit:
 
         # Set up mock_main to return a specific exit code
         mock_main.return_value = 42
 
         # Execute the entry point code
-        import moduli_generator.__main__
+        import moduli_generator.scripts.__main__
 
         # This will only run if __name__ == "__main__", so we simulate that
-        if hasattr(moduli_generator.__main__, "__name__"):
-            original_name = moduli_generator.__main__.__name__
-            moduli_generator.__main__.__name__ = "__main__"
+        if hasattr(moduli_generator.scripts.__main__, "__name__"):
+            original_name = moduli_generator.scripts.__main__.__name__
+            moduli_generator.scripts.__main__.__name__ = "__main__"
             try:
                 # We need to re-execute the conditional code
                 exec(
@@ -169,11 +169,11 @@ def test_main_command_line_entry_point():
 if __name__ == "__main__":
     exit(main())
                 """,
-                    moduli_generator.__main__.__dict__,
+                    moduli_generator.scripts.__main__.__dict__,
                 )
             finally:
                 # Restore the original module name
-                moduli_generator.__main__.__name__ = original_name
+                moduli_generator.scripts.__main__.__name__ = original_name
 
         # Verify main was called
         mock_main.assert_called_once()

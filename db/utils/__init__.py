@@ -11,16 +11,16 @@ from db import MariaDBConnector
 
 __all__ = [
     "InstallSchema",
-    "create_moduli_generator_cnf",
     "build_cnf",
     "cnf_argparser",
+    "create_moduli_generator_cnf",
     "create_privilged_user_and_config",
     "generate_random_password",
     "get_moduli_generator_db_schema_statements",
     "get_moduli_generator_user_schema_statements",
     "get_mysql_config_value",
     "parse_mysql_config",
-    "update_mariadb_app_owner",
+    "update_mariadb_app_owner"
 ]
 
 
@@ -738,7 +738,7 @@ def build_cnf(cnf_attrs: dict) -> str:
     return local_cnf
 
 
-def create_moduli_generator_cnf(user, host, **kwargs) -> Path:
+def create_moduli_generator_cnf(user: str, host: str, **kwargs: Dict[str, str]) -> Path:
     """
     Creates and returns a MariaDB configuration file (CNF) for the moduli generator.
 

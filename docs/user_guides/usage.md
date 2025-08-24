@@ -37,7 +37,64 @@ options:
 moduli_generator&
 ```
 
-# Default Run Properties
+Which is equivalent to
+
+```bash
+
+moduli_generator \
+                    --key-lengths 3072 4096 6144 7680 8192 \
+                    --records-per-keylength 20 \
+                    --delete-records-on-moduli-write`
+```
+
+# Restart Interrupted Screening
+
+```bash
+moduli_generator --restart& 
+```
+
+`--restart` will pickup up where `moduli_generator` left off after a power fail, or other unintended interruption.
+
+# Get Current Moduli Production Status
+
+Moduli counts by key-length
+
+```bash
+
+moduli_generator --moduli_stats
+```
+
+### Example Response
+
+#### Command Line
+
+```bash
+moduli_stats
+Key-Length: #Records
+3071: 52
+4095: 51
+6143: 24
+7679: 76
+8191: 79
+available moduli files: 1
+```
+
+#### `.moduli_generator/.logs/moduli_generator.log`
+
+```bash
+2025-08-24 16:28:15,674 - DEBUG: Retrieved moduli stats for 6 different key sizes
+2025-08-24 16:28:15,675 - INFO: Key-Length: #Records
+2025-08-24 16:28:15,675 - INFO: Key-Length: #Records
+2025-08-24 16:28:15,675 - INFO: 3071: 52
+2025-08-24 16:28:15,675 - INFO: 4095: 51
+2025-08-24 16:28:15,675 - INFO: 6143: 24
+2025-08-24 16:28:15,675 - INFO: 7679: 76
+2025-08-24 16:28:15,675 - INFO: 8191: 79
+2025-08-24 16:28:15,675 - INFO: available moduli files: 1
+
+```
+
+# About _default_ run properties
 
 The sole objective of `moduli_generator` is to produce *unique and secure* SSH2 Moduli Files.
 

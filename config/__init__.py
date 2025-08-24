@@ -319,7 +319,7 @@ class ModuliConfig:
             return self.log_file
 
     @staticmethod
-    def with_base_dir(base_dir) -> "ModuliConfig":
+    def with_base_dir(base_dir) -> 'ModuliConfig':
         """
         Creates a new instance of ModuliConfig with the given base directory.
 
@@ -342,15 +342,12 @@ class ModuliConfig:
 
 
 # Enable FRESH config file creation each invocation of default_config()
-def default_config():
+def default_config() -> 'ModuliConfig':
     """
-    Creates and returns a fresh ModuliConfig instance with directories ensured.
-    
-    This function creates a new ModuliConfig instance on each call and ensures 
-    that all required directories exist before returning it.
-    
+    Generates and ensures the default configuration directories and structure.
+
     Returns:
-        ModuliConfig: A newly initialized ModuliConfig instance with directories ensured.
+        ModuliConfig: An instance of ModuliConfig with directories ensured.
     """
     return ModuliConfig().ensure_directories()
 

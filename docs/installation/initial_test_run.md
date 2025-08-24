@@ -1,5 +1,7 @@
 # `Moduli Generator` Test run
 
+### < `(1 hr elapsed)`
+
 ## Comand
 
 ```bash

@@ -452,15 +452,19 @@ class MariaDBConnector:
         # Validate DB Schema Prior to completion of object instantiation
         self._verify_schema_with_logging(config)
 
-    def _verify_schema_with_logging(self, config):
+    def _verify_schema_with_logging(self, config: ModuliConfig):
         """
-        Verifies the database schema with appropriate logging, handling test environments differently.
-        
-        This internal method encapsulates the schema verification logic and provides proper
-        error handling. It detects test environments to adjust behavior accordingly.
-        
+        Verifies the schema of the configuration with appropriate logging.
+
+        This method checks the configuration schema for validity. It skips schema
+        verification if running in a test environment, indicated by a mock object,
+        to prevent unnecessary operations in non-production setups. In production,
+        it attempts schema verification and logs any errors encountered during the
+        process without interrupting the initialization flow.
+
         Args:
-            config: The configuration object used for initialization
+            config (ModuliConfig): An instance of ModuliConfig containing configuration
+                details for schema validation.
         """
         # Check if this is a test environment or mock object
         is_test_env = is_mock_object(config)

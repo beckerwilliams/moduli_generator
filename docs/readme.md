@@ -200,7 +200,7 @@ browse the `docs/` directory.
 
 ## API
 
-- **api**: [API](api.md)
+- **api**: [API](API/index.md)
 
 ## Repository Structure
 

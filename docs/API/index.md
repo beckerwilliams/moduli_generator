@@ -6,8 +6,8 @@ This section provides detailed reference documentation for the Moduli Generator 
 
 - [ModuliGenerator](moduli_generator.md) - Documentation for the main ModuliGenerator class
 - [ModuliConfig](config.md) - Documentation for configuration handling
-- [Moduli Generator ArgParser](argparser.md) - Documentation for the command line argument parser
 - [MariaDBConnector](db.md) - Documentation for database interface
+- [MariaDB Utils](db.utils.md) - Documentation for database utility functions
 
 This reference documentation is intended for developers who need to understand the internal workings of the Moduli
 Generator or who may want to integrate it or its parts into their own systems.
