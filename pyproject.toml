@@ -66,9 +66,11 @@ mariadb_safe_password = "db.scripts.mariadb_safe_password_generator:main"
 
 [tool.poetry.dependencies]
 python = ">=3.12,<4.0"
-mariadb = ">=1.1.13"
 configparser = ">=7.2.0"
 typing-extensions = ">=4.14.1,<5.0.0"
+
+[tool.poetry.group.runtime.dependencies]
+mariadb = ">=1.1.13"
 
 [tool.poetry.group.dev.dependencies]
 black = ">=25.1.0,<26.0.0"

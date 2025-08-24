@@ -1,11 +1,32 @@
 import configparser
+import warnings
 from contextlib import contextmanager
 from pathlib import PosixPath as Path
 from re import compile, sub
 from socket import getfqdn
 from typing import Any, Dict, Final, List, Optional
 
-from mariadb import ConnectionPool, Error  # Add this import
+# Conditionally import mariadb for documentation builds
+try:
+    from mariadb import ConnectionPool, Error
+
+    HAS_MARIADB = True
+except ImportError:
+    # For documentation builds, define placeholder types
+    class ConnectionPoolMock:
+        pass
+
+
+    class ErrorMock(Exception):
+        pass
+
+
+    ConnectionPool = ConnectionPoolMock
+    Error = ErrorMock
+    HAS_MARIADB = False
+    warnings.warn("MariaDB module not available. Database functionality will be limited.",
+                  ImportWarning)
+
 from typing_extensions import ContextManager
 
 from config import (
@@ -291,8 +312,13 @@ class MariaDBConnector:
             
         Raises:
             Error: If a connection error occurs with specific error message "Connection error" or "Connection failed"
-            RuntimeError: If other connection-related errors occur
+            RuntimeError: If other connection-related errors occur or if running in documentation-only mode
         """
+        # Check if we're in documentation-only mode
+        if not HAS_MARIADB or self.pool is None:
+            self.logger.warning("Cannot get database connection in documentation-only mode")
+            raise RuntimeError("Database functionality not available in documentation-only mode")
+            
         connection = None
         try:
             connection = self.pool.get_connection()
@@ -414,6 +440,12 @@ class MariaDBConnector:
         self.logger.debug(f"Using MariaDB config: {config.mariadb_cnf}")
         self.records_per_keylength = config.records_per_keylength
 
+        # Check if running in documentation-only mode
+        if not HAS_MARIADB:
+            self.logger.warning("Running in documentation-only mode. Database functionality is not available.")
+            self.pool = None
+            return
+
         # Parse MySQL configuration with defensive handling - THIS IS THE PRIVILEGED USER!
         parsed_config = parse_mysql_config(config.mariadb_cnf)
         if not isinstance(parsed_config, dict):
@@ -466,11 +498,15 @@ class MariaDBConnector:
             config (ModuliConfig): An instance of ModuliConfig containing configuration
                 details for schema validation.
         """
-        # Check if this is a test environment or mock object
+        # Check if this is a test environment or mock object, or if we're in documentation-only mode
         is_test_env = is_mock_object(config)
 
         if is_test_env:
             self.logger.debug("Skipping schema verification for test environment")
+            return
+
+        if not HAS_MARIADB or self.pool is None:
+            self.logger.debug("Skipping schema verification in documentation-only mode")
             return
 
         try:
