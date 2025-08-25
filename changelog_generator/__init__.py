@@ -49,7 +49,7 @@ def _categorize_commit(message):
             "reorganize",
             "cleanup",
         ],
-        "Documentation": ["docs", "documentation", "readme", "comment", "docstring"],
+        "Documentation": ["_readthedocs", "documentation", "readme", "comment", "docstring"],
         "Configuration": [
             "config",
             "configuration",
@@ -174,7 +174,7 @@ class ChangelogGenerator:
     def _format_commit_message(message):
         """Format commit message for changelog."""
         # Remove common prefixes and clean up
-        message = re.sub(r"^(feat|fix|docs|style|refactor|test|chore):\s*", "", message)
+        message = re.sub(r"^(feat|fix|_readthedocs|style|refactor|test|chore):\s*", "", message)
 
         # Capitalize the first letter
         if message:

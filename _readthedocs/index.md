@@ -20,8 +20,8 @@ ____
 ### What does it do?
 
 - Produces /etc/ssh/moduli
-  - 20 unique moduli for each of key lengths 3072, 4096, 6144, 7680, and 8192
-  - 100 unique moduli per file
+    - 20 unique moduli for each of key lengths 3072, 4096, 6144, 7680, and 8192
+    - 100 unique moduli per file
 
 ____
 

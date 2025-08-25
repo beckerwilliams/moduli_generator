@@ -17,17 +17,17 @@
       <excludeFolder url="file://$MODULE_DIR$/htmlcov" />
       <excludeFolder url="file://$MODULE_DIR$/src/doc/html/_static" />
       <excludeFolder url="file://$MODULE_DIR$/stash" />
-      <excludeFolder url="file://$MODULE_DIR$/docs/docs" />
-      <excludeFolder url="file://$MODULE_DIR$/docs/html/_modules/config" />
-      <excludeFolder url="file://$MODULE_DIR$/docs/html/_modules/db" />
-      <excludeFolder url="file://$MODULE_DIR$/docs/html/_modules/moduli_generator" />
-      <excludeFolder url="file://$MODULE_DIR$/docs/html/_modules/test" />
-      <excludeFolder url="file://$MODULE_DIR$/docs/html/_sources/stash" />
-      <excludeFolder url="file://$MODULE_DIR$/docs/html/_static" />
-      <excludeFolder url="file://$MODULE_DIR$/docs/html/stash" />
       <excludeFolder url="file://$MODULE_DIR$/site" />
       <excludeFolder url="file://$MODULE_DIR$/data/bash_scripts/.test_venv/lib" />
       <excludeFolder url="file://$MODULE_DIR$/.moduli_generator" />
+      <excludeFolder url="file://$MODULE_DIR$/_readthedocs/docs" />
+      <excludeFolder url="file://$MODULE_DIR$/_readthedocs/html/_modules/config" />
+      <excludeFolder url="file://$MODULE_DIR$/_readthedocs/html/_modules/db" />
+      <excludeFolder url="file://$MODULE_DIR$/_readthedocs/html/_modules/moduli_generator" />
+      <excludeFolder url="file://$MODULE_DIR$/_readthedocs/html/_modules/test" />
+      <excludeFolder url="file://$MODULE_DIR$/_readthedocs/html/_sources/stash" />
+      <excludeFolder url="file://$MODULE_DIR$/_readthedocs/html/_static" />
+      <excludeFolder url="file://$MODULE_DIR$/_readthedocs/html/stash" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.13 virtualenv at ~/development/moduli_generator/.venv" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -1,6 +1,7 @@
 ::: db.utils
 options:
 members:
+
 - InstallSchema
 - build_cnf
 - cnf_argparser
@@ -12,7 +13,7 @@ members:
 - get_mysql_config_value
 - parse_mysql_config
 - update_mariadb_app_owner
-private-members: false
-show-import-statements: false
-show-type-annotations: false
-hide-bases: true
+  private-members: false
+  show-import-statements: false
+  show-type-annotations: false
+  hide-bases: true

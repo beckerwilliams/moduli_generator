@@ -56,10 +56,10 @@ file, `${CWD}/privileged_mariadb.cnf`
 
   `CREATE`, `CREATE USER`, and `WITH GRANT OPTION` on `*.*`
 
-
 **Moduli Generator Application Owner**: `${HOME}/.moduli_generator/moduli_generator.cnf`
 
 This profile is created during the [Command Line Installer](../installation/command_line_installer.md) steps.
+
 ```moduli_generator.cnf
 #
 # This group is read both by the client and the server

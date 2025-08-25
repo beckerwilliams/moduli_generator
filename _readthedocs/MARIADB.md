@@ -65,6 +65,7 @@ install_schema <privileged_mariadb.cnf> --moduli-db-name moduli_db
 ```
 
 This will create:
+
 - A database named `moduli_db`
 - Tables: `moduli`, `mod-fl-consts`, and `moduli_archive`
 - A view: `moduli_view`

@@ -4,6 +4,9 @@ build:
   os: ubuntu-lts-latest
   tools:
     python: "3.12"  # Match the min version from pyproject.toml
+  jobs:
+    pre_build:
+      - pydoc-markdown --build --site-dir _readthedocs
 
 mkdocs:
   configuration: mkdocs.yml
@@ -14,4 +17,4 @@ python:
     - method: pip
       path: .
       extra_requirements:
-        - docs
+        - _readthedocs

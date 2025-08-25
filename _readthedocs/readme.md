@@ -148,6 +148,7 @@ create a `priviledged_mariadb.cnf` and place it in your `${HOME}` directory.
 ##### [SAMPLE_privileged_mariadb.cnf](SAMPLE_privileged_mariadb.cnf)
 
 ### Install `Moduli Generator` SQL Schema
+
 ```bash
 install_schema privileged_mariadb.cnf --moduli-db-name test_moduli_db --batch
 ```
