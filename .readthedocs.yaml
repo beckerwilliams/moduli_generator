@@ -9,7 +9,7 @@ build:
       - pydoc-markdown --build --site-dir _readthedocs
 
 mkdocs:
-  configuration: mkdocs.yml
+  configuration: mkdocs.yaml
   fail_on_warning: false
 
 python:
