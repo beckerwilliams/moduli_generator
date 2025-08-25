@@ -68,6 +68,7 @@ mariadb_safe_password = "db.scripts.mariadb_safe_password_generator:main"
 python = ">=3.12,<4.0"
 configparser = ">=7.2.0"
 typing-extensions = ">=4.14.1,<5.0.0"
+pydoc-markdown = "^4.8.2"
 
 [tool.poetry.extras]
 _readthedocs = [
@@ -95,6 +96,7 @@ pytest-asyncio = ">=0.23.0"
 toml = ">=0.10.2"
 coverage = "^7.10.2"
 poetry = ">=1.8.3,<2.0"
+pydoc-markdown = "^4.8.2"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = ">=1.6.1"
@@ -105,3 +107,29 @@ mkdocs-material-extensions = ">=1.3.1"
 mkdocstrings = ">=0.30.0"
 mkdocstrings-python = "1.16.12"
 pymdown-extensions = ">=10.16.1"
+
+[tool.pydoc-markdown]
+# Generate Markdown docs into API/index.md for MkDocs to consume
+# Run with: pydoc-markdown --build
+# In RTD, this runs during pre_build.
+# Python loader: where to import code from and which packages to document
+[[tool.pydoc-markdown.loaders]]
+type = "python"
+search_path = ["."]
+packages = ["moduli_generator", "db", "config"]
+
+# Optional processors to improve output
+[[tool.pydoc-markdown.processors]]
+type = "filter"
+skip_empty_modules = true
+
+[[tool.pydoc-markdown.processors]]
+type = "smart"
+
+# Render a single combined page to API/index.md
+[[tool.pydoc-markdown.renderers]]
+type = "markdown"
+filename = "API/index.md"
+render_toc = true
+render_module_header = true
+render_page_title = true
