@@ -6,6 +6,7 @@ build:
     python: "3.12"  # Match the min version from pyproject.toml
   jobs:
     pre_build:
+      - pip install pydoc-markdown
       - pydoc-markdown --build --site-dir _readthedocs
 
 mkdocs:
