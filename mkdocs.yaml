@@ -3,7 +3,8 @@ site_description: A tool for generating SSH moduli files
 site_url: https://moduli-generator.readthedocs.io/
 repo_url: https://github.com/beckerwilliams/moduli_generator
 repo_name: beckerwilliams/moduli_generator
-edit_uri: edit/main/_readthedocs/
+edit_uri: edit/main/_readthedocs/docs/
+"docs_dir": "docs"
 
 theme:
   name: material

@@ -1,4 +1,4 @@
-# Command Line Installation Guide
+mk# Command Line Installation Guide
 
 1. Install the `moduli_generator` application _first,_ and then
 2. Install the `moduli_generator` SQL schema and user spec _in_ your MariaDB database.

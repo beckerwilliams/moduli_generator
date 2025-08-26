@@ -1,4 +1,4 @@
-```logs
+```log
 (.venv) ron@dcrunch:~/moduli % mg_logs
 2025-08-14 15:08:42,644 - INFO: Starting Moduli Restart at 2025-08-14 15:08:42.644455, with (3072, 4096, 6144, 7680, 8192) as moduli key-lengths
 2025-08-14 15:08:42,644 - INFO: Using Base directory: /home/moduli_generator/.moduli_generator/.moduli
@@ -12,7 +12,7 @@
 
 ```
 
-```logs
+```log
 2025-08-14 15:31:40,290 - INFO: Starting Moduli Restart at 2025-08-14 15:31:40.290461, with (3072, 4096, 6144, 7680, 8192) as moduli key-lengths
 2025-08-14 15:31:40,290 - INFO: Using Base directory: /Users/ron/.moduli_generator/.moduli
 2025-08-14 15:31:40,290 - INFO: Using Candidates directory: /Users/ron/.moduli_generator/.candidates
@@ -24,7 +24,7 @@
 2025-08-14 15:31:41,449 - DEBUG: Loaded checkpoint from '/Users/ron/.moduli_generator/.candidates/.candidates_8192_20250808205216239038' line 167848
 ```
 
-```logs
+```log
 mariadb --defaults-extra-file=${HOME}/.moduli_generator/moduli_generator.cnf                                                                                                                                                                                                                                       [12:03:20]
 Reading table information for completion of table and column names
 You can turn off this feature to get a quicker startup with -A
