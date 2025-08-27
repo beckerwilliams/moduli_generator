@@ -8,7 +8,7 @@ managing the process of candidate generation, screening, and assembly into high 
 
 ### Embrace Modern, Post-Quantum Safe SSH Protocols
 
-**Brief: Adopt Post-Quantum Safe SSH Protocols in OpenSSH 9.9 and Higher**
+#### Adopt Post-Quantum Safe SSH Protocols in OpenSSH 9.9 and Higher
 
 For enhanced security in OpenSSH 9.9 and later, prioritize post-quantum safe key exchange algorithms
 like `KexAlgorithms=sntrup761x25519-sha512@openssh.com` or `mlkem768x25519-sha256`* instead of traditional
@@ -28,7 +28,7 @@ you _should_ be configured to use a secure protocol, like `Kex=sntrup761x25519-s
 instead of than Diffie-Hellman Group Exchange.
 
 **UNLESS** you have _legacy clients_ back-leveled and incapable of OpenSSH post-quantum safe protocols,
-**YOU DO NOT NEED** `Moduli Generator`
+***YOU DO NOT NEED*** `Moduli Generator`
 
 ## Technical Overview
 

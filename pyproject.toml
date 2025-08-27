@@ -7,7 +7,7 @@ name = "moduli_generator"
 version = "1.0.1"
 description = "A secure, high-performance SSH moduli file generator with database integration for cryptographic key exchange operations"
 authors = ["Ron Williams <becker.williams@gmail.com>"]
-readme = "readme.md"
+readme = "index.md"
 license = "MIT"
 keywords = ["cryptography", "ssh", "moduli", "security"]
 classifiers = [
@@ -38,15 +38,10 @@ packages = [
 	{ include = "config" },
 	{ include = "db" },
 	{ include = "moduli_generator" },
-	{ include = "data" },
-	{ include = "test" },
-	{ include = "docs" }
+	{ include = "data" }
 ]
 exclude = [
 	"changelog_generator/**",
-	"MG_TEST",
-	"site",
-	"stash"
 ]
 
 [tool.poetry.urls]
