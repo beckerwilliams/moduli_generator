@@ -347,17 +347,35 @@ install_poetry_in_venv() {
     echo -e "${BLUE}[ Installing Poetry in virtual environment ]${NC}"
 
     # Remove any existing Poetry installation in venv
-    ${PIP} uninstall poetry -y  >> "${PIP_LOG_FILE}" 2>&1 || true
+    echo -e "${BLUE}Removing any existing Poetry installation...${NC}"
+    ${PIP} uninstall poetry -y 2>&1 | tee -a "${PIP_LOG_FILE}" || true
 
     # Install a specific, stable Poetry version
-    ${PIP} install poetry==1.8.3 >> "${PIP_LOG_FILE}" 2>&1 || { echo -e "${RED}Failed to install poetry${NC}"; return 1; }
+    echo -e "${BLUE}Installing Poetry version 1.8.3...${NC}"
+    if ! ${PIP} install poetry==1.8.3 2>&1 | tee -a "${PIP_LOG_FILE}"; then
+        echo -e "${RED}Failed to install poetry. See above for error details.${NC}"
+        echo -e "${YELLOW}--- Last 10 lines of pip log ---${NC}"
+        tail -n 10 "${PIP_LOG_FILE}"
+        echo -e "${YELLOW}--- End of pip log excerpt ---${NC}"
+        echo -e "${YELLOW}Full log available at: ${PIP_LOG_FILE}${NC}"
+        return 1
+    fi
 
     # Verify Poetry installation
-    if [[ -f "${POETRY}" ]] && ${POETRY} --version >> "${POETRY_LOG_FILE}" 2>&1; then
-        echo -e "${GREEN}✓ Poetry installed successfully${NC}"
-        return 0
+    echo -e "${BLUE}Verifying Poetry installation...${NC}"
+    if [[ -f "${POETRY}" ]]; then
+        if ${POETRY} --version 2>&1 | tee -a "${POETRY_LOG_FILE}"; then
+            echo -e "${GREEN}✓ Poetry installed successfully${NC}"
+            return 0
+        else
+            echo -e "${RED}✗ Poetry executable found but verification failed${NC}"
+            echo -e "${YELLOW}--- Last 10 lines of poetry log ---${NC}"
+            tail -n 10 "${POETRY_LOG_FILE}"
+            echo -e "${YELLOW}--- End of poetry log excerpt ---${NC}"
+            return 1
+        fi
     else
-        echo -e "${RED}✗ Poetry installation verification failed${NC}"
+        echo -e "${RED}✗ Poetry executable not found at expected path: ${POETRY}${NC}"
         return 1
     fi
 }
@@ -405,7 +423,15 @@ build_wheel() {
     # Install, Update, and Build POETRY
     ####################################
     ${ECHO} "${BLUE}[ Upgrading pip ]${NC}"
-    ${PIP} install --upgrade pip >> "${PIP_LOG_FILE}" 2>&1 || { echo -e "${RED}Failed to upgrade pip${NC}"; return 1; }
+    if ! ${PIP} install --upgrade pip 2>&1 | tee -a "${PIP_LOG_FILE}"; then
+        echo -e "${RED}Failed to upgrade pip. See above for error details.${NC}"
+        echo -e "${YELLOW}--- Last 10 lines of pip log ---${NC}"
+        tail -n 10 "${PIP_LOG_FILE}"
+        echo -e "${YELLOW}--- End of pip log excerpt ---${NC}"
+        echo -e "${YELLOW}Full log available at: ${PIP_LOG_FILE}${NC}"
+        return 1
+    fi
+    ${ECHO} "${GREEN}✓ pip upgraded successfully${NC}"
 
     # Install Poetry in the virtual environment
     install_poetry_in_venv || { echo -e "${RED}Failed to install Poetry${NC}"; return 1; }
@@ -415,21 +441,44 @@ build_wheel() {
 
     # Install dependencies first
     ${ECHO} "${BLUE}[ Installing project dependencies ]${NC}"
-    ${POETRY} install >> "${POETRY_LOG_FILE}" 2>&1 || { echo -e "${RED}Failed to install dependencies${NC}"; return 1; }
-    ${ECHO} "${BLUE}Poetry installation output has been logged to ${POETRY_LOG_FILE}${NC}"
+    if ! ${POETRY} install 2>&1 | tee -a "${POETRY_LOG_FILE}"; then
+        echo -e "${RED}Failed to install dependencies. See above for error details.${NC}"
+        echo -e "${YELLOW}--- Last 10 lines of installation log ---${NC}"
+        tail -n 10 "${POETRY_LOG_FILE}"
+        echo -e "${YELLOW}--- End of installation log excerpt ---${NC}"
+        echo -e "${YELLOW}Full log available at: ${POETRY_LOG_FILE}${NC}"
+        return 1
+    fi
+    ${ECHO} "${BLUE}Poetry installation completed successfully and output has been logged to ${POETRY_LOG_FILE}${NC}"
 
     # Try to update/lock dependencies
     ${ECHO} "${BLUE}[ Updating Poetry lock file ]${NC}"
-    if ! ${POETRY} lock --no-update >> "${POETRY_LOG_FILE}" 2>&1; then
+    if ! ${POETRY} lock --no-update 2>&1 | tee -a "${POETRY_LOG_FILE}"; then
         echo -e "${YELLOW}Poetry lock failed, trying to regenerate...${NC}"
         rm -f poetry.lock
-        ${POETRY} lock >> "${POETRY_LOG_FILE}" 2>&1 || { echo -e "${RED}Failed to generate poetry.lock${NC}"; return 1; }
+        if ! ${POETRY} lock 2>&1 | tee -a "${POETRY_LOG_FILE}"; then
+            echo -e "${RED}Failed to generate poetry.lock. See above for error details.${NC}"
+            echo -e "${YELLOW}--- Last 10 lines of lock log ---${NC}"
+            tail -n 10 "${POETRY_LOG_FILE}"
+            echo -e "${YELLOW}--- End of lock log excerpt ---${NC}"
+            echo -e "${YELLOW}Full log available at: ${POETRY_LOG_FILE}${NC}"
+            return 1
+        fi
     fi
-    ${ECHO} "${BLUE}Poetry lock output has been logged to ${POETRY_LOG_FILE}${NC}"
+    ${ECHO} "${BLUE}Poetry lock completed successfully and output has been logged to ${POETRY_LOG_FILE}${NC}"
 
     ${ECHO} "${BLUE}[ Building moduli_generator wheel ]${NC}"
-    ${POETRY} build >> "${POETRY_LOG_FILE}" 2>&1 || { echo -e "${RED}Failed to build wheel${NC}"; return 1; }
-    ${ECHO} "${BLUE}Poetry build output has been logged to ${POETRY_LOG_FILE}${NC}"
+    # Run Poetry build and capture output while also displaying it
+    if ! ${POETRY} build 2>&1 | tee -a "${POETRY_LOG_FILE}"; then
+        echo -e "${RED}Failed to build wheel. See above for error details.${NC}"
+        # Display the last few lines of the log file for additional context
+        echo -e "${YELLOW}--- Last 10 lines of build log ---${NC}"
+        tail -n 10 "${POETRY_LOG_FILE}"
+        echo -e "${YELLOW}--- End of build log excerpt ---${NC}"
+        echo -e "${YELLOW}Full log available at: ${POETRY_LOG_FILE}${NC}"
+        return 1
+    fi
+    ${ECHO} "${BLUE}Poetry build successful and output has been logged to ${POETRY_LOG_FILE}${NC}"
 
     #########################################
     # The Product
@@ -484,14 +533,35 @@ build_moduli_generator() {
     # Upgrade version of PIP, Install Moduli Generator Wheel from BUILD Stage
     ${ECHO} "${BLUE}[ Upgrading Virtual Environment and Installing Moduli Generator wheel ]${NC}"
 
-    ${PIP} install --upgrade pip >> "${PIP_LOG_FILE}" 2>&1 || { echo -e "${RED}" "Failed to upgrade pip${NC}"; return 1; }
-    ${PIP} install "${wheel_file}[runtime]" >> "${PIP_LOG_FILE}" 2>&1 || { echo -e "${RED}" "Failed to install wheel file" "${NC}"; return 1; }
-    rm "${wheel_file}" || echo -e "${YELLOW}" "Warning: Failed to remove wheel file" "${NC}"
+    echo -e "${BLUE}Upgrading pip in runtime environment...${NC}"
+    if ! ${PIP} install --upgrade pip 2>&1 | tee -a "${PIP_LOG_FILE}"; then
+        echo -e "${RED}Failed to upgrade pip in runtime environment. See above for error details.${NC}"
+        echo -e "${YELLOW}--- Last 10 lines of pip log ---${NC}"
+        tail -n 10 "${PIP_LOG_FILE}"
+        echo -e "${YELLOW}--- End of pip log excerpt ---${NC}"
+        echo -e "${YELLOW}Full log available at: ${PIP_LOG_FILE}${NC}"
+        return 1
+    fi
+    echo -e "${GREEN}✓ pip upgraded successfully in runtime environment${NC}"
+    
+    echo -e "${BLUE}Installing wheel file: ${wheel_file}${NC}"
+    if ! ${PIP} install "${wheel_file}[runtime]" 2>&1 | tee -a "${PIP_LOG_FILE}"; then
+        echo -e "${RED}Failed to install wheel file. See above for error details.${NC}"
+        echo -e "${YELLOW}--- Last 10 lines of pip log ---${NC}"
+        tail -n 10 "${PIP_LOG_FILE}"
+        echo -e "${YELLOW}--- End of pip log excerpt ---${NC}"
+        echo -e "${YELLOW}Full log available at: ${PIP_LOG_FILE}${NC}"
+        return 1
+    fi
+    echo -e "${GREEN}✓ Wheel file installed successfully${NC}"
+    
+    rm "${wheel_file}" || echo -e "${YELLOW}Warning: Failed to remove wheel file${NC}"
 
     # Print out Build and Install Status
     ${ECHO} "${GREEN}[ Moduli Generator Installed Successfully ]${NC}"
     ${ECHO} "${BLUE}Virtual Environment Package Manifest:${PURPLE}"
-    ${PIP} list >> "${PIP_LOG_FILE}" 2>&1
+    # Show package list on console and log it
+    ${PIP} list 2>&1 | tee -a "${PIP_LOG_FILE}"
     ${ECHO} "${BLUE}Package manifest has been logged to ${PIP_LOG_FILE}${NC}"
     ${ECHO} "${NC}"
 
@@ -505,15 +575,36 @@ build_moduli_generator() {
 }
 
 create_application_cnf() {
-	activate_venv || { echo -e "${RED}Failed to activate runtime virtual environment${NC}"; return 1; }
-	create_moduli_generator_cnf --mariadb-cnf "${CONST_MODULI_GENERATOR_CNF}"
-	deactivate || true
+    ${ECHO} "${BLUE}[ Creating moduli_generator application configuration ]${NC}"
+    activate_venv || { echo -e "${RED}Failed to activate runtime virtual environment${NC}"; return 1; }
+    
+    echo -e "${BLUE}Running create_moduli_generator_cnf...${NC}"
+    if ! create_moduli_generator_cnf --mariadb-cnf "${CONST_MODULI_GENERATOR_CNF}"; then
+        echo -e "${RED}Failed to create application configuration.${NC}"
+        deactivate || true
+        return 1
+    fi
+    echo -e "${GREEN}✓ Application configuration created successfully at ${CONST_MODULI_GENERATOR_CNF}${NC}"
+    
+    deactivate || true
+    return 0
 }
 
 schema_installer() {
-	activate_venv || { echo -e "${RED}Failed to activate runtime virtual environment${NC}"; return 1; }
-	install_schema --mariadb-cnf "${CONST_PRIVILEGED_CNF_FILE}"
-	deactivate || true
+    ${ECHO} "${BLUE}[ Installing database schema ]${NC}"
+    activate_venv || { echo -e "${RED}Failed to activate runtime virtual environment${NC}"; return 1; }
+    
+    echo -e "${BLUE}Running database schema installation...${NC}"
+    if ! install_schema --mariadb-cnf "${CONST_PRIVILEGED_CNF_FILE}"; then
+        echo -e "${RED}Failed to install database schema.${NC}"
+        echo -e "${YELLOW}Please check your MariaDB configuration and permissions.${NC}"
+        deactivate || true
+        return 1
+    fi
+    echo -e "${GREEN}✓ Database schema installed successfully${NC}"
+    
+    deactivate || true
+    return 0
 }
 
 # Remove Temporary Privileged Credentials and Installer Script
