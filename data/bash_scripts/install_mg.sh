@@ -35,7 +35,8 @@ MODULI_GENERATOR_APP=${PROJECT_NAME}
 # Config Directory
 MODULI_GENERATOR_CONFIG_DIR="${HOME}/.moduli_generator"
 CONST_PRIVILEGED_TMP_FILE=${MODULI_GENERATOR_CONFIG_DIR}/privileged.tmp
-CONST_MODULI_GENERATOR_CNF=${MODULI_GENERATOR_CONFIG_DIR}/moduli_generator.tmp
+CONST_PRIVILEGED_CNF_FILE=${MODULI_GENERATOR_CONFIG_DIR}/privileged.cnf
+CONST_MODULI_GENERATOR_CNF=${MODULI_GENERATOR_CONFIG_DIR}/moduli_generator.cnf
 
 # Global variable for wheel file
 wheel_file=""
@@ -207,7 +208,11 @@ EOF
     # Set secure permissions on config file
     chmod 600 "${CONST_PRIVILEGED_TMP_FILE}"
     echo -e "${BLUE}File permissions set to 600 (owner read/write only)${NC}"
-
+    
+    # Copy the temp file to the properly named .cnf file
+    cp "${CONST_PRIVILEGED_TMP_FILE}" "${CONST_PRIVILEGED_CNF_FILE}"
+    chmod 600 "${CONST_PRIVILEGED_CNF_FILE}"
+    
     return 0
 }
 
@@ -501,13 +506,13 @@ build_moduli_generator() {
 
 create_application_cnf() {
 	activate_venv || { echo -e "${RED}Failed to activate runtime virtual environment${NC}"; return 1; }
-	moduli_generator create_moduli_generator_cnf --mariadb-cnf "${CONST_MODULI_GENERATOR_CNF}"
+	create_moduli_generator_cnf --mariadb-cnf "${CONST_MODULI_GENERATOR_CNF}"
 	deactivate || true
 }
 
 schema_installer() {
 	activate_venv || { echo -e "${RED}Failed to activate runtime virtual environment${NC}"; return 1; }
-	install_schema --mariadb-cnf "${CONST_PRIVILEGED_TMP_FILE}"
+	install_schema --mariadb-cnf "${CONST_PRIVILEGED_CNF_FILE}"
 	deactivate || true
 }
 
@@ -515,6 +520,7 @@ schema_installer() {
 cleanup() {
 	set -e
 	rm -rf "${MODULI_GENERATOR_CONFIG_DIR}"/*.tmp
+	# Don't remove the .cnf files as they're needed for the application to run
 	rm -rf "${MODULI_GENERATOR_APP}"/*.sh
 }
 #########################################################################################################

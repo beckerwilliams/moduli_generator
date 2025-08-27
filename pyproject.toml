@@ -39,7 +39,8 @@ packages = [
 	{ include = "db" },
 	{ include = "moduli_generator" },
 	{ include = "data" },
-	{ include = "test" }
+	{ include = "test" },
+	{ include = "docs" }
 ]
 exclude = [
 	"changelog_generator/**",
