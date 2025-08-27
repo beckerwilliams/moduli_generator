@@ -480,7 +480,7 @@ build_moduli_generator() {
     ${ECHO} "${BLUE}[ Upgrading Virtual Environment and Installing Moduli Generator wheel ]${NC}"
 
     ${PIP} install --upgrade pip >> "${PIP_LOG_FILE}" 2>&1 || { echo -e "${RED}" "Failed to upgrade pip${NC}"; return 1; }
-    ${PIP} install "${wheel_file}" >> "${PIP_LOG_FILE}" 2>&1 || { echo -e "${RED}" "Failed to install wheel file" "${NC}"; return 1; }
+    ${PIP} install "${wheel_file}[runtime]" >> "${PIP_LOG_FILE}" 2>&1 || { echo -e "${RED}" "Failed to install wheel file" "${NC}"; return 1; }
     rm "${wheel_file}" || echo -e "${YELLOW}" "Warning: Failed to remove wheel file" "${NC}"
 
     # Print out Build and Install Status

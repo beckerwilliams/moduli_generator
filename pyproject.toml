@@ -110,7 +110,7 @@ mkdocstrings-python = "1.16.12"
 pymdown-extensions = ">=10.16.1"
 
 [tool.pydoc-markdown]
-# Generate Markdown docs into API/readme.md for MkDocs to consume
+# Generate Markdown docs into API/index.md for MkDocs to consume
 # Run with: pydoc-markdown --build
 # In RTD, this runs during pre_build.
 # Python loader: where to import code from and which packages to document
@@ -127,7 +127,7 @@ skip_empty_modules = true
 [[tool.pydoc-markdown.processors]]
 type = "smart"
 
-# Render a single combined page to API/readme.md
+# Render a single combined page to API/index.md
 [[tool.pydoc-markdown.renderers]]
 type = "markdown"
 filename = "API/index.md"

@@ -37,9 +37,10 @@ extra_javascript:
   - javascript/readthedocs.js
 
 nav:
-  - readme: readme.md
 
-  - about: about.md
+  - Readme: index.md
+
+  - About: about.md
 
   - Installation:
       - Overview: installation/index.md
