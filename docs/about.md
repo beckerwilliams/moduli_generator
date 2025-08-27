@@ -1,5 +1,3 @@
-# About `Moduli Generator`
-
 `Moduli Generator` simply produces _unique_ SSH2 Moduli files (`/etc/ssh/moduli`),
 with a single command, `moduli_generator.`
 

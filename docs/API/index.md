@@ -1,5 +1,3 @@
-# API Reference
-
 This section provides detailed reference documentation for the Moduli Generator API.
 
 ## Contents

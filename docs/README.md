@@ -1,7 +1,5 @@
 # `Moduli Generator`
 
-Welcome to the Moduli Generator documentation!
-
 ## Overview
 
 Moduli Generator is a Python tool designed for generating SSH moduli files. SSH moduli are used in the Diffie-Hellman

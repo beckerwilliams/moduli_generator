@@ -37,13 +37,20 @@ extra_javascript:
   - javascript/readthedocs.js
 
 nav:
-  - Home: index.md
-  - API Reference:
-      - API: API/index.md
+  - README: README.md
+
+  - About: about.md
 
   - Installation:
       - Overview: installation/index.md
       - Command Line Installer: installation/command_line_installer.md
+
+  - API:
+      - API/index.md
+      - ModuliGenerator: API/moduli_generator.md
+      - ModuliConfig: API/config.md
+      - MariaDBConnector: API/db.md
+      - MariaDB Utils: API/db.utils.md
 
   - User Guides:
       - Overview: user_guides/index.md
@@ -55,6 +62,12 @@ nav:
       - Integration: database/integration.md
       - MariaDB: database/mariadb.md
       - Schema Verification: database/schema_verification.md
+
+  - Legal:
+      - License: license.md
+      - Copyright: copyright.md
+
+
 
 markdown_extensions:
   - pymdownx.superfences
