@@ -2,7 +2,19 @@
 
 ## Restart Interrupted Screening
 
+### Run Command
+
 ```bash
+moduli_generator restart&
+```
+
+### Tail the run log
+
+```bash
+tail -f ${MODULI_HOME}/.logs/moduli_generator.log
+```
+
+```log
 2025-08-06 20:48:06,519 - INFO: Starting Moduli Restart at 2025-08-06 20:48:06.519624, with (3072, 4096, 6144, 7680,
 8192) as moduli key-lengths
 2025-08-06 20:48:06,519 - INFO: Using Base directory: /Users/ron/.moduli_generator/.moduli

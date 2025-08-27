@@ -37,25 +37,24 @@ extra_javascript:
   - javascript/readthedocs.js
 
 nav:
-  - README: README.md
+  - readme: readme.md
 
-  - About: about.md
+  - about: about.md
 
   - Installation:
       - Overview: installation/index.md
       - Command Line Installer: installation/command_line_installer.md
 
-  - API:
-      - API/index.md
-      - ModuliGenerator: API/moduli_generator.md
-      - ModuliConfig: API/config.md
-      - MariaDBConnector: API/db.md
-      - MariaDB Utils: API/db.utils.md
-
   - User Guides:
       - Overview: user_guides/index.md
       - Usage: user_guides/usage.md
       - Restart: user_guides/restart.md
+
+  - api:
+      - ModuliGenerator: API/moduli_generator.md
+      - ModuliConfig: API/config.md
+      - MariaDBConnector: API/db.md
+      - MariaDB Utils: API/db.utils.md
 
   - Database:
       - Overview: database/index.md

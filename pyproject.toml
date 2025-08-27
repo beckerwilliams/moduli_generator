@@ -69,6 +69,7 @@ python = ">=3.12,<4.0"
 configparser = ">=7.2.0"
 typing-extensions = ">=4.14.1,<5.0.0"
 pydoc-markdown = "^4.8.2"
+mariadb = ">=1.1.13"
 
 [tool.poetry.extras]
 _readthedocs = [
@@ -109,7 +110,7 @@ mkdocstrings-python = "1.16.12"
 pymdown-extensions = ">=10.16.1"
 
 [tool.pydoc-markdown]
-# Generate Markdown docs into API/README.md for MkDocs to consume
+# Generate Markdown docs into API/readme.md for MkDocs to consume
 # Run with: pydoc-markdown --build
 # In RTD, this runs during pre_build.
 # Python loader: where to import code from and which packages to document
@@ -126,7 +127,7 @@ skip_empty_modules = true
 [[tool.pydoc-markdown.processors]]
 type = "smart"
 
-# Render a single combined page to API/README.md
+# Render a single combined page to API/readme.md
 [[tool.pydoc-markdown.renderers]]
 type = "markdown"
 filename = "API/index.md"

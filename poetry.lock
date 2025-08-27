@@ -775,13 +775,13 @@ dev = ["flake8", "markdown", "twine", "wheel"]
 
 [[package]]
 name = "griffe"
-version = "1.12.1"
+version = "1.13.0"
 description = "Signatures for entire Python programs. Extract the structure, the frame, the skeleton of your project, to generate API documentation or find breaking changes in your API."
 optional = false
 python-versions = ">=3.9"
 files = [
-	{ file = "griffe-1.12.1-py3-none-any.whl", hash = "sha256:2d7c12334de00089c31905424a00abcfd931b45b8b516967f224133903d302cc" },
-	{ file = "griffe-1.12.1.tar.gz", hash = "sha256:29f5a6114c0aeda7d9c86a570f736883f8a2c5b38b57323d56b3d1c000565567" },
+	{ file = "griffe-1.13.0-py3-none-any.whl", hash = "sha256:470fde5b735625ac0a36296cd194617f039e9e83e301fcbd493e2b58382d0559" },
+	{ file = "griffe-1.13.0.tar.gz", hash = "sha256:246ea436a5e78f7fbf5f24ca8a727bb4d2a4b442a2959052eea3d0bfe9a076e0" },
 ]
 
 [package.dependencies]
@@ -1046,13 +1046,13 @@ min-versions = ["babel (==2.9.0)", "click (==7.0)", "colorama (==0.4)", "ghp-imp
 
 [[package]]
 name = "mkdocs-autorefs"
-version = "1.4.2"
+version = "1.4.3"
 description = "Automatically link across pages in MkDocs."
 optional = false
 python-versions = ">=3.9"
 files = [
-	{ file = "mkdocs_autorefs-1.4.2-py3-none-any.whl", hash = "sha256:83d6d777b66ec3c372a1aad4ae0cf77c243ba5bcda5bf0c6b8a2c5e7a3d89f13" },
-	{ file = "mkdocs_autorefs-1.4.2.tar.gz", hash = "sha256:e2ebe1abd2b67d597ed19378c0fff84d73d1dbce411fce7a7cc6f161888b6749" },
+	{ file = "mkdocs_autorefs-1.4.3-py3-none-any.whl", hash = "sha256:469d85eb3114801d08e9cc55d102b3ba65917a869b893403b8987b601cf55dc9" },
+	{ file = "mkdocs_autorefs-1.4.3.tar.gz", hash = "sha256:beee715b254455c4aa93b6ef3c67579c399ca092259cc41b7d9342573ff1fc75" },
 ]
 
 [package.dependencies]
@@ -1385,13 +1385,13 @@ testing = ["pytest", "pytest-cov", "wheel"]
 
 [[package]]
 name = "platformdirs"
-version = "4.3.8"
+version = "4.4.0"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
 optional = false
 python-versions = ">=3.9"
 files = [
-	{ file = "platformdirs-4.3.8-py3-none-any.whl", hash = "sha256:ff7059bb7eb1179e2685604f4aaf157cfd9535242bd23742eadc3c13542139b4" },
-	{ file = "platformdirs-4.3.8.tar.gz", hash = "sha256:3d512d96e16bcb959a814c9f348431070822a6496326a4be0911c40b5a74c2bc" },
+	{ file = "platformdirs-4.4.0-py3-none-any.whl", hash = "sha256:abd01743f24e5287cd7a5db3752faf1a2d65353f38ec26d98e25a6db65958c85" },
+	{ file = "platformdirs-4.4.0.tar.gz", hash = "sha256:ca753cf4d81dc309bc67b0ea38fd15dc97bc30ce419a7f58d13eb3bf14c4febf" },
 ]
 
 [package.extras]
@@ -2017,13 +2017,13 @@ files = [
 
 [[package]]
 name = "trove-classifiers"
-version = "2025.8.6.13"
+version = "2025.8.26.11"
 description = "Canonical source for classifiers on PyPI (pypi.org)."
 optional = false
 python-versions = "*"
 files = [
-	{ file = "trove_classifiers-2025.8.6.13-py3-none-any.whl", hash = "sha256:c4e7fc83012770d80b3ae95816111c32b085716374dccee0d3fbf5c235495f9f" },
-	{ file = "trove_classifiers-2025.8.6.13.tar.gz", hash = "sha256:5a0abad839d2ed810f213ab133d555d267124ddea29f1d8a50d6eca12a50ae6e" },
+	{ file = "trove_classifiers-2025.8.26.11-py3-none-any.whl", hash = "sha256:887fb0a402bdbecd4415a52c06e6728f8bdaa506a7143372d2b893e2c5e2d859" },
+	{ file = "trove_classifiers-2025.8.26.11.tar.gz", hash = "sha256:e73efff317c492a7990092f9c12676c705bf6cfe40a258a93f63f4b4c9941432" },
 ]
 
 [[package]]
@@ -2042,13 +2042,13 @@ typing-extensions = ">=3.0.0"
 
 [[package]]
 name = "typing-extensions"
-version = "4.14.1"
+version = "4.15.0"
 description = "Backported and Experimental Type Hints for Python 3.9+"
 optional = false
 python-versions = ">=3.9"
 files = [
-	{ file = "typing_extensions-4.14.1-py3-none-any.whl", hash = "sha256:d1e1e3b58374dc93031d6eda2420a48ea44a36c2b4766a4fdeb3710755731d76" },
-	{ file = "typing_extensions-4.14.1.tar.gz", hash = "sha256:38b39f4aeeab64884ce9f74c94263ef78f3c22467c8724005483154c26648d36" },
+	{ file = "typing_extensions-4.15.0-py3-none-any.whl", hash = "sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548" },
+	{ file = "typing_extensions-4.15.0.tar.gz", hash = "sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466" },
 ]
 
 [[package]]
@@ -2339,4 +2339,4 @@ platformdirs = ">=3.5.1"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12,<4.0"
-content-hash = "0932bbbe37740336ef35424eb7c6710d187a8a26156ac8251b348402c2348e7f"
+content-hash = "1c35ea352162623059cf02726ae0316980f52199cca60f21819ffe676d3998e3"
