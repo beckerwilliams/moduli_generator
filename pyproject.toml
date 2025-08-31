@@ -9,19 +9,24 @@ description = "A secure, high-performance SSH moduli file generator with databas
 authors = ["Ron Williams <becker.williams@gmail.com>"]
 readme = "index.md"
 license = "MIT"
+#license-file = "docs/license.md"
+#copyright-file = "docs/copyright.md"
 keywords = ["cryptography", "ssh", "moduli", "security"]
 classifiers = [
 	"Development Status :: 4 - Beta",
 	"Intended Audience :: System Administrators",
 	"Intended Audience :: Developers",
 	"Intended Audience :: Information Technology",
+	"License :: OSI Approved :: MIT License",
+	"Operating System :: MacOS",
+	"Operating System :: POSIX :: Linux",
+	"Operating System :: Unix",
 	"Topic :: Security :: Cryptography",
 	"Topic :: System :: Systems Administration",
 	"Topic :: Security",
 	"Topic :: Internet",
 	"Topic :: Software Development :: Libraries :: Python Modules",
 	"Environment :: Console",
-	"Programming Language :: Python :: 3",
 	"Programming Language :: Python :: 3.10",
 	"Programming Language :: Python :: 3.11",
 	"Programming Language :: Python :: 3.12",
@@ -47,7 +52,7 @@ exclude = [
 [tool.poetry.urls]
 Homepage = "https://github.com/beckerwilliams/moduli_generator"
 Documentation = "https://moduli-generator.readthedocs.io/"
-Repository = "https://github.com/beckerwilliams/moduli_generator.git"
+Repository = "https://github.com/beckerwilliams/moduli_generator.gitpy"
 Issues = "https://github.com/beckerwilliams/moduli_generator/issues"
 
 [tool.poetry.scripts]
@@ -56,9 +61,10 @@ moduli_stats = "db.scripts.moduli_stats:main"
 install_schema = "db.scripts.install_moduli_generator_schema:main"
 restart_screening = "moduli_generator.scripts.restart:main"
 write_ssh_moduli_file = "moduli_generator.write_ssh2_moduli_file:main"
-changelog = "changelog_generator.scripts.show:main"
+#changelog = "changelog_generator.scripts.show:main"
 create_moduli_generator_cnf = "db.scripts.create_moduli_generator_cnf:main"
 mariadb_safe_password = "db.scripts.mariadb_safe_password_generator:main"
+dbstore_moduli = "moduli_generator.scripts.dbstore_moduli:main"
 
 [tool.poetry.dependencies]
 python = ">=3.12,<4.0"

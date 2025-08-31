@@ -49,7 +49,6 @@ tail -f ${HOME}/.moduli_generator/moduli_generator.log
 2025-08-20 21:49:45,825 - DEBUG: Screened moduli file 2/2: /Users/ron/.moduli_generator/.moduli/moduli_4096_20250820210001645900
 2025-08-20 21:49:45,825 - INFO: Screened 2 candidate files for key-lengths: (3072, 4096)
 2025-08-20 21:49:45,883 - DEBUG: Using MariaDB config: /Users/ron/.moduli_generator/moduli_generator.cnf
-2025-08-20 21:49:45,885 - ERROR: Moduli Generation Failed: 'password'
 [1]  + 1127 exit 2     moduli_generator --key-lengths 3072 4096
 
 ```

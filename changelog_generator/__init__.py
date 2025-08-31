@@ -279,7 +279,7 @@ class ChangelogGenerator:
         if urls.get("Homepage"):
             section.append(f"* **Homepage**: {urls['Homepage']}")
 
-        section.append("* **License**: See LICENSE.md")
+        section.append("* **License**: See docs/license.md")
         section.append("")
 
         return section

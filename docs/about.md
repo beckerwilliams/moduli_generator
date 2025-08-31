@@ -82,5 +82,3 @@ The project welcomes contributions in areas such as:
 
 For more information about contributing, please visit
 the [GitHub repository](https://github.com/beckerwilliams/moduli_generator).
-
-## [License and Support](license.md)

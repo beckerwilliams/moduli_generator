@@ -38,18 +38,10 @@ extra_javascript:
 
 nav:
 
-  - Readme: index.md
-
   - About: about.md
-
-  - Installation:
-      - Overview: installation/index.md
-      - Command Line Installer: installation/command_line_installer.md
-
-  - User Guides:
-      - Overview: user_guides/index.md
-      - Usage: user_guides/usage.md
-      - Restart: user_guides/restart.md
+  - Readme: index.md
+  - Installation: installation/index.md
+  - Usage: usage.md
 
   - api:
       - ModuliGenerator: API/moduli_generator.md
@@ -57,17 +49,11 @@ nav:
       - MariaDBConnector: API/db.md
       - MariaDB Utils: API/db.utils.md
 
-  - Database:
-      - Overview: database/index.md
-      - Integration: database/integration.md
-      - MariaDB: database/mariadb.md
-      - Schema Verification: database/schema_verification.md
+  - MariaDB: database/mariadb.md
 
   - Legal:
       - License: license.md
       - Copyright: copyright.md
-
-
 
 markdown_extensions:
   - pymdownx.superfences

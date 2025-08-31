@@ -1,4 +1,4 @@
-mk# Command Line Installation Guide
+# Command Line Installation Guide
 
 1. Install the `moduli_generator` application _first,_ and then
 2. Install the `moduli_generator` SQL schema and user spec _in_ your MariaDB database.
@@ -12,6 +12,7 @@ Before installation, ensure you're platform meets the following requirements:
 - Python ≥ 3.12
 - OpenSSH ≥ 9.9p2
 - MariaDB Client ≥ 11.4
+- Curl ≥ 8.15
 
 ## Installation Process
 

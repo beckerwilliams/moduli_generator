@@ -145,7 +145,7 @@ Initial `MariaDB` configuration _requires_ a user privileged with `ALL PRIVILEGE
 Having previously identified this user and their credentials, 
 create a `priviledged_mariadb.cnf` and place it in your `${HOME}` directory.
 
-##### [SAMPLE_privileged_mariadb.cnf](SAMPLE_privileged_mariadb.cnf)
+##### [SAMPLE_privileged_mariadb.cnf](stash/SAMPLE_privileged_mariadb.cnf)
 
 ### Install `Moduli Generator` SQL Schema
 
@@ -226,6 +226,6 @@ We welcome contributions! Please see our documentation for guidelines on:
 - **Issues**: [GitHub Issues](https://github.com/beckerwilliams/moduli_generator/issues)
 - **Documentation**: [Read the Docs](https://moduli-generator.readthedocs.io/)
 
-## License
+## License and Copyright
 
-Please refer to the LICENSE file for licensing information.
+Please refer to the docs/license.md file for licensing information and docs/copyright.md for copyright information.
