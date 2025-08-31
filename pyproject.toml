@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "moduli_generator"
-version = "1.0.1"
+version = "1.0.2a1"
 description = "A secure, high-performance SSH moduli file generator with database integration for cryptographic key exchange operations"
 authors = ["Ron Williams <becker.williams@gmail.com>"]
 readme = "index.md"
@@ -68,13 +68,13 @@ dbstore_moduli = "moduli_generator.scripts.dbstore_moduli:main"
 
 [tool.poetry.dependencies]
 python = ">=3.12,<4.0"
-configparser = ">=7.2.0"
+configparser = ">=5.0.0,<8.0.0"
 typing-extensions = ">=4.14.1,<5.0.0"
 pydoc-markdown = "^4.8.2"
 mariadb = ">=1.1.13"
 
 [tool.poetry.extras]
-_readthedocs = [
+readthedocs = [
 	"mkdocs",
 	"mkdocs-autorefs",
 	"mkdocs-get-deps",
@@ -100,6 +100,7 @@ toml = ">=0.10.2"
 coverage = "^7.10.2"
 poetry = ">=1.8.3,<2.0"
 pydoc-markdown = "^4.8.2"
+twine = "^6.1.0"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = ">=1.6.1"
@@ -112,7 +113,7 @@ mkdocstrings-python = "1.16.12"
 pymdown-extensions = ">=10.16.1"
 
 [tool.pydoc-markdown]
-# Generate Markdown docs into API/index.md for MkDocs to consume
+# Generate Markdown docs into API/README.md for MkDocs to consume
 # Run with: pydoc-markdown --build
 # In RTD, this runs during pre_build.
 # Python loader: where to import code from and which packages to document
@@ -129,7 +130,7 @@ skip_empty_modules = true
 [[tool.pydoc-markdown.processors]]
 type = "smart"
 
-# Render a single combined page to API/index.md
+# Render a single combined page to API/README.md
 [[tool.pydoc-markdown.renderers]]
 type = "markdown"
 filename = "API/index.md"

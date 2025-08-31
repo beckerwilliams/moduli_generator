@@ -39,7 +39,7 @@ extra_javascript:
 nav:
 
   - About: about.md
-  - Readme: index.md
+  - Readme: README.md
   - Installation: installation/index.md
   - Usage: usage.md
 
