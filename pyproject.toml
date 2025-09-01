@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "moduli_generator"
-version = "1.0.2a2"
+version = "1.0.2a4"
 description = "A secure, high-performance SSH moduli file generator with database integration for cryptographic key exchange operations"
 authors = ["Ron Williams <becker.williams@gmail.com>"]
 readme = "README.md"
@@ -67,7 +67,7 @@ docs = "moduli_generator.scripts.docs_server:main"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-configparser = ">=5.0.0,<8.0.0"
+configparser = ">=3.5.0,<8.0.0"
 typing-extensions = ">=4.14.1,<5.0.0"
 pydoc-markdown = "^4.8.0,<5.0.0"
 mariadb = ">=1.1.13"
