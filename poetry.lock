@@ -1657,19 +1657,19 @@ files = [
 
 [[package]]
 name = "pydoc-markdown"
-version = "4.8.2"
+version = "4.8.0"
 description = "Create Python API documentation in Markdown format."
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-	{ file = "pydoc_markdown-4.8.2-py3-none-any.whl", hash = "sha256:203f74119e6bb2f9deba43d452422de7c8ec31955b61e0620fa4dd8c2611715f" },
-	{ file = "pydoc_markdown-4.8.2.tar.gz", hash = "sha256:fb6c927e31386de17472d42f9bd3d3be2905977d026f6216881c65145aa67f0b" },
+	{ file = "pydoc_markdown-4.8.0-py3-none-any.whl", hash = "sha256:8bd177719b112eaf8e74759aea99110cdd72e9f6ae2858fccce721ae2212d157" },
+	{ file = "pydoc_markdown-4.8.0.tar.gz", hash = "sha256:b9e0804a8d7611be24919e4852ba54b049594f4936051a0c522ecce0cd91db9c" },
 ]
 
 [package.dependencies]
 click = ">=7.1,<9.0"
-"databind.core" = ">=4.4.0,<5.0.0"
-"databind.json" = ">=4.4.0,<5.0.0"
+"databind.core" = ">=4.3.0,<5.0.0"
+"databind.json" = ">=4.3.0,<5.0.0"
 docspec = ">=2.2.1,<3.0.0"
 docspec-python = ">=2.2.1,<3.0.0"
 docstring-parser = ">=0.11,<0.12"
@@ -2595,4 +2595,4 @@ readthedocs = ["mkdocs", "mkdocs-autorefs", "mkdocs-get-deps", "mkdocs-material"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4.0"
-content-hash = "9095c085f1db2718458ae4dc0cf126e2522eab263e83c1c8e21e51a6c22336b6"
+content-hash = "ad179f4ca73bd6a0d8a41dd15c1d26fbb974154cfbc4f5e7ca7f9782ff60ecf0"
