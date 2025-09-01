@@ -4,13 +4,11 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "moduli_generator"
-version = "1.0.2a1"
+version = "1.0.2a2"
 description = "A secure, high-performance SSH moduli file generator with database integration for cryptographic key exchange operations"
 authors = ["Ron Williams <becker.williams@gmail.com>"]
-readme = "index.md"
+readme = "README.md"
 license = "MIT"
-#license-file = "docs/license.md"
-#copyright-file = "docs/copyright.md"
 keywords = ["cryptography", "ssh", "moduli", "security"]
 classifiers = [
 	"Development Status :: 4 - Beta",
@@ -18,8 +16,11 @@ classifiers = [
 	"Intended Audience :: Developers",
 	"Intended Audience :: Information Technology",
 	"License :: OSI Approved :: MIT License",
-	"Operating System :: MacOS",
+	"Operating System :: POSIX",
+	"Operating System :: POSIX :: BSD :: FreeBSD",
 	"Operating System :: POSIX :: Linux",
+	"Operating System :: POSIX :: Linux",
+	"Operating System :: MacOS",
 	"Operating System :: Unix",
 	"Topic :: Security :: Cryptography",
 	"Topic :: System :: Systems Administration",
@@ -32,9 +33,6 @@ classifiers = [
 	"Programming Language :: Python :: 3.12",
 	"Programming Language :: Python :: 3.13",
 	"Programming Language :: Python :: 3 :: Only",
-	"Operating System :: POSIX :: Linux",
-	"Operating System :: Unix",
-	"Operating System :: MacOS",
 	"Environment :: Console",
 	"Natural Language :: English",
 	"Typing :: Typed"
@@ -65,13 +63,22 @@ write_ssh_moduli_file = "moduli_generator.write_ssh2_moduli_file:main"
 create_moduli_generator_cnf = "db.scripts.create_moduli_generator_cnf:main"
 mariadb_safe_password = "db.scripts.mariadb_safe_password_generator:main"
 dbstore_moduli = "moduli_generator.scripts.dbstore_moduli:main"
+docs = "moduli_generator.scripts.docs_server:main"
 
 [tool.poetry.dependencies]
-python = ">=3.12,<4.0"
+python = ">=3.10,<4.0"
 configparser = ">=5.0.0,<8.0.0"
 typing-extensions = ">=4.14.1,<5.0.0"
-pydoc-markdown = "^4.8.2"
+pydoc-markdown = "^4.8.0,<5.0.0"
 mariadb = ">=1.1.13"
+mkdocs = { version = ">=1.6.1", optional = true }
+mkdocs-autorefs = { version = ">=1.4.2", optional = true }
+mkdocs-get-deps = { version = ">=0.2.0", optional = true }
+mkdocs-material = { version = ">=9.6.16,<10.0.0", optional = true }
+mkdocs-material-extensions = { version = ">=1.3.1", optional = true }
+mkdocstrings = { version = ">=0.30.0", optional = true }
+mkdocstrings-python = { version = "1.16.12", optional = true }
+pymdown-extensions = { version = ">=10.16.1", optional = true }
 
 [tool.poetry.extras]
 readthedocs = [
@@ -99,7 +106,7 @@ pytest-asyncio = ">=0.23.0"
 toml = ">=0.10.2"
 coverage = "^7.10.2"
 poetry = ">=1.8.3,<2.0"
-pydoc-markdown = "^4.8.2"
+pydoc-markdown = "^4.8.0,<5.0.0"
 twine = "^6.1.0"
 
 [tool.poetry.group.docs.dependencies]
