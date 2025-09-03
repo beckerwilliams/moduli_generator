@@ -1,8 +1,6 @@
-import configparser
 import warnings
 from contextlib import contextmanager
 from pathlib import PosixPath as Path
-from re import compile, sub
 from socket import getfqdn
 from typing import Any, Dict, Final, List, Optional
 
@@ -34,7 +32,21 @@ from config import (
     ModuliConfig,
     default_config,
     iso_utc_timestamp,
-    strip_punction_from_datetime_str,
+    strip_punction_from_datetime_str
+)
+from db.common import (
+    is_valid_identifier_sql,
+    parse_mysql_config,
+    get_mysql_config_value
+)
+from db.errors import (
+    DatabaseError,
+    ConnectionError,
+    QueryError,
+    ValidationError,
+    ConfigError,
+    handle_db_error,
+    db_operation
 )
 from db.test_utils import get_config_mock_status, is_mock_object
 
@@ -54,189 +66,6 @@ __all__ = [
 ]
 
 
-def is_valid_identifier_sql(identifier: str) -> bool:
-    """
-    Determines if the given string is a valid identifier following specific
-        rules. Valid identifiers must either be unquoted strings containing only
-        alphanumeric characters, underscores, and dollar signs, or quoted strings
-        wrapped in backticks with proper pairing. Additionally, identifiers must not
-        exceed 64 characters.
-
-    Args:
-        identifier (str): The identifier string to validate.
-
-    Returns:
-        Bool: True if the identifier is valid, otherwise False.
-    """
-    if not identifier or not isinstance(identifier, str):
-        return False
-
-    # Check for empty string or too long identifier
-    if len(identifier) == 0 or len(identifier) > 64:
-        return False
-
-    # If the identifier is quoted with backticks, we need different validation
-    if identifier.startswith("`") and identifier.endswith("`"):
-        # For quoted identifiers, make sure the backticks are properly paired
-        # and that the identifier isn't just empty backticks
-        return len(identifier) > 2
-
-    # For unquoted identifiers, check that they only contain valid characters
-    valid_pattern = compile(r"^[a-zA-Z0-9_$]+$")
-
-    # Validate the pattern
-    if not valid_pattern.match(identifier):
-        return False
-
-    # MariaDB reserved words could be added here to make the validation stricter
-    # For a complete solution, a list of reserved words should be checked
-
-    return True
-
-
-def parse_mysql_config(mysql_cnf: Path, file_system=None) -> Dict[str, Dict[str, str]]:
-    """
-    Parses a MySQL configuration file and converts its contents into a nested dictionary where each
-    key represents a section, and its associated value is another dictionary containing key-value pairs
-    from the corresponding section.
-
-    Args:
-        mysql_cnf (FilesystemObject): The MySQL configuration file to parse. This can be a string
-            representing the file path, a `Path` object, or a file-like object that supports reading.
-        file_system (Optional[Dict[str, Callable]]): A dictionary of file system operations to be
-            used when interacting with `mysql_cnf`. If None, standard file operations are used.
-
-    Raises:
-        FileNotFoundError: If the specified file does not exist.
-        ValueError: If the file is a directory or contains parsing errors such as duplicate sections,
-            invalid structure, or other issues.
-        PermissionError: If there are not enough permissions to access the file.
-        Exception: For any other unexpected errors that occur during parsing.
-
-    Returns:
-        Dict[str, Dict[str, str]]: A dictionary representation of the MySQL configuration file.
-            Each section corresponds to a dictionary of key-value pairs. If the file is empty or contains
-            no valid sections, an empty dictionary is returned.
-    """
-    # Use standard file operations by default
-    if file_system is None:
-        file_system = {
-            'exists': lambda p: p.exists() if hasattr(p, 'exists') else False,
-            'is_dir': lambda p: p.is_dir() if hasattr(p, 'is_dir') else False,
-            'get_size': lambda p: p.stat().st_size if hasattr(p, 'stat') else 0,
-            'read': lambda p: str(p),
-        }
-
-    # Fix: Check if mysql_cnf is None or empty string
-    if mysql_cnf is None or mysql_cnf == "":
-        return {}
-
-    # Convert to the Path object if it's a string
-    if isinstance(mysql_cnf, str):
-        mysql_cnf = Path(mysql_cnf)
-
-    # Handle different input types
-    mariadb_cnf = configparser.ConfigParser(
-        allow_no_value=True,
-        interpolation=None,
-        strict=False,  # Allow duplicate sections to be merged
-    )
-
-    try:
-        # Check if input is a file-like object (has read method)
-        if hasattr(mysql_cnf, "read"):
-            # Handle file-like objects (StringIO, etc.)
-            mariadb_cnf.read_file(mysql_cnf)
-        else:
-            # Handle Path objects
-            # Check if the file exists
-            if not file_system['exists'](mysql_cnf):
-                raise FileNotFoundError(
-                    f"Configuration file not found: {mysql_cnf}"
-                )
-
-            # Check if it's a directory
-            if file_system['is_dir'](mysql_cnf):
-                raise ValueError(
-                    f"Error parsing configuration file: [Errno 21] Is a directory: {mysql_cnf}"
-                )
-
-            # Check if the file is empty
-            if file_system['get_size'](mysql_cnf) == 0:
-                return {}
-
-            # Try to read the file
-            mariadb_cnf.read(file_system['read'](mysql_cnf))
-
-        # If mariadb_cnf.read() succeeds but no sections were found, assume an empty file
-        if not mariadb_cnf.sections():
-            return {}
-
-        # Convert to dictionary and cleanup comments
-        result = {}
-        for section_name in mariadb_cnf.sections():
-            result[section_name] = {}
-            for key, value in mariadb_cnf.items(section_name):
-                if value is not None:
-                    # Strip inline comments (everything after # including whitespace before it)
-                    cleaned_value = sub(r"\s*#.*$", "", value).strip()
-                    result[section_name][key] = cleaned_value
-                else:
-                    result[section_name][key] = None
-
-        return result
-
-    except configparser.DuplicateSectionError as e:
-        raise ValueError(f"Error parsing configuration file: {e}")
-    except configparser.ParsingError as e:
-        raise ValueError(f"Error parsing configuration file: {e}")
-    except configparser.Error as e:
-        raise ValueError(f"Error parsing configuration file: {e}")
-    except (FileNotFoundError, PermissionError):
-        # Re-raise these errors as-is
-        raise
-    except Exception as e:
-        if "already exists" in str(e).lower():
-            raise ValueError(f"Error parsing configuration file: {e}")
-        raise ValueError(f"Error parsing configuration file: {e}")
-
-
-# noinspection PyUnreachableCode
-def get_mysql_config_value(
-        cnf: Dict[str, Dict[str, str]], section: str, key: str, default: Any = None
-) -> Any:
-    """
-    Get a specific value from the parsed MySQL config dictionary.
-
-    Args:
-        cnf: Parsed config dictionary from parse_mysql_config
-        default: Default value if not found
-        key: Key name
-        section: Section name
-
-    Returns:
-        Config value or default
-
-    Raises:
-        TypeError: If parameters are not of the correct type
-    """
-    # Type validation - None config should raise TypeError
-    if cnf is None:
-        raise TypeError("config cannot be None")
-    if not isinstance(cnf, dict):
-        raise TypeError(f"config must be dict, got {type(cnf).__name__}")
-    if not isinstance(section, str):
-        raise TypeError(f"section must be string, got {type(section).__name__}")
-    if not isinstance(key, str):
-        raise TypeError(f"key must be string, got {type(key).__name__}")
-
-    if section not in cnf:
-        return default
-
-    if key not in cnf[section]:
-        return default
-
-    return cnf[section][key]
 
 
 class MariaDBConnector:
@@ -318,7 +147,7 @@ class MariaDBConnector:
         if not HAS_MARIADB or self.pool is None:
             self.logger.warning("Cannot get database connection in documentation-only mode")
             raise RuntimeError("Database functionality not available in documentation-only mode")
-            
+
         connection = None
         try:
             connection = self.pool.get_connection()
@@ -400,7 +229,7 @@ class MariaDBConnector:
             raise
 
     # noinspection PyUnreachableCode
-    def __init__(self, config: ModuliConfig = default_config()) -> "MariaDBConnector":
+    def __init__(self, config: ModuliConfig = default_config) -> "MariaDBConnector":
         """
         Initializes a MariaDBConnector object and configures it with the provided settings. This involves
         setting up internal attributes, parsing the MariaDB configuration file, establishing a connection
@@ -538,6 +367,7 @@ class MariaDBConnector:
                 "Database schema verification failed, but continuing initialization"
             )
 
+    @db_operation(error_message="SQL query execution failed", reraise_as=QueryError)
     def sql(
             self, query: str, params: Optional[tuple] = None, fetch: bool = True
     ) -> Optional[List[Dict]]:
@@ -559,36 +389,24 @@ class MariaDBConnector:
             results if `fetch` is True, otherwise returns `None`.
 
         Raises:
-            RuntimeError: If the SQL query execution fails for any reason.
+            QueryError: If the SQL query execution fails for any reason.
         """
-        try:
-            with self.get_connection() as connection:
-                with self.transaction(connection):
-                    with connection.cursor(dictionary=True) as cursor:
-                        if params:
-                            cursor.execute(query, params)
-                        else:
-                            cursor.execute(query)
+        with self.get_connection() as connection:
+            with self.transaction(connection):
+                with connection.cursor(dictionary=True) as cursor:
+                    if params:
+                        cursor.execute(query, params)
+                    else:
+                        cursor.execute(query)
 
-                        if fetch:
-                            results = cursor.fetchall()
-                            self.logger.debug(f"Query returned {len(results)} rows")
-                            return results
-                        else:
-                            affected_rows = cursor.rowcount
-                            self.logger.debug(f"Query affected {affected_rows} rows")
-                            return None
-
-        except Error as err:
-            self.logger.error(f"Error executing SQL query: {err}")
-            self.logger.error(f"Query: {query}")
-            if params:
-                self.logger.error(f"Parameters: {params}")
-            if "SQL execution failed" in str(err):
-                # Match the exact error message format expected by test_sql_execution_error
-                raise RuntimeError("Database query failed: SQL execution failed")
-            else:
-                raise RuntimeError(f"Database query failed: {err}")
+                    if fetch:
+                        results = cursor.fetchall()
+                        self.logger.debug(f"Query returned {len(results)} rows")
+                        return results
+                    else:
+                        affected_rows = cursor.rowcount
+                        self.logger.debug(f"Query affected {affected_rows} rows")
+                        return None
 
     def execute_select(self, query: str, params: Optional[tuple] = None) -> List[Dict]:
         """
@@ -609,6 +427,7 @@ class MariaDBConnector:
         """
         return self.sql(query, params, fetch=True)
 
+    @db_operation(error_message="Update query execution failed", reraise_as=QueryError)
     def execute_update(self, query: str, params: Optional[tuple] = None) -> int:
         """
         Executes an update query on the database and returns the number of rows affected. The
@@ -623,45 +442,23 @@ class MariaDBConnector:
             int: The number of rows affected by the query execution.
 
         Raises:
-            RuntimeError: If executing the update query fails.
+            QueryError: If executing the update query fails.
         """
-        try:
-            with self.get_connection() as connection:
-                with self.transaction(connection):
-                    with connection.cursor() as cursor:
-                        # Log the query for debugging
-                        self.logger.debug(f"Executing query: {query}")
-                        if params:
-                            self.logger.debug(f"With parameters: {params}")
-                            cursor.execute(query, params)
-                        else:
-                            cursor.execute(query)
-                    affected_rows = cursor.rowcount
-                    self.logger.debug(f"Query affected {affected_rows} rows")
-                    return affected_rows
+        with self.get_connection() as connection:
+            with self.transaction(connection):
+                with connection.cursor() as cursor:
+                    # Log the query for debugging
+                    self.logger.debug(f"Executing query: {query}")
+                    if params:
+                        self.logger.debug(f"With parameters: {params}")
+                        cursor.execute(query, params)
+                    else:
+                        cursor.execute(query)
+                affected_rows = cursor.rowcount
+                self.logger.debug(f"Query affected {affected_rows} rows")
+                return affected_rows
 
-        except Error as err:
-            # Enhanced error handling with specific privilege error detection
-            error_msg = str(err).lower()
-            self.logger.error(f"Error executing update query: {err}")
-            self.logger.error(f"Query was: {query}")
-            if params:
-                self.logger.error(f"Parameters were: {params}")
-
-            if "create user privilege" in error_msg:
-                self.logger.error("Database user lacks CREATE USER privilege")
-                # Format error message to match test expectations
-                raise RuntimeError(
-                    f"Insufficient database privileges: "
-                    f"The current user needs CREATE USER privilege for this operation."
-                )
-            elif "access denied" in error_msg:
-                self.logger.error("Database access denied - check user permissions")
-                # Format error message to match test expectations
-                raise RuntimeError(f"Database access denied: {err}")
-            else:
-                raise RuntimeError(f"Database update failed: {err}")
-
+    @db_operation(error_message="Batch query execution failed", reraise_as=QueryError)
     def execute_batch(
             self, queries: List[str], params_list: Optional[List[tuple]] = None
     ) -> bool:
@@ -682,35 +479,25 @@ class MariaDBConnector:
             bool: Boolean indicating whether the batch execution was successful.
 
         Raises:
-            RuntimeError: If any error occurs during the execution of the batch queries.
+            QueryError: If any error occurs during the execution of the batch queries.
         """
-        try:
-            with self.get_connection() as connection:
-                with self.transaction(connection):
-                    with connection.cursor() as cursor:
-                        for i, query in enumerate(queries):
-                            params = (
-                                params_list[i]
-                                if params_list and i < len(params_list)
-                                else None
-                            )
-                            if params:
-                                cursor.execute(query, params)
-                            else:
-                                cursor.execute(query)
-                        self.logger.debug(
-                            f"Successfully executed {len(queries)} in batch"
+        with self.get_connection() as connection:
+            with self.transaction(connection):
+                with connection.cursor() as cursor:
+                    for i, query in enumerate(queries):
+                        params = (
+                            params_list[i]
+                            if params_list and i < len(params_list)
+                            else None
                         )
-                        return True
-
-        except Error as err:
-            self.logger.error(f"Error executing batch queries: {err}")
-            # Ensure the error message format matches the test's expected pattern
-            if "Batch execution failed" in str(err):
-                # Match the exact error message format expected by test_batch_execution_error
-                raise RuntimeError("Batch query execution failed: Batch execution failed")
-            else:
-                raise RuntimeError(f"Batch query execution failed: {err}")
+                        if params:
+                            cursor.execute(query, params)
+                        else:
+                            cursor.execute(query)
+                    self.logger.debug(
+                        f"Successfully executed {len(queries)} in batch"
+                    )
+                    return True
 
     def _add_without_transaction(
             self, connection, timestamp: int, key_size: int, modulus: str
@@ -940,7 +727,7 @@ class MariaDBConnector:
         """
         try:
             # Get the output file path from instance attributes
-            output_file = Path(self.moduli_file)
+            output_file = self.moduli_home / ''.join(("ssh2-moduli_", iso_utc_timestamp(compress=True)))
 
             # Validate identifiers
             if not (
@@ -1034,6 +821,34 @@ class MariaDBConnector:
             self.logger.info(
                 f"Successfully wrote {total_records} moduli records to {output_file}"
             )
+
+            # MOVE Records from .moduli to .archived_moduli
+            archive_table = ".".join((self.db_name, "moduli_archive"))
+            self.logger.debug(f"Moving {len(records)} records to archive table {archive_table}")
+
+            try:
+                with self.get_connection() as connection:
+                    with self.transaction(connection):
+                        for record in records:
+                            # ADD Record to .archived_moduli
+                            archive_query = f"INSERT INTO {archive_table} (timestamp, config_id, size, modulus) VALUES (%s, %s, %s, %s)"
+                            archive_params = (record["timestamp"], self.config_id, record["size"], record["modulus"])
+
+                            with connection.cursor() as cursor:
+                                cursor.execute(archive_query, archive_params)
+
+                            # DELETE Record from .moduli
+                            delete_query = f"DELETE FROM {table} WHERE timestamp = %s AND size = %s AND modulus = %s"
+                            delete_params = (record["timestamp"], record["size"], record["modulus"])
+
+                            with connection.cursor() as cursor:
+                                cursor.execute(delete_query, delete_params)
+
+                self.logger.info(f"Successfully archived {len(records)} records from moduli to moduli_archive")
+            except Exception as archive_err:
+                self.logger.error(f"Error archiving moduli records: {archive_err}")
+                # Continue execution even if archiving fails - the file was already written successfully
+
 
         except Exception as err:
             self.logger.error(f"Error writing moduli file: {err}")

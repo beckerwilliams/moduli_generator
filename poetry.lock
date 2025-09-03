@@ -2595,4 +2595,4 @@ readthedocs = ["mkdocs", "mkdocs-autorefs", "mkdocs-get-deps", "mkdocs-material"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4.0"
-content-hash = "ad179f4ca73bd6a0d8a41dd15c1d26fbb974154cfbc4f5e7ca7f9782ff60ecf0"
+content-hash = "8e74fdb98369cacacb394cbe20eff3cc74b614439d1e8fe955fae3068a5b3ad0"

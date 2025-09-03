@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "moduli_generator"
-version = "1.0.2a6"
+version = "1.0.2a13"
 description = "A secure, high-performance SSH moduli file generator with database integration for cryptographic key exchange operations"
 authors = ["Ron Williams <becker.williams@gmail.com>"]
 readme = "README.md"
@@ -55,10 +55,11 @@ Issues = "https://github.com/beckerwilliams/moduli_generator/issues"
 
 [tool.poetry.scripts]
 moduli_generator = "moduli_generator.scripts.__main__:main"
+restart_screening = "moduli_generator.scripts.restart:main"
+write_ssh_moduli_file = "db.scripts.write_moduli_file:main"
+
 moduli_stats = "db.scripts.moduli_stats:main"
 install_schema = "db.scripts.install_moduli_generator_schema:main"
-restart_screening = "moduli_generator.scripts.restart:main"
-write_ssh_moduli_file = "moduli_generator.write_ssh2_moduli_file:main"
 #changelog = "changelog_generator.scripts.show:main"
 create_moduli_generator_cnf = "db.scripts.create_moduli_generator_cnf:main"
 mariadb_safe_password = "db.scripts.mariadb_safe_password_generator:main"
@@ -67,10 +68,10 @@ docs = "moduli_generator.scripts.docs_server:main"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-configparser = "==7.2.0"
-typing-extensions = "==4.15.0"
+configparser = ">=7.0.0"
+typing-extensions = ">=4.0.0"
 pydoc-markdown = "==4.8.0"
-mariadb = "==1.1.13"
+mariadb = ">=1.1.0"
 mkdocs = { version = ">=1.6.1", optional = true }
 mkdocs-autorefs = { version = ">=1.4.2", optional = true }
 mkdocs-get-deps = { version = ">=0.2.0", optional = true }
@@ -94,7 +95,7 @@ readthedocs = [
 ]
 
 [tool.poetry.group.runtime.dependencies]
-mariadb = "==1.1.13"
+mariadb = ">=1.1.0"
 
 [tool.poetry.group.dev.dependencies]
 black = ">=25.1.0,<26.0.0"

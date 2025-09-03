@@ -1,42 +1,41 @@
-import configparser
 import secrets
 import string
 from argparse import ArgumentParser
 from pathlib import Path
-from re import compile, sub
-from typing import (Any, Callable, Dict, List)
+from typing import Any, Callable, Dict, List
 
 from config import default_config
 from db import MariaDBConnector
+from db.common import (get_mysql_config_value, is_valid_identifier_sql, parse_mysql_config)
 
 __all__ = [
     "InstallSchema",
     "build_cnf",
     "cnf_argparser",
     "create_moduli_generator_cnf",
-    "create_privilged_user_and_config",
     "generate_random_password",
     "get_moduli_generator_db_schema_statements",
     "get_moduli_generator_user_schema_statements",
     "get_mysql_config_value",
     "parse_mysql_config",
-    "update_mariadb_app_owner"
+    "update_mariadb_app_owner",
+    "is_valid_identifier_sql"
 ]
 
 
 class InstallSchema(object):
     """
-    Handles the installation of database schemas through provided statements, batch processing,
-    or from SQL files. This class facilitates schema setup for MariaDB databases.
+    Manages the installation of database schemas in a MariaDB database.
 
-    This class provides functionalities to install schemas by executing individual statements,
-    executing all statements in a single transaction, or loading schema definitions from SQL files.
+    This class provides functionality to manage and execute database schema installation
+    via direct schema statements, batch execution, or from a schema file. It leverages
+    a MariaDB connector for database operations and supports configurable schema statements.
 
     Attributes:
-        db (MariaDBConnector): Connector instance to interact with the MariaDB database.
-        db_name (str): Name of the database where schemas are to be installed.
-        schema_statements (List[Dict[str, Any]]): List of schema statements containing 'query' strings
-            and optional 'params' or 'fetch' configurations.
+        config (Config): The default configuration object for the application.
+        db (MariaDBConnector): The database connector instance used to execute schema statements.
+        schema_statements (List[Dict[str, Any]]): List of schema statements to be executed, including
+            SQL queries and optional parameters.
     """
 
     def __init__(
@@ -182,7 +181,7 @@ class InstallSchema(object):
             print("Schema installation from file completed successfully")
             return True
 
-        except Error as err:
+        except Exception as err:
             print(f"Error installing schema from file: {err}")
             return False
 
@@ -532,183 +531,6 @@ def update_mariadb_app_owner(host, database, username, password) -> Path:
     return config_path
 
 
-# noinspection PyUnreachableCode
-def get_mysql_config_value(
-        cnf: Dict[str, Dict[str, str]], section: str, key: str, default: Any = None
-) -> Any:
-    """
-    Get a specific value from the parsed MySQL config dictionary.
-
-    Args:
-        cnf: Parsed config dictionary from parse_mysql_config
-        default: Default value if not found
-        key: Key name
-        section: Section name
-
-    Returns:
-        Config value or default
-
-    Raises:
-        TypeError: If parameters are not of the correct type
-    """
-    # Type validation - None config should raise TypeError
-    if cnf is None:
-        raise TypeError("config cannot be None")
-    if not isinstance(cnf, dict):
-        raise TypeError(f"config must be dict, got {type(cnf).__name__}")
-    if not isinstance(section, str):
-        raise TypeError(f"section must be string, got {type(section).__name__}")
-    if not isinstance(key, str):
-        raise TypeError(f"key must be string, got {type(key).__name__}")
-
-    if section not in cnf:
-        return default
-
-    if key not in cnf[section]:
-        return default
-
-    return cnf[section][key]
-
-
-def is_valid_identifier_sql(identifier: str) -> bool:
-    """
-    Determines if the given string is a valid identifier following specific
-        rules. Valid identifiers must either be unquoted strings containing only
-        alphanumeric characters, underscores, and dollar signs, or quoted strings
-        wrapped in backticks with proper pairing. Additionally, identifiers must not
-        exceed 64 characters.
-
-    Args:
-        identifier (str): The identifier string to validate.
-
-    Returns:
-        Bool: True if the identifier is valid, otherwise False.
-    """
-    if not identifier or not isinstance(identifier, str):
-        return False
-
-    # Check for empty string or too long identifier
-    if len(identifier) == 0 or len(identifier) > 64:
-        return False
-
-    # If the identifier is quoted with backticks, we need different validation
-    if identifier.startswith("`") and identifier.endswith("`"):
-        # For quoted identifiers, make sure the backticks are properly paired
-        # and that the identifier isn't just empty backticks
-        return len(identifier) > 2
-
-    # For unquoted identifiers, check that they only contain valid characters
-    valid_pattern = compile(r"^[a-zA-Z0-9_$]+$")
-
-    # Validate the pattern
-    if not valid_pattern.match(identifier):
-        return False
-
-    # MariaDB reserved words could be added here to make the validation stricter
-    # For a complete solution, a list of reserved words should be checked
-
-    return True
-
-
-def parse_mysql_config(mysql_cnf: Path) -> Dict[str, Dict[str, str]]:
-    """
-    Parse MySQL/MariaDB configuration file and return a dictionary structure.
-
-    Args:
-        mysql_cnf: Path to config file (str or Path) or file-like object
-
-    Returns:
-        Dictionary with sections and key-value pairs
-
-    Raises:
-        ValueError: If the configuration file has parsing errors
-        FileNotFoundError: If the file doesn't exist
-    """
-    # Fix: Check if mysql_cnf is None or empty string
-    if mysql_cnf is None or mysql_cnf == "":
-        return {}
-
-    # Convert to the Path object if it's a string
-    if isinstance(mysql_cnf, str):
-        mysql_cnf = Path(mysql_cnf)
-
-    # Handle different input types
-    cnf = configparser.ConfigParser(
-        allow_no_value=True,
-        interpolation=None,
-        strict=False,  # Allow duplicate sections to be merged
-    )
-
-    # Check if we're in a mocked context first
-    import builtins
-    import unittest.mock
-
-    is_mocked = isinstance(builtins.open, unittest.mock.MagicMock)
-
-    try:
-        # Check if input is a file-like object (has read method)
-        if hasattr(mysql_cnf, "read"):
-            # Handle file-like objects (StringIO, etc.)
-            cnf.read_file(mysql_cnf)
-        else:
-            # Handle Path objects
-            # For real files, check if the file exists first
-            if not is_mocked:
-                if not mysql_cnf.exists():
-                    raise FileNotFoundError(
-                        f"Configuration file not found: {mysql_cnf}"
-                    )
-
-                # Check if it's a directory
-                if mysql_cnf.is_dir():
-                    raise ValueError(
-                        f"Error parsing configuration file: [Errno 21] Is a directory: {mysql_cnf}"
-                    )
-
-                # Check if the file is empty
-                if mysql_cnf.stat().st_size == 0:
-                    return {}
-
-            # Try to read the file - this handles both real files and mocked files
-            cnf.read(str(mysql_cnf))
-
-        # If config.read() succeeds but no sections were found, assume an empty file
-        if not cnf.sections():
-            return {}
-
-        # Convert to dictionary and cleanup comments
-        result = {}
-        for section_name in cnf.sections():
-            result[section_name] = {}
-            for key, value in cnf.items(section_name):
-                if value is not None:
-                    # Strip inline comments (everything after # including whitespace before it)
-                    cleaned_value = sub(r"\s*#.*$", "", value).strip()
-                    result[section_name][key] = cleaned_value
-                else:
-                    result[section_name][key] = None
-
-        return result
-
-    except configparser.DuplicateSectionError as e:
-        raise ValueError(f"Error parsing configuration file: {e}")
-    except configparser.ParsingError as e:
-        raise ValueError(f"Error parsing configuration file: {e}")
-    except configparser.Error as e:
-        raise ValueError(f"Error parsing configuration file: {e}")
-    except FileNotFoundError:
-        # Re-raise FileNotFoundError as-is
-        raise
-    except PermissionError:
-        # For mocked tests, return empty dict; for real files, re-raise
-        if is_mocked:
-            return {}
-        else:
-            raise
-    except Exception as e:
-        if "already exists" in str(e).lower():
-            raise ValueError(f"Error parsing configuration file: {e}")
-        raise ValueError(f"Error parsing configuration file: {e}")
 
 
 def build_cnf(cnf_attrs: dict) -> str:

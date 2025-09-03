@@ -3,7 +3,7 @@ import concurrent.futures
 import subprocess
 from logging import DEBUG, INFO, Logger
 from pathlib import PosixPath as Path
-from typing import Any, Dict, List
+from typing import Any, Dict, Final, List
 
 import mariadb
 
@@ -12,7 +12,7 @@ from db import MariaDBConnector
 from moduli_generator.utils.validators import validate_subprocess_args
 
 # Constants
-SSH2_MODULI_FILE_FIELD_COUNT = 7  # Expected number of fields in moduli file format
+SSH2_MODULI_FILE_FIELD_COUNT: Final[int] = 7  # Expected number of fields in moduli file format
 
 __all__ = ["ModuliGenerator"]
 

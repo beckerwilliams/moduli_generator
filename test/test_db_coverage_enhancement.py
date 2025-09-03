@@ -32,6 +32,9 @@ class TestDBCoverageEnhancement:
         config.delete_records_on_moduli_write = False
         config.delete_records_on_read = False
         config.get_logger.return_value = MagicMock()
+        # Add moduli_home attribute
+        from pathlib import Path
+        config.moduli_home = Path("/tmp")
         return config
 
     @patch("db.parse_mysql_config")
@@ -56,8 +59,12 @@ class TestDBCoverageEnhancement:
         mock_is_valid.side_effect = [True, False, True]
 
         connector = MariaDBConnector(valid_mock_config)
-        # Ensure connector has the moduli_file attribute to avoid attribute error
+        # Ensure connector has the required attributes to avoid attribute errors
         connector.moduli_file = "test_moduli.txt"
+        connector.moduli_home = valid_mock_config.moduli_home
+        # Import and set pathlib.Path to access the home directory
+        from pathlib import Path
+        connector.moduli_home = Path("/tmp")
 
         with pytest.raises(RuntimeError, match="Invalid database, table, or view name:"):
             connector.write_moduli_file()

@@ -40,13 +40,8 @@ def main(config: ModuliConfig = None):
         f'Starting Moduli Generation at {start_time.strftime("%Y-%m-%d %H:%M:%S")}, with {config.key_lengths} as moduli key-lengths'
     )
 
-    # The Invocation - Generates Candidates and Screens for High Qualtiy DH GEX Moduli
-
     try:
-        if config.restart:
-            (ModuliGenerator(config).restart_screening().store_moduli())
-        else:
-            (ModuliGenerator(config).generate_moduli().store_moduli().write_moduli_file())
+        (ModuliGenerator(config).generate_moduli().store_moduli().write_moduli_file())
 
     except ValueError as err:
         logger.error(f"Moduli Generation Failed: {err}")

@@ -1,5 +1,6 @@
 configparser
 typing-extensions
+mariadb
 mkdocs
 mkdocs-autorefs
 mkdocs-get-deps

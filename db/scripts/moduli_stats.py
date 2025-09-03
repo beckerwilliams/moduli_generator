@@ -16,11 +16,15 @@ def main(config: ModuliConfig = default_config(), output_file=None):
         specified or defaults to the home directory with a timestamped filename.
 
     Args:
-        config (ModuliConfig, optional): Configuration object containing the necessary settings for the         database connection and logging.
-        output_file (str or None, optional): Path to the desired output file where moduli records will         be written. Defaults to None, in which case a timestamped file will be         created in the user's home directory.
+        config (ModuliConfig, optional): Configuration object containing the necessary settings for the
+                 database connection and logging.
+        output_file (str or None, optional): Path to the desired output file where moduli records will
+                 be written. Defaults to None, in which case a timestamped file will be
+                          created in the user's home directory.
 
     Returns:
-        List: A list of moduli records retrieved from the database and written to the         output file.
+        List: A list of moduli records retrieved from the database and written to the
+                 output file.
     """
     parser = argparse.ArgumentParser(
         description="Get modulus-counts by key-length from database"

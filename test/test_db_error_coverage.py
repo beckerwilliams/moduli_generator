@@ -235,7 +235,7 @@ password = testpass
 
         connector = MariaDBConnector(valid_mock_config)
 
-        with pytest.raises(RuntimeError, match="Database update failed"):
+        with pytest.raises(RuntimeError, match="Update query execution failed"):
             connector.execute_update(
                 "UPDATE test SET value = %s WHERE id = %s", ("new_value", 1)
             )

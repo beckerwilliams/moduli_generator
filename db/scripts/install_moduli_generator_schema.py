@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 from config import default_config
 from db import MariaDBConnector
-from db.utils import (InstallSchema, cnf_argparser as argparser, get_moduli_generator_db_schema_statements, get_moduli_generator_user_schema_statements)
+from db.utils import (
+    InstallSchema,
+    cnf_argparser as argparser,
+    get_moduli_generator_db_schema_statements,
+    get_moduli_generator_user_schema_statements
+)
 
 
 def main():

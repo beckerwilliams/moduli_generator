@@ -31,7 +31,6 @@ def _moduli_generator_argparser() -> Namespace:
         ),
         help="Directory to store candidate moduli (relative to moduli-home)",
     )
-
     parser.add_argument(
         "--key-lengths",
         type=int,
@@ -88,22 +87,16 @@ def _moduli_generator_argparser() -> Namespace:
         help="Delete records from DB written to moduli file",
     )
     parser.add_argument(
+        "--delete-records-on-moduli-write",
+        action="store_true",
+        help="Delete records from DB after writing them to moduli file",
+    )
+    parser.add_argument(
         "--version",
         action="store_true",
         help="Display version information",
     )
-    parser.add_argument(
-        "--restart",
-        action="store_true",
-        default=False,
-        help="Restart Interrupted Moduli Screening"
-    )
-    parser.add_argument(
-        "--store-moduli",
-        action="store_true",
-        default=False,
-        help="Store Moduli to DB",
-    )
+
     return parser.parse_args()
 
 
@@ -135,7 +128,7 @@ def local_config(args: Namespace = None) -> ModuliConfig:
 
         print(f"Moduli Generator v{__version__}")
         # Check if we're running in a test environment
-        if not 'pytest' in sys.modules:
+        if 'pytest' not in sys.modules:
             exit(0)
 
     # Create the config object using the with_base_dir static method
@@ -160,13 +153,11 @@ def local_config(args: Namespace = None) -> ModuliConfig:
     config_obj.mariadb_cnf = config_obj.moduli_home / args.mariadb_cnf
     config_obj.records_per_keylength = args.records_per_keylength
     config_obj.preserve_moduli_after_dbstore = args.preserve_moduli_after_dbstore
-    # config_obj.delete_records_on_moduli_write = args.delete_records_on_moduli_write
+    config_obj.delete_records_on_moduli_write = args.delete_records_on_moduli_write
 
     config_obj.ensure_directories()
     config_obj.key_lengths = tuple(args.key_lengths)
     config_obj.nice_value = args.nice_value
-    config_obj.restart = args.restart
-    config_obj.store_moduli = args.store_moduli
 
     return config_obj
 
